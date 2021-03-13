@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
                     addon['path'] = gw2_root / addon['path'];
 
-                gw2_addons.append(gw2sl.AddonFactory.from_dict(addon))
+                gw2_addons.append(gw2_sl.AddonFactory.from_dict(addon))
 
             print("\nLoaded addons: ")
             data= dict()
