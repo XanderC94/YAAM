@@ -99,4 +99,6 @@ if __name__ == "__main__":
         if addon.enabled and addon.is_exe():
             run(addon.path, addon.path.parent)
 
+    print("Stack complete. Closing...")
+
     exit(1)
