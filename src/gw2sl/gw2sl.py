@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
             print(tabulate.tabulate(data, headers="keys", tablefmt='rst', colalign=("left",)))
 
-    print(f"\nGW2 render: {not DXGI_RENDER.name}\n")
+    print(f"\nGW2 render: {DXGI_RENDER.name}")
 
     is_arcdps_disabled = sum([1 for _ in OPTION.NO_ARC_DPS if _ in gw2_args]) > 0
 
