@@ -109,11 +109,11 @@ if __name__ == "__main__":
 
     print(f"\nGW2 render: {DXGI_RENDER.name}")
 
-    is_arcdps_disabled = sum([1 for _ in OPTION.NO_ARC_DPS if _ in gw2_args]) > 0
+    is_arcdps_disabled = sum([1 for _ in OPTION.NO_ARC_DPS.aliases() if _ in gw2_args]) > 0
 
     is_arcdps_disabled = is_arcdps_disabled or sum([ 1 for _ in gw2_addons if _.name == "ArcDPS" and not _.enabled], 0) > 0
 
-    is_addon_update_only = sum([1 for _ in OPTION.UPDATE_ADDONS if _ in gw2_args]) > 0
+    is_addon_update_only = sum([1 for _ in OPTION.UPDATE_ADDONS.aliases() if _ in gw2_args]) > 0
 
     print(f"\nArcDPS is enabled? {not is_arcdps_disabled}\n")
 

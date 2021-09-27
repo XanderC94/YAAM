@@ -9,7 +9,7 @@ from pathlib import Path
 
 import requests
 
-from utils.hashing import get_local_hash, get_remote_hash
+from utils.hashing import Hasher
 from objects.addon import Addon
 from objects.render import Render
 from typing import List
@@ -95,7 +95,7 @@ def restore_addons(addons: List[Addon], dxgi : Render) -> int:
     '''
     ret = 0
     for addon in addons:
-        if addon.is_dll():
+        if addon.is_dll() and addon.enabled:
             p = addon.path_dxgi(dxgi)
             if Path(f"{p}.disabled").exists():
                 print(f"Addon {addon.name}({p.name}) will be restored...")
@@ -112,7 +112,7 @@ def disable_addons(addons: List[Addon], dxgi : Render) -> int:
 
     ret = 0
     for addon in addons:
-        if addon.is_dll():
+        if addon.is_dll() and not addon.enabled:
             p = addon.path_dxgi(dxgi)
             if p.exists():
                 print(f"Addon {addon.name}({p.name}) will be suppressed...")
@@ -134,16 +134,18 @@ def update_addon(addon: Addon):
 
         ret_code = UpdateResult.DISABLED
 
-        if addon.path.exists():
+        if addon.path.exists() and addon.enabled:
 
             if addon.update and len(addon.update_url):
+                
+                print(f"Checking {addon.name}({addon.path.name}) updates...")
 
-                print(f"Updating {addon.name}({addon.path.suffix})...")
+                res = requests.get(addon.update_url)
 
-                remote_hash, hash_type = get_remote_hash(addon.hash_url)
+                remote_hash = Hasher.SHA256.make_hash_from_bytes(res.content)
                 print(f"Remote hash is {remote_hash}.")
 
-                local_hash = get_local_hash(addon.path, hash_type)
+                local_hash = Hasher.SHA256.make_hash_from_file(addon.path)
                 print(f"Local hash is {local_hash}.")
 
                 if remote_hash == local_hash:
@@ -154,8 +156,6 @@ def update_addon(addon: Addon):
                 else:
                     
                     print("New addon update found. Downloading...", end=" ")
-
-                    res = requests.get(addon.update_url)
                     # write file on disk
                     with open(addon.path, 'wb') as addon_file:
                         if addon_file.write(res.content):
@@ -164,13 +164,13 @@ def update_addon(addon: Addon):
                         else:
                             ret_code = UpdateResult.UPDATE_FAILED
                             print("Failed.")
-                        
-            elif not addon.enabled:
+                
+            # elif not addon.enabled:
 
-                print(f"Addon {addon.name} is disabled, will be removed...")
+            #     print(f"Addon {addon.name} is disabled, will be removed...")
 
-                os.remove(addon.path)
-                ret_code = UpdateResult.DELETED
+            #     os.remove(addon.path)
+            #     ret_code = UpdateResult.DELETED
 
         elif addon.enabled:
             

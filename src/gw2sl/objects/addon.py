@@ -7,7 +7,7 @@ class Addon(object):
         self, 
         name: str, 
         path: Path, path_d3d9 : Path, 
-        update_url: str, hash_url: str, 
+        update_url: str,
         update: bool, enabled: bool, 
         dxgi: Render = Render.DXGI_9
     ):
@@ -15,7 +15,6 @@ class Addon(object):
         self.__path = path
         self.__path_d3d9 = path_d3d9
         self.__update_url = update_url
-        self.__hash_url = hash_url
         self.__update = update
         self.__enabled = enabled
         self.__dxgi = dxgi
@@ -51,10 +50,6 @@ class Addon(object):
         return self.__update_url
 
     @property
-    def hash_url(self) -> str:
-        return self.__hash_url
-    
-    @property
     def update(self) -> bool:
         return self.__update
 
@@ -81,7 +76,6 @@ class AddonFactory(object):
             Path(json['path']),
             Path(json['path_d3d9'] if 'path_d3d9' in json else json['path']),
             json['uri'],
-            json['hash'],
             json['update'],
             json['enabled'],
             dxgi

@@ -8,93 +8,99 @@ from pathlib import Path
 
 import requests
 
-class HashType(Enum):
+class Hasher(Enum):
     '''
     Available hashing algorithms
     '''
-    NONE = (-1, set()),
-    MD5 = (0, set(['MD5', 'MD5SUM'])),
-    SHA1 = (1, set(['SHA1'])),
-    SHA256 = (2, set(['SHA256', 'SHA'])),
-    SHA384 = (3, set(['SHA384'])),
-    SHA512 = (4, set(['SHA512']))
+    NONE = 0,
+    MD5 = 1,
+    SHA1 = 2,
+    SHA256 = 3,
+    SHA384 = 4,
+    SHA512 = 5
+
+    def create(self):
+        strategy = None
+
+        if self == Hasher.MD5:
+            strategy = hashlib.md5()
+        elif self == Hasher.SHA1:
+            strategy = hashlib.sha1()
+        elif self == Hasher.SHA256:
+            strategy = hashlib.sha256()
+        elif self == Hasher.SHA384:
+            strategy = hashlib.sha384()
+        elif self == Hasher.SHA512:
+            strategy = hashlib.sha512()
+
+        return strategy
+
+    def make_hash_from_file(self, fname : Path):
+        '''
+        Return hashcode for the specified file with the specified algorithm
+        @fname: Path -- path to the file for which computing the hash
+        '''
+        fshan = self.create()
+
+        with open(fname, "rb") as file_to_hash:
+            for chunk in iter(lambda: file_to_hash.read(4096), b""):
+                fshan.update(chunk)
+        return fshan.hexdigest()
+
+    def make_hash_from_bytes(self, data: bytes):
+        '''
+        Return hashcode for the specified bytes
+        @data: bytes -- data byte to hash
+        '''
+        fshan = self.create()
+        fshan.update(data)
+        return fshan.hexdigest()
 
     @staticmethod
     def from_string(str_repr: str):
         '''
-        Get enum type from strin repr.
+        Get enum type from string repr.
         If none match return NONE
         '''
-        result = HashType.NONE
+        result = Hasher.NONE
 
-        for hash_type in HashType:
-            if str_repr.upper() in hash_type.value[0][1]:
-                result = hash_type
+        for hasher in Hasher:
+            if str_repr.upper() == hasher.name:
+                result = hasher
                 break
 
         return result
+    
+    @staticmethod
+    def read_hash_from_url(url: str):
+        '''
+        Read a remote hash from the provided url
 
+        @url: str -- address of the hash
+        '''
+        hash_code = str()
+        hash_type = Hasher.NONE
 
-def make_hash(fname, fshan=hashlib.md5()):
-    '''
-    Return hashcode for the specified fiel with the specified algoritm
-    '''
-    with open(fname, "rb") as file_to_hash:
-        for chunk in iter(lambda: file_to_hash.read(4096), b""):
-            fshan.update(chunk)
-    return fshan.hexdigest()
+        tokens = url.split('.')
 
-def get_remote_hash(url: str):
-    '''
-    Retreive a remote hash from the provided url
+        if tokens:
+            hash_type = Hasher.from_string(tokens[-1])
 
-    @url: str -- address of the hash
-    '''
-    hash_code = str()
-    hash_type = HashType.NONE
+        res = requests.get(url)
+        hash_code = res.content.decode(encoding='utf-8', errors='ignore')
 
-    tokens = url.split('.')
+        split = ['\n', '\r', ' ']
 
-    if tokens:
-        hash_type = HashType.from_string(tokens[-1])
+        for element in split:
+            tokens = hash_code.split(sep=element)
+            for token in tokens:
+                if token:
+                    hash_code = token
+                    break
 
-    res = requests.get(url)
-    hash_code = res.content.decode(encoding='utf-8', errors='ignore')
+        purge = ["\x00"]
 
-    split = ['\n', '\r', ' ']
+        for element in purge:
+            hash_code = hash_code.replace(element, "")
 
-    for element in split:
-        tokens = hash_code.split(sep=element)
-        for token in tokens:
-            if token:
-                hash_code = token
-                break
-
-    purge = ["\x00"]
-
-    for element in purge:
-        hash_code = hash_code.replace(element, "")
-
-    return (hash_code.upper(), hash_type)
-
-def get_local_hash(path: Path, hash_type: HashType):
-    '''
-    Retreive a remote hash from the provided url
-
-    @path: Path -- path to the file for which computing the hash
-    '''
-    hash_code = str()
-
-    if hash_type == HashType.MD5:
-        hash_code = make_hash(path)
-    elif hash_type == HashType.SHA1:
-        hash_code = make_hash(path, hashlib.sha1())
-    elif hash_type == HashType.SHA256:
-        hash_code = make_hash(path, hashlib.sha256())
-    elif hash_type == HashType.SHA384:
-        hash_code = make_hash(path, hashlib.sha384())
-    elif hash_type == HashType.SHA512:
-        hash_code = make_hash(path, hashlib.sha512())
-
-    return hash_code.upper()
-
+        return (hash_code.upper(), hash_type)
