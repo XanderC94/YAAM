@@ -1,2 +1,0 @@
-cd D:\Xander\Documenti\Projects\pyGW2SL\src\gw2sl
-python -m nuitka --standalone --windows-company-name="https://github.com/XanderC94" --windows-product-version="1.0" --plugin-enable=numpy --mingw64 gw2sl.py --output-dir=../../bin

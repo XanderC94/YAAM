@@ -2,8 +2,9 @@
 import os
 
 from pathlib import Path
-from objects.render import Render
 from typing import List
+
+from objects.render import Render
 from objects.addon import Addon
 
 def restore_bin_dir(bin_dir: Path) -> bool:
