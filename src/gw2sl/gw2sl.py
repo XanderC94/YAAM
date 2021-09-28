@@ -4,16 +4,18 @@ gw2sl main module
 
 import os
 import json
-from pathlib import Path
 import tabulate
 
+from pathlib import Path
 from bs4 import BeautifulSoup
-from objects.render import Render
 
-from utils.update import restore_bin_dir, restore_addons, disable_bin_dir, disable_addons, update_addons
+from utils.update import update_addons
+from utils.manage import restore_addons, disable_addons
 from utils.process import run
-from objects.addon import AddonFactory
 from utils.options import OPTION
+
+from objects.render import Render
+from objects.addon import AddonFactory
 
 #####################################################################
 
@@ -106,29 +108,27 @@ if __name__ == "__main__":
                     data[k].append(v)
 
             print(tabulate.tabulate(data, headers="keys", tablefmt='rst', colalign=("left",)))
+    
+    print()
+    print(f"GW2 render: {DXGI_RENDER.name}")
 
-    print(f"\nGW2 render: {DXGI_RENDER.name}")
-
-    is_arcdps_disabled = sum([1 for _ in OPTION.NO_ARC_DPS.aliases() if _ in gw2_args]) > 0
-
-    is_arcdps_disabled = is_arcdps_disabled or sum([ 1 for _ in gw2_addons if _.name == "ArcDPS" and not _.enabled], 0) > 0
+    # is_arcdps_disabled = sum([1 for _ in OPTION.NO_ARC_DPS.aliases() if _ in gw2_args]) > 0
+    # is_arcdps_disabled = is_arcdps_disabled or sum([ 1 for _ in gw2_addons if _.name == "ArcDPS" and not _.enabled], 0) > 0
+    # print(f"ArcDPS is enabled? {not is_arcdps_disabled}")
 
     is_addon_update_only = sum([1 for _ in OPTION.UPDATE_ADDONS.aliases() if _ in gw2_args]) > 0
 
-    print(f"\nArcDPS is enabled? {not is_arcdps_disabled}\n")
-
-    if is_arcdps_disabled:
+    disable_addons(gw2_addons, Render.DXGI_9)
+    disable_addons(gw2_addons, Render.DXGI_11)
+    
+    if DXGI_RENDER == Render.DXGI_11:
         disable_addons(gw2_addons, Render.DXGI_9)
-        disable_addons(gw2_addons, Render.DXGI_11)
+        restore_addons(gw2_addons, Render.DXGI_11)
     else:
-        if DXGI_RENDER == Render.DXGI_11:
-            disable_addons(gw2_addons, Render.DXGI_9)
-            restore_addons(gw2_addons, Render.DXGI_11)
-        else:
-            disable_addons(gw2_addons, Render.DXGI_11)
-            restore_addons(gw2_addons, Render.DXGI_9)
+        disable_addons(gw2_addons, Render.DXGI_11)
+        restore_addons(gw2_addons, Render.DXGI_9)
         
-        update_addons(gw2_addons)
+    update_addons(gw2_addons)
 
     if not is_addon_update_only:
         run(GW2_PATH, GW2_ROOT, gw2_args)

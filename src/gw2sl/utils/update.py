@@ -2,17 +2,14 @@
 GW2SL utility module
 '''
 
-import os
+import io
+import zipfile
+import requests
 
 from enum import Enum
-from pathlib import Path
-
-import requests
 
 from utils.hashing import Hasher
 from objects.addon import Addon
-from objects.render import Render
-from typing import List
 
 class UpdateResult(Enum):
     '''
@@ -23,103 +20,11 @@ class UpdateResult(Enum):
     CREATE_FAILED = -3,
     NOT_DLL = -2,
     DELETED = -1,
-    DISABLED = 0,
-    CREATED = 1,
-    UPDATED = 2,
-    UP_TO_DATE = 3,
-
-def restore_bin_dir(bin_dir: Path) -> bool:
-    '''
-    Restore backup folder with active addons.
-
-    @bin_dir : Path -- The current directory where the .dll addons are stored.
-    '''
-
-    ret: bool = False
-
-    addons_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.addons.bak"
-    arc_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.arc.bak"
-    def_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.bak"
-
-    if addons_bak_dir.exists():
-        print("Addons will be restored...")
-
-        if not def_bak_dir.exists():
-            os.rename(str(bin_dir), str(def_bak_dir))
-
-        os.rename(str(arc_bak_dir), str(bin_dir))
-
-        ret = True
-
-    elif addons_bak_dir.exists(): # backward compatibility
-
-        print("Addons will be restored...")
-
-        if not def_bak_dir.exists():
-            os.rename(str(bin_dir), str(def_bak_dir))
-
-        os.rename(str(arc_bak_dir), str(bin_dir))
-
-        ret = True
-
-    return ret
-
-def disable_bin_dir(bin_dir: Path) -> bool:
-    '''
-    Overrides the typing of installed addons (.dll -> .dll.disabled)
-    @bin_dir : Path -- The vanilla bin directory.
-    @addons : List[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
-    '''
-
-    ret = False
-
-    addons_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.addons.bak"
-    def_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.bak"
-
-    if not addons_bak_dir.exists():
-        print("Addons will be suppressed...")
-
-        os.rename(str(bin_dir), str(addons_bak_dir))
-
-        if def_bak_dir.exists():
-            os.rename(str(def_bak_dir), str(bin_dir))
-
-        ret = True
-
-    return ret
-
-def restore_addons(addons: List[Addon], dxgi : Render) -> int:
-    '''
-    Restore disabled addons.
-    @addons : List[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
-    '''
-    ret = 0
-    for addon in addons:
-        if addon.is_dll() and addon.enabled:
-            p = addon.path_dxgi(dxgi)
-            if Path(f"{p}.disabled").exists():
-                print(f"Addon {addon.name}({p.name}) will be restored...")
-                os.rename(f"{p}.disabled", str(p))
-                ret += 1
-
-    return ret
-
-def disable_addons(addons: List[Addon], dxgi : Render) -> int:
-    '''
-    Overrides the typing of installed addons (.dll -> .dll.disabled)
-    @addons : List[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
-    '''
-
-    ret = 0
-    for addon in addons:
-        if addon.is_dll() and not addon.enabled:
-            p = addon.path_dxgi(dxgi)
-            if p.exists():
-                print(f"Addon {addon.name}({p.name}) will be suppressed...")
-                os.rename(str(p), f"{p}.disabled")
-                ret += 1
-
-    return ret
+    NONE = 0,
+    DISABLED = 1,
+    CREATED = 2,
+    UPDATED = 3,
+    UP_TO_DATE = 4,
 
 def update_addon(addon: Addon):
     '''
@@ -127,68 +32,65 @@ def update_addon(addon: Addon):
 
     @addon: dict -- addon to updated
     '''
-
-    ret_code = UpdateResult.NOT_DLL
-
-    if addon.is_dll():
-
+    ret_code = UpdateResult.NONE
+    
+    if not addon.is_dll():
+        ret_code = UpdateResult.NOT_DLL
+    elif not addon.enabled:
         ret_code = UpdateResult.DISABLED
+    elif not len(addon.update_url):
+        print(f"No update URL provided.")
+        ret_code = UpdateResult.NO_URL
+    else:
+        res = requests.get(addon.update_url)
 
-        if addon.path.exists() and addon.enabled:
+        data : bytes = res.content
 
-            if addon.update and len(addon.update_url):
-                
+        if 'Content-Disposition' in res.headers:
+            if res.headers['Content-Disposition'].endswith(".zip"):
+                file_like_object = io.BytesIO(res.content)
+                zip_data = zipfile.ZipFile(file_like_object)
+                for f in zip_data.filelist:
+                    if f.filename.endswith(".dll"):
+                        h = zip_data.open(f.filename)
+                        data = h.read()
+                        h.close()
+                        break
+
+        ok_code = UpdateResult.NONE
+        fail_code = UpdateResult.NONE
+
+        if addon.path.exists():
+            if addon.update:
                 print(f"Checking {addon.name}({addon.path.name}) updates...")
 
-                res = requests.get(addon.update_url)
-
-                remote_hash = Hasher.SHA256.make_hash_from_bytes(res.content)
+                remote_hash = Hasher.SHA256.make_hash_from_bytes(data)
                 print(f"Remote hash is {remote_hash}.")
 
                 local_hash = Hasher.SHA256.make_hash_from_file(addon.path)
                 print(f"Local hash is {local_hash}.")
 
                 if remote_hash == local_hash:
-
                     print("Addon is up-to-date.")
                     ret_code = UpdateResult.UP_TO_DATE
-
                 else:
-                    
                     print("New addon update found. Downloading...", end=" ")
-                    # write file on disk
-                    with open(addon.path, 'wb') as addon_file:
-                        if addon_file.write(res.content):
-                            ret_code = UpdateResult.UPDATED
-                            print("Done.")
-                        else:
-                            ret_code = UpdateResult.UPDATE_FAILED
-                            print("Failed.")
-                
-            # elif not addon.enabled:
-
-            #     print(f"Addon {addon.name} is disabled, will be removed...")
-
-            #     os.remove(addon.path)
-            #     ret_code = UpdateResult.DELETED
-
-        elif addon.enabled:
-            
+                    ok_code = UpdateResult.UPDATED
+                    fail_code = UpdateResult.UPDATE_FAILED
+        else:
             print(f"Creating {addon.name}({addon.path.name})...", end=" ")
-            if len(addon.update_url):
-
-                res = requests.get(addon.update_url)
-                # write file on disk
-                with open(addon.path, 'wb') as addon_file:
-                    if addon_file.write(res.content):
-                        ret_code = UpdateResult.CREATED
-                        print("Done.")
-                    else:
-                        ret_code = UpdateResult.CREATE_FAILED
-                        print("Failed.")
-            else:
-                print(f"No update URL provided.")
-                ret_code = UpdateResult.NO_URL
+            ok_code = UpdateResult.CREATED
+            fail_code = UpdateResult.CREATE_FAILED
+        
+        if not ok_code == UpdateResult.NONE and not fail_code == UpdateResult.NONE:
+            # write file on disk
+            with open(addon.path, 'wb') as addon_file:
+                if addon_file.write(data):
+                    ret_code = ok_code
+                    print("Done.")
+                else:
+                    ret_code = fail_code
+                    print("Failed.")
 
     return ret_code
 
