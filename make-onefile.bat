@@ -1,3 +1,0 @@
-cd D:\Xander\Documenti\Projects\pyGW2SL
-@REM python -m nuitka --onefile --windows-company-name="https://github.com/XanderC94" --windows-product-version="1.0" --windows-product-name="GW2SL-YAAM" --mingw64 --remove-output src/yaam/yaam.py --output-dir=bin/mingw64
-python -m nuitka --onefile --windows-company-name="https://github.com/XanderC94" --windows-product-version="1.0" --windows-product-name="GW2SL-YAAM" --msvc --lto --remove-output src/yaam/yaam.py --output-dir=bin/msvc
