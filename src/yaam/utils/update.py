@@ -3,8 +3,10 @@ GW2SL utility module
 '''
 
 import io
+from os import makedirs
 import zipfile
 import requests
+import validators
 
 from enum import Enum
 
@@ -26,20 +28,40 @@ class UpdateResult(Enum):
     UPDATED = 3,
     UP_TO_DATE = 4,
 
+def update_addons(addons: list):
+    '''
+    Updates the provided addons
+    
+    @addons: list -- list of addons to updated
+    '''
+    
+    for addon in addons:
+        update_addon(addon)
+
 def update_addon(addon: Addon):
     '''
-    Update where specified or possible the provided addon
+    Update the provided addon if specified and when possible
 
-    @addon: dict -- addon to updated
+    @addon: Addon -- addon to updated
     '''
+    ret_code = UpdateResult.NONE
+    
+    ret_code = update_dll_addon(addon)
+
+    # Add other types and checks on the ret code ...
+
+    return ret_code
+
+def update_dll_addon(addon: Addon):
+
     ret_code = UpdateResult.NONE
     
     if not addon.is_dll():
         ret_code = UpdateResult.NOT_DLL
-    elif not addon.enabled:
+    elif not addon.is_enabled:
         ret_code = UpdateResult.DISABLED
-    elif not len(addon.update_url):
-        print(f"No update URL provided.")
+    elif not validators.url(addon.update_url.tostr()):
+        print(f"No valid update URL provided for {addon.name}({addon.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
         res = requests.get(addon.update_url)
@@ -51,7 +73,7 @@ def update_addon(addon: Addon):
                 file_like_object = io.BytesIO(res.content)
                 zip_data = zipfile.ZipFile(file_like_object)
                 for f in zip_data.filelist:
-                    if f.filename.endswith(".dll"):
+                    if f.filename.endswith(addon.path.suffix):
                         h = zip_data.open(f.filename)
                         data = h.read()
                         h.close()
@@ -61,7 +83,7 @@ def update_addon(addon: Addon):
         fail_code = UpdateResult.NONE
 
         if addon.path.exists():
-            if addon.update:
+            if addon.is_updateable:
                 print(f"Checking {addon.name}({addon.path.name}) updates...")
 
                 remote_hash = Hasher.SHA256.make_hash_from_bytes(data)
@@ -84,6 +106,9 @@ def update_addon(addon: Addon):
         
         if not ok_code == UpdateResult.NONE and not fail_code == UpdateResult.NONE:
             # write file on disk
+            if not addon.path.parent.exists():
+                makedirs(addon.path.parent)
+                
             with open(addon.path, 'wb') as addon_file:
                 if addon_file.write(data):
                     ret_code = ok_code
@@ -93,13 +118,3 @@ def update_addon(addon: Addon):
                     print("Failed.")
 
     return ret_code
-
-def update_addons(addons: list):
-    '''
-    Update where specified or possible the addons provided by the list
-
-    @addons: list -- list of addons to updated
-    '''
-
-    for addon in addons:
-        update_addon(addon)

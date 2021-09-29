@@ -1,20 +1,25 @@
 from enum import Enum
-from typing import List
+from typing import Set
 
-class OPTION(Enum):
+class Option(Enum):
     
-    NO_ARC_DPS = (0, ["-noArcDPS", "/noArcDPS", "-no-arc-dps", "/no-arc-dps"])
-    UPDATE_ADDONS = (1, ["-update-addons", "/update-addons"])
+    UPDATE_ADDONS = (0, set(["-update-addons", "/update-addons"]))
 
     def __eq__(self, o: object) -> bool:
-        if isinstance(o, OPTION):
-            return self.value[0] == o.value[0]
+        if isinstance(o, Option):
+            return self.value == o.value
         else:
             return False
 
-    def aliases(self) -> List[str]:
-        return self.value[1]
+    @property
+    def aliases(self) -> Set[str]:
+        return self.content[1]
 
     @property
-    def value(self) -> tuple:
+    def value(self) -> int:
+        return self.content[0]
+
+    @property
+    def content(self) -> tuple:
         return super().value
+

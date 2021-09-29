@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from typing import List
 
-from objects.render import Render
 from objects.addon import Addon
 
 def restore_bin_dir(bin_dir: Path) -> bool:
@@ -67,15 +66,15 @@ def disable_bin_dir(bin_dir: Path) -> bool:
 
     return ret
 
-def restore_addons(addons: List[Addon], dxgi : Render) -> int:
+def restore_dll_addons(addons: List[Addon]) -> int:
     '''
     Restore disabled addons.
     @addons : List[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
     '''
     ret = 0
     for addon in addons:
-        if addon.is_dll() and addon.enabled:
-            p = addon.path_dxgi(dxgi)
+        if addon.is_dll() and addon.is_enabled:
+            p = addon.path
             if Path(f"{p}.disabled").exists():
                 print(f"Addon {addon.name}({p.name}) will be restored...")
                 os.rename(f"{p}.disabled", str(p))
@@ -83,7 +82,7 @@ def restore_addons(addons: List[Addon], dxgi : Render) -> int:
 
     return ret
 
-def disable_addons(addons: List[Addon], dxgi : Render) -> int:
+def disable_dll_addons(addons: List[Addon]) -> int:
     '''
     Overrides the typing of installed addons (.dll -> .dll.disabled)
     @addons : List[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
@@ -91,8 +90,8 @@ def disable_addons(addons: List[Addon], dxgi : Render) -> int:
 
     ret = 0
     for addon in addons:
-        if addon.is_dll() and not addon.enabled:
-            p = addon.path_dxgi(dxgi)
+        if addon.is_dll() and not addon.is_enabled:
+            p = addon.path
             if p.exists():
                 print(f"Addon {addon.name}({p.name}) will be suppressed...")
                 os.rename(str(p), f"{p}.disabled")

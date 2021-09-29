@@ -1,93 +1,45 @@
 from pathlib import Path
-from objects.render import Render
+from furl import furl
+from objects.binding import Binding
 
-class Addon(object):
+class AddonBase(object):
 
-    def __init__(
-        self, 
-        name: str, 
-        path: Path, path_d3d9 : Path, 
-        update_url: str,
-        update: bool, enabled: bool, 
-        dxgi: Render = Render.DXGI_9
-    ):
-        self.__name = name
-        self.__path = path
-        self.__path_d3d9 = path_d3d9
-        self.__update_url = update_url
-        self.__update = update
-        self.__enabled = enabled
-        self.__dxgi = dxgi
+    def __init__(self, name: str, update_url: furl):
+        self._name = name
+        self._update_url = update_url
 
     @property
     def name(self) -> str:
-        return self.__name
-    
-    def path_dxgi(self, dxgi : Render) -> Path:
-        p : Path = Path()
-
-        if dxgi == Render.DXGI_9:
-            p = self.path_d3d9              
-        elif dxgi == Render.DXGI_11:
-            p = self.path_d3d11
-
-        return p
-    
-    @property
-    def path(self) -> Path:
-        return self.path_dxgi(self.dxgi)
-    
-    @property
-    def path_d3d9(self) -> Path:
-        return self.__path_d3d9
-    
-    @property
-    def path_d3d11(self) -> Path:
-        return self.__path
-    
-    @property
-    def update_url(self) -> str:
-        return self.__update_url
+        return self._name
 
     @property
-    def update(self) -> bool:
-        return self.__update
-
-    @property
-    def enabled(self) -> bool:
-        return self.__enabled
-
-    @property
-    def dxgi(self) -> bool:
-        return self.__dxgi
-
-    def is_dll(self) -> bool:
-        return self.__path.suffix == ".dll"
-
-    def is_exe(self) -> bool:
-        return self.__path.suffix == ".exe"
-
-class AddonFactory(object):
+    def update_url(self) -> furl:
+        return self._update_url
 
     @staticmethod
-    def from_dict(json: dict, dxgi:Render = Render.DXGI_9):
-        return Addon(
-            json['name'],
-            Path(json['path']),
-            Path(json['path_d3d9'] if 'path_d3d9' in json else json['path']),
-            json['uri'],
-            json['update'],
-            json['enabled'],
-            dxgi
-        )
+    def from_dict(json: dict):
+        return AddonBase(json['name'], furl(json['uri'] if 'uri' in json else ""))
 
-    @staticmethod
-    def to_table(addon: Addon):
+class Addon(AddonBase, Binding):
+
+    def __init__(self, base: AddonBase, binding: Binding):
+        self._name = base.name
+        self._update_url = base.update_url
+        self._path = binding.path
+        self._enabled = binding.is_enabled
+        self._update = binding.is_updateable
+        self._binding_type = binding.typing
+
+    def set_enabled(self, enabled: bool):
+        self._enabled = enabled
+
+    def to_table(self) -> dict:
         table : dict = {}
 
-        table['name'] = addon.name
-        table['path'] = addon.path.name
-        table['update'] = addon.update
-        table['enabled'] = addon.enabled
+        table['name'] = self.name
+        table['path'] = self.path.name
+        table['update'] = self.is_updateable
+        table['enabled'] = self.is_enabled
 
         return table
+        
