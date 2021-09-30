@@ -2,8 +2,9 @@
 gw2sl main module
 '''
 
-import os
-import tabulate
+from os import getenv
+from sys import exit
+from tabulate import tabulate
 
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from typing import List
 
 if __name__ == "__main__":
 
-    gw2 = GW2(Path(os.getenv("APPDATA")))
+    gw2 = GW2(Path(getenv("APPDATA")))
 
     print(f"Reading root path from {gw2.config_path}")
     
@@ -65,7 +66,7 @@ if __name__ == "__main__":
                         data[k] = list()
                     data[k].append(v)
 
-        print(tabulate.tabulate(data, headers="keys", tablefmt='rst', colalign=("left",)))
+        print(tabulate(data, headers="keys", tablefmt='rst', colalign=("left",)))
     
     print(f"GW2 render: {gw2.dxgi.name}")
 

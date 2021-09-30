@@ -1,10 +1,9 @@
 from pathlib import Path
-from furl import furl
 from objects.binding import Binding
 
 class AddonBase(object):
 
-    def __init__(self, name: str, update_url: furl):
+    def __init__(self, name: str, update_url: str):
         self._name = name
         self._update_url = update_url
 
@@ -13,12 +12,12 @@ class AddonBase(object):
         return self._name
 
     @property
-    def update_url(self) -> furl:
+    def update_url(self) -> str:
         return self._update_url
 
     @staticmethod
     def from_dict(json: dict):
-        return AddonBase(json['name'], furl(json['uri'] if 'uri' in json else ""))
+        return AddonBase(json['name'], json['uri'] if 'uri' in json else "")
 
 class Addon(AddonBase, Binding):
 

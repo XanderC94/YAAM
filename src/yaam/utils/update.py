@@ -60,7 +60,7 @@ def update_dll_addon(addon: Addon):
         ret_code = UpdateResult.NOT_DLL
     elif not addon.is_enabled:
         ret_code = UpdateResult.DISABLED
-    elif not validators.url(addon.update_url.tostr()):
+    elif not validators.url(addon.update_url):
         print(f"No valid update URL provided for {addon.name}({addon.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
