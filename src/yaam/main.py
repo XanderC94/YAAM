@@ -15,7 +15,7 @@ from utils.options import Option
 
 from objects.gw2 import GW2
 from objects.binding_type import BindingType
-from objects.addon import Addon
+from objects.addon import Addon, AddonBase
 
 from typing import List
 
@@ -39,22 +39,27 @@ if __name__ == "__main__":
     if not gw2.path.exists():
         print("but location doesn't exists! Closing.")
         exit(0)
-
+    else:
+        print()
+        
     addons : List[Addon] = list()
     
     if gw2.load_settings():
         
         allowed_binding_types = set([ BindingType.EXE, BindingType.AGNOSTIC, gw2.dxgi ])
 
-        # build addons incarnation
+        # build addons incarnations
         for binding_type in BindingType:
             if binding_type in gw2.bindings:
                 for (addon_name, binding) in gw2.bindings[binding_type].items():
+                    addon_base = AddonBase(addon_name, str())
                     if addon_name in gw2.bases:
-                        addon = Addon(gw2.bases[addon_name], binding)
-                        if not binding_type in allowed_binding_types:
-                            addon.set_enabled(False)
-                        addons.append(addon)
+                        addon_base = gw2.bases[addon_name]
+                    
+                    addon = Addon(addon_base, binding)
+                    if not binding_type in allowed_binding_types:
+                        addon.set_enabled(False)
+                    addons.append(addon)
 
         print("Loaded addons: ")
         data = dict()

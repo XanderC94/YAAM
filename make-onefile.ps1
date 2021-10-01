@@ -1,14 +1,20 @@
-@(pipreqs --force)
+$requirements=New-Object System.Collections.Generic.List[System.Object]
+$requirements.AddRange(@(pipreqs --print))
+$nuitka_version=([System.String](@(pip list | Select-String "nuitka"))).Split(" ")[-1]
+$requirements.Add("nuitka==$nuitka_version")
+$requirements | Sort-Object | Out-File "requirements.txt" -Encoding utf8 -Force | Out-Null
+
+Write-Output "Updated required project modules file."
 
 $version = @(git describe --tags --always)
-
 $product_name="YAAM-$version"
 $product_version="0.0.0.1"
 $company_name="https://github.com/XanderC94"
 $description="Yet Another Addon Manager"
+$icon_path="res/icon/yaam.ico"
 
 $output_dir="bin/msvc"
-$target="src/yaam/yaam.py"
+$target="src/yaam/main.py"
 
 $params = @(
     "--onefile",
@@ -18,8 +24,14 @@ $params = @(
     "--windows-product-name=$product_name",
     "--windows-product-version=$product_version",
     "--windows-company-name=$company_name",
-    "--windows-file-description=$description"
+    "--windows-file-description=$description",
+    "--windows-icon-from-ico=$icon_path"
     "--output-dir=$output_dir"
+    # "-o $output_dir/yaam.exe"
 )
 
 @(python -m nuitka $params $target)
+
+Move-Item $output_dir/"main.exe" "$output_dir/yaam.exe" -Force
+
+Write-Output "Renamed executable to yaam.exe."
