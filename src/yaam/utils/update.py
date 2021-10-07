@@ -6,7 +6,7 @@ import io
 from os import makedirs
 import zipfile
 import requests
-import validators
+from utils.validators.url import url as url_validator
 
 from enum import Enum
 
@@ -60,7 +60,8 @@ def update_dll_addon(addon: Addon):
         ret_code = UpdateResult.NOT_DLL
     elif not addon.is_enabled:
         ret_code = UpdateResult.DISABLED
-    elif not validators.url(addon.update_url):
+    elif not url_validator(addon.update_url):
+    # elif not len(addon.update_url):
         print(f"No valid update URL provided for {addon.name}({addon.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:

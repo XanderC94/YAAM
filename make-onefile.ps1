@@ -19,8 +19,10 @@ $target="src/yaam/main.py"
 $params = @(
     "--onefile",
     "--msvc",
+    # "--mingw64",
     "--lto",
     "--remove-output",
+    "--plugin-enable=pylint-warnings"
     "--windows-product-name=$product_name",
     "--windows-product-version=$product_version",
     "--windows-company-name=$company_name",
