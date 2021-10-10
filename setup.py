@@ -1,9 +1,12 @@
+'''
+Python project setup module
+'''
 from setuptools import setup
 
-with open("README", 'r') as f:
+with open("README", 'r', encoding='utf-8') as f:
     long_description = f.read()
 
-with open("requirements.txt", 'r') as f:
+with open("requirements.txt", 'r', encoding='utf-8') as f:
     requirements = [s.split("==")[0] for s in f.read().split('\n') if len(s)]
 
 setup(
