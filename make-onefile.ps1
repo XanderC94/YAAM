@@ -14,7 +14,7 @@ $description="Yet Another Addon Manager"
 $icon_path="res/icon/yaam.ico"
 
 $output_dir="bin/msvc"
-$target="src/yaam/main.py"
+$target="src/main.py"
 
 $params = @(
     "--onefile",
@@ -31,7 +31,7 @@ $params = @(
     "--output-dir=$output_dir"
     # "-o $output_dir/yaam.exe"
 )
-
+Write-Output "python -m nuitka" $params $target
 @(python -m nuitka $params $target)
 
 Move-Item $output_dir/"main.exe" "$output_dir/yaam.exe" -Force

@@ -1,10 +1,13 @@
-
+'''
+Addon enable-disable management module
+'''
 import os
 
 from pathlib import Path
-from typing import List
+from typing import Iterable
 
-from objects.addon import Addon
+from yaam.model.immutable.addon import Addon
+from yaam.utils.logger import static_logger as logger
 
 def restore_bin_dir(bin_dir: Path) -> bool:
     '''
@@ -20,7 +23,7 @@ def restore_bin_dir(bin_dir: Path) -> bool:
     def_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.bak"
 
     if addons_bak_dir.exists():
-        print("Addons will be restored...")
+        logger().info(msg="Addons will be restored...")
 
         if not def_bak_dir.exists():
             os.rename(str(bin_dir), str(def_bak_dir))
@@ -31,7 +34,7 @@ def restore_bin_dir(bin_dir: Path) -> bool:
 
     elif addons_bak_dir.exists(): # backward compatibility
 
-        print("Addons will be restored...")
+        logger().info(msg="Addons will be restored...")
 
         if not def_bak_dir.exists():
             os.rename(str(bin_dir), str(def_bak_dir))
@@ -55,7 +58,7 @@ def disable_bin_dir(bin_dir: Path) -> bool:
     def_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.bak"
 
     if not addons_bak_dir.exists():
-        print("Addons will be suppressed...")
+        logger().info(msg="Addons will be suppressed...")
 
         os.rename(str(bin_dir), str(addons_bak_dir))
 
@@ -66,26 +69,26 @@ def disable_bin_dir(bin_dir: Path) -> bool:
 
     return ret
 
-def restore_dll_addons(addons: List[Addon]) -> int:
+def restore_dll_addons(addons: Iterable[Addon]) -> int:
     '''
     Restore disabled addons.
-    @addons : List[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
+    @addons : Iterable[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
     '''
     ret = 0
     for addon in addons:
         if addon.is_dll() and addon.is_enabled:
             p = addon.path
             if Path(f"{p}.disabled").exists():
-                print(f"Addon {addon.name}({p.name}) will be restored...")
+                logger().info(msg=f"Addon {addon.name}({p.name}) will be restored...")
                 os.rename(f"{p}.disabled", str(p))
                 ret += 1
 
     return ret
 
-def disable_dll_addons(addons: List[Addon]) -> int:
+def disable_dll_addons(addons: Iterable[Addon]) -> int:
     '''
     Overrides the typing of installed addons (.dll -> .dll.disabled)
-    @addons : List[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
+    @addons : Iterable[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
     '''
 
     ret = 0
@@ -93,7 +96,7 @@ def disable_dll_addons(addons: List[Addon]) -> int:
         if addon.is_dll() and not addon.is_enabled:
             p = addon.path
             if p.exists():
-                print(f"Addon {addon.name}({p.name}) will be suppressed...")
+                logger().info(msg=f"Addon {addon.name}({p.name}) will be suppressed...")
                 os.rename(str(p), f"{p}.disabled")
                 ret += 1
 

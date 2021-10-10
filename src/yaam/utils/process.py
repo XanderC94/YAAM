@@ -1,12 +1,15 @@
 '''
-Process execution utility function
+Process execution utility module
 '''
 
 import time
 import subprocess
+from typing import Iterable
 from pathlib import Path
+from yaam.utils.logger import static_logger as logger
+from yaam.model.immutable.argument import ArgumentIncarnation as Arg
 
-def run(target: Path, workspace: Path, args: list = None):
+def run(target: Path, workspace: Path, args: Iterable[Arg] = None, slack = 5):
     '''
     Run the target process in the specified workspace
     and the provided arguments.
@@ -15,11 +18,9 @@ def run(target: Path, workspace: Path, args: list = None):
     @workspace : Path -- workspace in which run the process
     @args : list -- list of command line parameters provided to the process
     '''
-    print("Launching", target.name, *(args if not args == None else []))
+    _args = [str(a) for a in args] if args is not None else []
+    logger().info("Launching %s %s", target.name, ' '.join(_args))
 
-    if args:
-        subprocess.Popen(executable=str(target), cwd=str(workspace), args=args)
-    else:
-        subprocess.Popen(executable=str(target), cwd=str(workspace), args=[])
+    subprocess.Popen(executable=str(target), cwd=str(workspace), args=_args)
 
-    time.sleep(5)
+    time.sleep(slack)

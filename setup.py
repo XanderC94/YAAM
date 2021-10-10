@@ -17,8 +17,5 @@ setup(
    url="https://github.com/XanderC94/YAAM",
    packages=['yaam'],  #same as name
    install_requires=requirements, #external packages as dependencies
-   scripts=[
-            'scripts/cool',
-            'scripts/skype',
-           ]
+   scripts=[]
 )

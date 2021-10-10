@@ -1,17 +1,16 @@
 '''
-GW2SL utility module
+GW2SL update utility module
 '''
-
 import io
-from os import makedirs
 import zipfile
-import requests
-from utils.validators.url import url as url_validator
-
+from os import makedirs
 from enum import Enum
-
-from utils.hashing import Hasher
-from objects.addon import Addon
+from typing import Iterable
+import requests
+from yaam.utils.validators.url import url as url_validator
+from yaam.utils.hashing import Hasher
+from yaam.utils.logger import static_logger as logger
+from yaam.model.immutable.addon import Addon
 
 class UpdateResult(Enum):
     '''
@@ -28,7 +27,7 @@ class UpdateResult(Enum):
     UPDATED = 3,
     UP_TO_DATE = 4,
 
-def update_addons(addons: list):
+def update_addons(addons: Iterable[Addon]):
     '''
     Updates the provided addons
     
@@ -62,7 +61,7 @@ def update_dll_addon(addon: Addon):
         ret_code = UpdateResult.DISABLED
     elif not url_validator(addon.update_url):
     # elif not len(addon.update_url):
-        print(f"No valid update URL provided for {addon.name}({addon.path.name}).")
+        logger().info(msg=f"No valid update URL provided for {addon.name}({addon.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
         res = requests.get(addon.update_url)
@@ -85,23 +84,23 @@ def update_dll_addon(addon: Addon):
 
         if addon.path.exists():
             if addon.is_updateable:
-                print(f"Checking {addon.name}({addon.path.name}) updates...")
+                logger().info(msg=f"Checking {addon.name}({addon.path.name}) updates...")
 
                 remote_hash = Hasher.SHA256.make_hash_from_bytes(data)
-                print(f"Remote hash is {remote_hash}.")
+                logger().info(msg=f"Remote hash is {remote_hash}.")
 
                 local_hash = Hasher.SHA256.make_hash_from_file(addon.path)
-                print(f"Local hash is {local_hash}.")
+                logger().info(msg=f"Local hash is {local_hash}.")
 
                 if remote_hash == local_hash:
-                    print("Addon is up-to-date.")
+                    logger().info(msg="Addon is up-to-date.")
                     ret_code = UpdateResult.UP_TO_DATE
                 else:
-                    print("New addon update found. Downloading...", end=" ")
+                    logger().info(msg="New addon update found. Downloading...", end=" ")
                     ok_code = UpdateResult.UPDATED
                     fail_code = UpdateResult.UPDATE_FAILED
         else:
-            print(f"Creating {addon.name}({addon.path.name})...", end=" ")
+            logger().info(msg=f"Creating {addon.name}({addon.path.name})...", end=" ")
             ok_code = UpdateResult.CREATED
             fail_code = UpdateResult.CREATE_FAILED
         
@@ -113,9 +112,9 @@ def update_dll_addon(addon: Addon):
             with open(addon.path, 'wb') as addon_file:
                 if addon_file.write(data):
                     ret_code = ok_code
-                    print("Done.")
+                    logger().info(msg="Done.")
                 else:
                     ret_code = fail_code
-                    print("Failed.")
+                    logger().info(msg="Failed.")
 
     return ret_code

@@ -1,0 +1,208 @@
+{
+    "arguments": [
+        {
+            "name": "32",
+            "values": [],
+            "description": "Forces the game to run in 32-bit mode.",
+            "deprecated": false
+        },
+        {
+            "name": "assetsrv",
+            "values": [],
+            "value_type": "ip",
+            "description": "Used to specify the IP-address or DNS-name to use for downloading assets.",
+            "deprecated": true,
+            "user_defined": true
+        },
+        {
+            "name": "authsrv",
+            "values": [],
+            "value_type": "ip",
+            "description": "Specifies the IP or DNS that can be used to connect to a login server. e.g. 64.25.38.54",
+            "deprecated": true,
+            "user_defined": true
+        },
+        {
+            "name": "autologin",
+            "values": [],
+            "description": "Logs in automatically, if the client has been set to remember the Account Name and Password.",
+            "deprecated": false
+        },
+        {
+            "name": "bmp",
+            "values": [],
+            "description": "Forces the game to create lossless screenshots as .BMP files. Used for creating higher-quality screenshots at the expense of much larger files.",
+            "deprecated": false
+        },
+        {
+            "name": "clientport",
+            "values": [80, 443],
+            "value_type": "numeric",
+            "description": "Instructs the client to connect to the game servers over port 443 (HTTPS) instead of 6112 (commonly used for games). Some ISPs may prioritize traffic at certain times, and some networks may block port 6112. This may be useful to avoid such scenarios. Some ISPs, networks, and other forms of MITM attacks may modify traffic on port 443 which will lead to issues with the GW2 client if this option is used (this is less-likely to occur than with port 80).",
+            "deprecated": false
+        },
+        {
+            "name": "dat",
+            "values": [],
+            "value_type": "path",
+            "description": "Uses the specified file instead of the default GW2.dat file.",
+            "deprecated": false,
+            "user_defined": true
+        },
+        {
+            "name": "diag",
+            "values": [],
+            "description": "Instead of launching the game, this command creates a detailed diagnostic file that contains diagnostic data that can be used for troubleshooting. The file, NetworkDiag.log, will be located in your game directory or 'Documents\\Guild Wars' . If you want to use this feature, be sure to create a separate shortcut for it.",
+            "deprecated": false
+        },
+        {
+            "name": "dx9single",
+            "values": [],
+            "description": "Enables the Direct3D 9c renderer in single-threaded mode. This improves performance while running under Wine in most cases.",
+            "deprecated": false
+        },
+        {
+            "name": "forwardrenderer",
+            "values": [],
+            "description": "Uses Forward Rendering instead of Deferred Rendering. Shadows and lighting may not render properly. This may improve overall framerate for certain graphics cards.",
+            "deprecated": false
+        },
+        {
+            "name": "fps",
+            "values": [],
+            "value_type": "numeric",
+            "description": "Sets maximum frames per second parameter.",
+            "deprecated": false,
+            "user_defined": true
+        },
+        {
+            "name": "image",
+            "values": [],
+            "description": "Runs the patch UI only in order to download any available updates; closes immediately without loading the login form. **Recommended**: Create an extra Guild Wars 2 shortcut (e.g. 'Guild Wars 2 Updater') specifically to use this command line switch.",
+            "deprecated": false
+        },
+        {
+            "name": "log",
+            "values": [],
+            "description": "Enables the creation of a log file, used mostly by Support.",
+            "deprecated": false
+        },
+        {
+            "name": "mapLoadinfo",
+            "values": [],
+            "description": "Shows diagnostic information during map loads, including load percentages and elapsed time.",
+            "deprecated": false
+        },
+        {
+            "name": "mce",
+            "values": [],
+            "description": "Start the client with Windows Media Center compatibility, switching the game to full screen and restarting Media Center (if available) after the client is closed.",
+            "deprecated": false
+        },
+        {
+            "name": "mumble",
+            "values": [],
+            "value_type": "numeric",
+            "description": "Used to specify the name of the file mapping to which the game client will write data in MumbleLink format. Passing zero (i.e. -mumble 0) disables MumbleLink output.",
+            "deprecated": false,
+            "user_defined": true
+        },
+        {
+            "name": "nodelta",
+            "values": [],
+            "description": "Disable delta patching when updating game files.",
+            "deprecated": false
+        },
+        {
+            "name": "nomusic",
+            "values": [],
+            "description": "Disables music and background music.",
+            "deprecated": false
+        },
+        {
+            "name": "noui",
+            "values": [],
+            "description": "Disables the user interface. This does the same thing as pressing Ctrl Shift H in the game.",
+            "deprecated": false
+        },
+        {
+            "name": "nosound",
+            "values": [],
+            "description": "Disables audio system completely.",
+            "deprecated": false
+        },
+        {
+            "name": "portal",
+            "values": [],
+            "value_type": "user-defined",
+            "description": "Used to specify the IP-address or DNS-name to use for connecting to a portal/gate server.",
+            "deprecated": false
+        },
+        {
+            "name": "prefreset",
+            "values": [],
+            "description": "Resets game settings.",
+            "deprecated": false
+        },
+        {
+            "name": "repair",
+            "values": [],
+            "description": "Start the client, checks the files for errors and repairs them as needed. This can take a long time (1/2 hour or an hour) to run as it checks the entire contents of the 20-30 gigabyte archive. This is rarely necessary as the archive is always checking for errors as it runs; if it finds an error, it will schedule a repair for the next time the game starts. The archive reads and writes certain parts of the disk fairly frequently; if you are getting a lot of disk errors, this is a sign that your drive may be dying.",
+            "deprecated": false
+        },
+        {
+            "name": "shareArchive",
+            "values": [],
+            "description": "Opens the Gw2.dat file in shared mode so that it can be accessed from other processes while the game is running.",
+            "deprecated": false
+        },
+        {
+            "name": "uispanallmonitors",
+            "values": [],
+            "description": "Spreads user interface across all monitors in a triple monitor setup.",
+            "deprecated": false
+        },
+        {
+            "name": "uninstall",
+            "values": [],
+            "description": "Presents the uninstall dialog. If uninstall is accepted, it deletes the contents of the Guild Wars 2 installation folder except GW2.EXE itself and any manually created subfolders. Contents in subfolders (if any) are not deleted.",
+            "deprecated": false
+        },
+        {
+            "name": "useOldFov",
+            "values": [],
+            "description": "Disables the widescreen field-of-view enhancements and restores the original field-of-view.",
+            "deprecated": false
+        },
+        {
+            "name": "verify",
+            "values": [],
+            "description": "Used to verify the .dat file.",
+            "deprecated": false
+        },
+        {
+            "name": "windowed",
+            "values": [],
+            "description": "Forces Guild Wars 2 to run in windowed mode. In game, you can switch to windowed mode by pressing Alt+Enter or clicking the window icon in the upper right corner.",
+            "deprecated": false
+        },
+        {
+            "name": "umbra gpu",
+            "values": [],
+            "description": "Forces the use of Umbra's GPU accelerated culling. This may result in higher CPU usage, lower GPU usage, and an overall decrease in framerate.",
+            "deprecated": false
+        },
+        {
+            "name": "dx9",
+            "values": [],
+            "description": "Forces use of DX9 renderer, ignoring player settings.",
+            "deprecated": false
+        },
+        {
+            "name": "dx11",
+            "values": [],
+            "description": "Forces use of DX11 renderer, ignoring player settings.",
+            "deprecated": false
+        }
+    ]
+}
