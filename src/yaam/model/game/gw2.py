@@ -3,9 +3,10 @@ Guild Wars 2 model class
 '''
 import json
 
+import os
+
 from pathlib import Path
 from bs4 import BeautifulSoup
-# from copy import copy, deepcopy
 
 from yaam.utils.logger import static_logger as logger
 from yaam.model.binding_type import BindingType
@@ -58,24 +59,27 @@ class GuildWars2(AbstractGame):
 
         if load_ok:
             # Load all addons with default bindings
-            metadata_path = Path("./res/metadata")
+            working_dir = Path(os.getcwd())
+            metadata_path = working_dir / "res/metadata"
             arguments_metedata_path = metadata_path / "arguments.json"
             addons_metedata_path = metadata_path / "addons.json"
 
-            with open(arguments_metedata_path, encoding="utf-8") as _:
-                json_obj = json.load(_)
-                if "arguments" in json_obj:
-                    for obj in json_obj["arguments"]:
-                        argument = Argument.from_dict(obj)
-                        self.add_argument(argument)
-           
-            with open(addons_metedata_path, encoding="utf-8") as _:
-                json_obj = json.load(_)
-                if "addons" in json_obj:
-                    for obj in json_obj["addons"]:
-                        base = MutableAddonBase.from_dict(obj)
-                        self.add_addon(base)
-            
+            if arguments_metedata_path.exists():
+                with open(arguments_metedata_path, encoding="utf-8") as _:
+                    json_obj = json.load(_)
+                    if "arguments" in json_obj:
+                        for obj in json_obj["arguments"]:
+                            argument = Argument.from_dict(obj)
+                            self.add_argument(argument)
+
+            if addons_metedata_path.exists():
+                with open(addons_metedata_path, encoding="utf-8") as _:
+                    json_obj = json.load(_)
+                    if "addons" in json_obj:
+                        for obj in json_obj["addons"]:
+                            base = MutableAddonBase.from_dict(obj)
+                            self.add_addon(base)
+
         return load_ok
 
 #############################################################################################
@@ -95,9 +99,9 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
     def load(self) -> bool:
 
         load_ok : bool = False
-        
+
         if self.config_path.exists():
-            
+
             with open(self.config_path, encoding="utf-8") as _:
 
                 settings = json.load(_)
@@ -108,7 +112,7 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
                     self._binding_type = BindingType.DXGI_11
 
                 load_ok = True
-                    
+
         return load_ok and self._incarnate_addons()
 
     def __objectify_json_settings(self, json_obj: dict) -> None:
@@ -141,10 +145,10 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
 
                         while obj['path'].startswith("."):
                             obj['path'] = obj['path'][1:]
-                            
+
                         if obj['path'].startswith("\\") or obj['path'].startswith("/"):
                             obj['path'] = obj['path'][1:]
-                        
+
                         obj['path'] = self.root / Path(obj['path'])
 
                     binding = MutableBinding.from_dict(obj, binding_type)
@@ -161,7 +165,7 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
         for binding_type in BindingType:
             if binding_type in self._bindings:
                 for (addon_name, binding) in self._bindings[binding_type].items():
-                    
+
                     addon_base = self.game.addon(addon_name)
                     if addon_base is None:
                         addon_base = MutableAddonBase(addon_name)
@@ -172,7 +176,7 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
                         addon.is_enabled = False
 
                     self.add_addon(addon)
-        
+
         for base in self.game.addons:
             if not self.has_addon(base.name):
                 self.add_addon(MutableAddon(base, MutableBinding(base.name)))
