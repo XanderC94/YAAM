@@ -1,8 +1,9 @@
+$root=$PSScriptRoot
 $requirements=New-Object System.Collections.Generic.List[System.Object]
 $requirements.AddRange(@(pipreqs --print))
 $nuitka_version=([System.String](@(pip list | Select-String "nuitka"))).Split(" ")[-1]
 $requirements.Add("nuitka==$nuitka_version")
-$requirements | Sort-Object | Out-File "requirements.txt" -Encoding utf8 -Force | Out-Null
+$requirements | Sort-Object | Out-File $PSScriptRoot/"requirements.txt" -Encoding utf8 -Force | Out-Null
 
 Write-Output "Updated required project modules file."
 
@@ -15,6 +16,8 @@ $icon_path="res/icon/yaam.ico"
 
 $output_dir="bin/msvc"
 $target="src/main.py"
+
+Write-Output $target
 
 $params = @(
     "--onefile",
@@ -31,9 +34,17 @@ $params = @(
     "--output-dir=$output_dir"
     # "-o $output_dir/yaam.exe"
 )
-Write-Output "python -m nuitka" $params $target
+
 @(python -m nuitka $params $target)
 
-Move-Item $output_dir/"main.exe" "$output_dir/yaam.exe" -Force
-
+Move-Item "$root/$output_dir/main.exe" "$root/$output_dir/yaam.exe" -Force
 Write-Output "Renamed executable to yaam.exe."
+
+if (!(Test-Path "$root/$output_dir/res/metadata"))
+{
+    New-Item -ItemType Directory -Force "$root/$output_dir/res/metadata"
+}
+
+Copy-Item "$root/res/metadata/*" -Destination "$root/$output_dir/res/metadata" -Recurse | Out-Null
+
+Write-Output "Copied metadata in metadata release folder"
