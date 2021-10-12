@@ -41,7 +41,7 @@ def run_main():
         game = GameIncarnator().incarnate(Path(os.getenv("APPDATA")))
 
         data = defaultdict(list)
-        for addon in sorted(game.addons, key=lambda x: x.name):
+        for addon in sorted(game.addons, key=lambda x: x.base.name):
             table = addon.to_table()
             for (key, value) in table.items():
                 data[key].append(value)

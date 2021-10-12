@@ -5,15 +5,16 @@ Abstract Game class module
 from pathlib import Path
 from typing import Dict, Set, List, TypeVar, Union
 from yaam.model.immutable.argument import Argument
-from yaam.model.mutable.binding import BindingType, MutableBinding
-from yaam.model.mutable.addon import MutableAddonBase
+from yaam.model.immutable.addon_base import AddonBase
+from yaam.model.immutable.binding import BindingType, Binding
 from yaam.model.game.base import IGame
 from yaam.utils.exceptions import ConfigLoadException
 
 C = TypeVar('C')
 A = TypeVar('A')
+B = TypeVar('B')
 
-class AbstractGameBase(IGame[A, C], object):
+class AbstractGameBase(IGame[A, C, B], object):
     '''
     Game model base class
     '''
@@ -24,7 +25,7 @@ class AbstractGameBase(IGame[A, C], object):
         self._binding_type = default_binding
         self._args : Set[C] = set()
         self._addons : List[A] = list()
-        self._bindings : Dict[BindingType, Dict[str, MutableBinding]] = dict()
+        self._bindings : Dict[BindingType, Dict[str, B]] = dict()
 
     @property
     def config_path(self) -> Path:
@@ -33,6 +34,10 @@ class AbstractGameBase(IGame[A, C], object):
     @property
     def binding(self) -> BindingType:
         return self._binding_type
+
+    # @property
+    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
+    #     return self._bindings
 
     @property
     def arguments(self) -> Set[A]:
@@ -80,7 +85,7 @@ class AbstractGameBase(IGame[A, C], object):
 
         return ret
 
-class AbstractGame(AbstractGameBase[MutableAddonBase, Argument], object):
+class AbstractGame(AbstractGameBase[AddonBase, Argument, Binding], object):
     '''
     Game model class
     '''

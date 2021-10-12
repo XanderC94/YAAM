@@ -3,15 +3,16 @@ Game model abstract class module
 '''
 
 from pathlib import Path
-from typing import Set, List, Generic, TypeVar, Union
+from typing import Set, List, Generic, TypeVar, Union, Dict
 
 from abc import ABC, abstractmethod
 from yaam.model.binding_type import BindingType
 
 C = TypeVar('C')
 A = TypeVar('A')
+B = TypeVar('B')
 
-class IGame(ABC, Generic[A, C]):
+class IGame(ABC, Generic[A, C, B]):
     '''
     Game model Interface
     '''
@@ -62,6 +63,14 @@ class IGame(ABC, Generic[A, C]):
         Returns the game binaries directory.
         '''
         return Path()
+
+    # @property
+    # @abstractmethod
+    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
+    #     '''
+    #     Returns game arguments
+    #     '''
+    #     return dict()
 
     @property
     @abstractmethod

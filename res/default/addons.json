@@ -1,0 +1,53 @@
+{
+    "addons": [
+        {
+            "name": "ArcDPS",
+            "uri": "https://www.deltaconnected.com/arcdps/x64/d3d9.dll",
+            "contribs": [],
+            "description": "",
+            "dependencies": []
+        },
+        {
+            "name": "ArcDPS BoonsTable",
+            "uri": "https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest/download/d3d9_arcdps_table.dll",
+            "contribs": [],
+            "description": "",
+            "dependencies": [ "ArcDPS" ]
+        },
+        {
+            "name": "ArcDPS BuildPad",
+            "uri": "https://buildpad.gw2archive.eu/versions/latest",
+            "contribs": [],
+            "description": "",
+            "dependencies": [ "ArcDPS" ]
+        },
+        {
+            "name": "GW2 Radial Mounts",
+            "uri": "https://github.com/Friendly0Fire/GW2Radial/releases/download/v2.1.0-pre2/gw2radial.zip",
+            "contribs": [],
+            "description": "",
+            "dependencies": []
+        },
+        {
+            "name": "ArcDPS KillProof Me",
+            "uri": "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/latest/download/d3d9_arcdps_killproof_me.dll",
+            "contribs": [],
+            "description": "",
+            "dependencies": [ "ArcDPS" ]
+        },
+        {
+            "name": "ReShade",
+            "uri": "https://reshade.me/",
+            "contribs": [ "Crosire" ],
+            "description": "",
+            "dependencies": [ ]
+        },
+        {
+            "name": "GShade",
+            "uri": "https://gposers.com/gshade/",
+            "contribs": [ "gposers" ],
+            "description": "",
+            "dependencies": [ ]
+        }
+    ]
+}

@@ -7,19 +7,22 @@ from typing import List, Any
 from abc import abstractmethod
 
 from yaam.model.binding_type import BindingType
-from yaam.model.mutable.addon import MutableAddon, MutableAddonBase
+from yaam.model.immutable.binding import Binding
+from yaam.model.immutable.addon_base import AddonBase
 from yaam.model.immutable.argument import Argument, ArgumentIncarnation
+from yaam.model.mutable.binding import MutableBinding
+from yaam.model.mutable.addon import MutableAddon
 from yaam.model.game.base import IGame
 from yaam.model.game.abstract import AbstractGameBase
 
-class IGameIncarnation(AbstractGameBase[MutableAddon, ArgumentIncarnation[Any]]):
+class IGameIncarnation(AbstractGameBase[MutableAddon, ArgumentIncarnation[Any], MutableBinding]):
     '''
     Game incarnation model interface
     '''
 
     @property
     @abstractmethod
-    def game(self):
+    def game(self) -> IGame[AddonBase, Argument, Binding]:
         '''
         Return the underlying game of this incarnation
         '''
@@ -30,7 +33,7 @@ class AbstractGameIncarnation(IGameIncarnation):
     Abstract Game Incarnation model class
     '''
 
-    def __init__(self, game: IGame[MutableAddonBase, Argument]):
+    def __init__(self, game: IGame[AddonBase, Argument, Binding]):
 
         super().__init__(game.binding)
         self._game = game
@@ -40,7 +43,7 @@ class AbstractGameIncarnation(IGameIncarnation):
         self._chainloads : List[List[str]] = list()
 
     @property
-    def game(self) -> IGame[MutableAddonBase, Argument]:
+    def game(self) -> IGame[AddonBase, Argument, Binding]:
         return self._game
 
     @property

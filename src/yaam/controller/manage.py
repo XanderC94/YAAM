@@ -76,10 +76,10 @@ def restore_dll_addons(addons: Iterable[Addon]) -> int:
     '''
     ret = 0
     for addon in addons:
-        if addon.is_dll() and addon.is_enabled:
-            p = addon.path
+        if addon.binding.is_dll() and addon.binding.is_enabled:
+            p = addon.binding.path
             if Path(f"{p}.disabled").exists():
-                logger().info(msg=f"Addon {addon.name}({p.name}) will be restored...")
+                logger().info(msg=f"Addon {addon.base.name}({p.name}) will be restored...")
                 os.rename(f"{p}.disabled", str(p))
                 ret += 1
 
@@ -93,10 +93,10 @@ def disable_dll_addons(addons: Iterable[Addon]) -> int:
 
     ret = 0
     for addon in addons:
-        if addon.is_dll() and not addon.is_enabled:
-            p = addon.path
+        if addon.binding.is_dll() and not addon.binding.is_enabled:
+            p = addon.binding.path
             if p.exists():
-                logger().info(msg=f"Addon {addon.name}({p.name}) will be suppressed...")
+                logger().info(msg=f"Addon {addon.base.name}({p.name}) will be suppressed...")
                 os.rename(str(p), f"{p}.disabled")
                 ret += 1
 

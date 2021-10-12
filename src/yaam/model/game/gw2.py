@@ -11,7 +11,9 @@ from bs4 import BeautifulSoup
 
 from yaam.utils.logger import static_logger as logger
 from yaam.model.binding_type import BindingType
-from yaam.model.mutable.addon import MutableAddonBase, MutableAddon, MutableBinding
+from yaam.model.mutable.addon import MutableAddon
+from yaam.model.mutable.addon_base import MutableAddonBase, AddonBase
+from yaam.model.mutable.binding import MutableBinding
 from yaam.model.immutable.argument import Argument, ArgumentIncarnation
 from yaam.model.game.abstract import AbstractGame
 from yaam.model.incarnator import Incarnator
@@ -81,7 +83,7 @@ class GuildWars2(AbstractGame):
                     json_obj = json.load(_)
                     if "addons" in json_obj:
                         for obj in json_obj["addons"]:
-                            base = MutableAddonBase.from_dict(obj)
+                            base = AddonBase.from_dict(obj)
                             self.add_addon(base)
 
                 if len(self.addons) > 0:

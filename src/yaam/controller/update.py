@@ -30,10 +30,10 @@ class UpdateResult(Enum):
 def update_addons(addons: Iterable[Addon]):
     '''
     Updates the provided addons
-    
+
     @addons: list -- list of addons to updated
     '''
-    
+
     for addon in addons:
         update_addon(addon)
 
@@ -44,7 +44,7 @@ def update_addon(addon: Addon):
     @addon: Addon -- addon to updated
     '''
     ret_code = UpdateResult.NONE
-    
+
     ret_code = update_dll_addon(addon)
 
     # Add other types and checks on the ret code ...
@@ -55,16 +55,16 @@ def update_dll_addon(addon: Addon):
 
     ret_code = UpdateResult.NONE
     
-    if not addon.is_dll():
+    if not addon.binding.is_dll():
         ret_code = UpdateResult.NOT_DLL
-    elif not addon.is_enabled:
+    elif not addon.binding.is_enabled:
         ret_code = UpdateResult.DISABLED
-    elif not url_validator(addon.update_url):
+    elif not url_validator(addon.base.update_url):
     # elif not len(addon.update_url):
-        logger().info(msg=f"No valid update URL provided for {addon.name}({addon.path.name}).")
+        logger().info(msg=f"No valid update URL provided for {addon.base.name}({addon.binding.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
-        res = requests.get(addon.update_url)
+        res = requests.get(addon.base.update_url)
 
         data : bytes = res.content
 
@@ -82,34 +82,34 @@ def update_dll_addon(addon: Addon):
         ok_code = UpdateResult.NONE
         fail_code = UpdateResult.NONE
 
-        if addon.path.exists():
-            if addon.is_updateable:
-                logger().info(msg=f"Checking {addon.name}({addon.path.name}) updates...")
+        if addon.binding.path.exists():
+            if addon.binding.is_updateable:
+                logger().info(msg=f"Checking {addon.base.name}({addon.binding.path.name}) updates...")
 
                 remote_hash = Hasher.SHA256.make_hash_from_bytes(data)
                 logger().info(msg=f"Remote hash is {remote_hash}.")
 
-                local_hash = Hasher.SHA256.make_hash_from_file(addon.path)
+                local_hash = Hasher.SHA256.make_hash_from_file(addon.binding.path)
                 logger().info(msg=f"Local hash is {local_hash}.")
 
                 if remote_hash == local_hash:
                     logger().info(msg="Addon is up-to-date.")
                     ret_code = UpdateResult.UP_TO_DATE
                 else:
-                    logger().info(msg="New addon update found. Downloading...", end=" ")
+                    logger().info(msg="New addon update found. Downloading...")
                     ok_code = UpdateResult.UPDATED
                     fail_code = UpdateResult.UPDATE_FAILED
         else:
-            logger().info(msg=f"Creating {addon.name}({addon.path.name})...", end=" ")
+            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
             ok_code = UpdateResult.CREATED
             fail_code = UpdateResult.CREATE_FAILED
         
         if not ok_code == UpdateResult.NONE and not fail_code == UpdateResult.NONE:
             # write file on disk
-            if not addon.path.parent.exists():
-                makedirs(addon.path.parent)
+            if not addon.binding.path.parent.exists():
+                makedirs(addon.binding.path.parent)
                 
-            with open(addon.path, 'wb') as addon_file:
+            with open(addon.binding.path, 'wb') as addon_file:
                 if addon_file.write(data):
                     ret_code = ok_code
                     logger().info(msg="Done.")
