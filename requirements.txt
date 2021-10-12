@@ -1,4 +1,5 @@
 ﻿beautifulsoup4==4.10.0
 nuitka==0.6.17.1
+pipreqs==0.4.10
 requests==2.26.0
 tabulate==0.8.9

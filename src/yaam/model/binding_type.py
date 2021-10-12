@@ -12,6 +12,7 @@ class BindingType(Enum):
     DXGI_9 = (1, set(["dx9", "d3d9"]))
     DXGI_11 = (2, set(["dx11", "d3d11"]))
     DXGI_12 = (3, set(["dx12", "dxgi", "d3d12"]))
+    SHADER = (4, set(["shader", "shaders", "reshade"]))
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, BindingType):

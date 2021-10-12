@@ -1,6 +1,7 @@
 '''
 Guild Wars 2 model class
 '''
+from collections import defaultdict
 import json
 
 import os
@@ -60,9 +61,9 @@ class GuildWars2(AbstractGame):
         if load_ok:
             # Load all addons with default bindings
             working_dir = Path(os.getcwd())
-            metadata_path = working_dir / "res/metadata"
-            arguments_metedata_path = metadata_path / "arguments.json"
-            addons_metedata_path = metadata_path / "addons.json"
+            defaults_path = working_dir / "res/default"
+            arguments_metedata_path = defaults_path / "arguments.json"
+            addons_metedata_path = defaults_path / "addons.json"
 
             if arguments_metedata_path.exists():
                 with open(arguments_metedata_path, encoding="utf-8") as _:
@@ -72,6 +73,9 @@ class GuildWars2(AbstractGame):
                             argument = Argument.from_dict(obj)
                             self.add_argument(argument)
 
+                if len(self.arguments) > 0:
+                    logger().info(msg="Default Arguments loaded...")
+
             if addons_metedata_path.exists():
                 with open(addons_metedata_path, encoding="utf-8") as _:
                     json_obj = json.load(_)
@@ -79,6 +83,9 @@ class GuildWars2(AbstractGame):
                         for obj in json_obj["addons"]:
                             base = MutableAddonBase.from_dict(obj)
                             self.add_addon(base)
+
+                if len(self.addons) > 0:
+                    logger().info(msg="Default Addons loaded...")
 
         return load_ok
 
@@ -150,6 +157,10 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
                             obj['path'] = obj['path'][1:]
 
                         obj['path'] = self.root / Path(obj['path'])
+                    
+                    if binding_type == BindingType.SHADER:
+                        # To Do...
+                        pass
 
                     binding = MutableBinding.from_dict(obj, binding_type)
                     self._bindings[binding_type][binding.name] = binding
@@ -159,7 +170,11 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
         '''
         Creates addons incarnations from bases and bindings
         '''
-        allowed_binding_types = set([ BindingType.EXE, BindingType.AGNOSTIC, self.binding ])
+        binding_lut = defaultdict(default_factory=lambda:False)
+        binding_lut[BindingType.SHADER] = True
+        binding_lut[BindingType.EXE] = True
+        binding_lut[BindingType.AGNOSTIC] = True
+        binding_lut[self.binding] = True
 
         # build addons incarnations by binding
         for binding_type in BindingType:
@@ -172,8 +187,10 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
 
                     addon = MutableAddon(addon_base, binding)
 
-                    if binding_type not in allowed_binding_types:
+                    if binding_type not in binding_lut or binding_lut[binding_type] is False:
                         addon.is_enabled = False
+                    elif binding_type is BindingType.SHADER and binding_lut[binding_type] is True:
+                        binding_lut[binding_type] = False # Only one shader
 
                     self.add_addon(addon)
 

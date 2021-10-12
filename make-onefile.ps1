@@ -1,8 +1,11 @@
 $root=$PSScriptRoot
 $requirements=New-Object System.Collections.Generic.List[System.Object]
 $requirements.AddRange(@(pipreqs --print))
-$nuitka_version=([System.String](@(pip list | Select-String "nuitka"))).Split(" ")[-1]
+$pip_list=@(pip list)
+$nuitka_version=([System.String]($pip_list | Select-String "nuitka")).Split(" ")[-1]
+$pipreqs_version=([System.String]($pip_list | Select-String "pipreqs")).Split(" ")[-1]
 $requirements.Add("nuitka==$nuitka_version")
+$requirements.Add("pipreqs==$pipreqs_version")
 $requirements | Sort-Object | Out-File "$root/requirements.txt" -Encoding utf8 -Force | Out-Null
 
 Write-Output "Updated required project modules file."
@@ -13,16 +16,17 @@ $product_version="0.0.0.1"
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$version"
 $icon_path="res/icon/yaam.ico"
-$metadata_dir="res/metadata"
+$template_dir="res/template"
+$defaults_dir="res/default"
 $output_dir="bin/msvc"
 $target="src/yaam-release.py"
 
 # Load manifest template and write in bin folder
 # Then embed the manifest into the application executable
 
-$manifest = Get-Content -Raw -Path "$root/res/template/MANIFEST" | ConvertFrom-Json
+$manifest = Get-Content -Raw -Path "$root/$template_dir/MANIFEST" | ConvertFrom-Json
 $manifest.version = $version
-$manifest | ConvertTo-Json -depth 32| set-content "$root/bin/MANIFEST"
+$manifest | ConvertTo-Json -depth 32 | set-content "$root/bin/MANIFEST"
 
 $params = @(
     "--onefile",
@@ -37,8 +41,9 @@ $params = @(
     "--windows-file-description=$description",
     "--windows-icon-from-ico=$icon_path",
     "--windows-onefile-tempdir-spec=%TEMP%/yaam-release-$version",
-    "--include-data-dir=$root/$metadata_dir=$metadata_dir",
-    "--include-data-file=$root/res/template/MANIFEST=res/MANIFEST",
+    "--include-data-dir=$root/$defaults_dir=$defaults_dir",
+    "--include-data-file=$root/bin/MANIFEST=MANIFEST",
+    "--include-data-file=$root/README.md=README.md",
     "--output-dir=$output_dir"
 )
 

@@ -2,9 +2,8 @@
 YAAM main module
 '''
 
-from os import getenv as env
-from sys import exit as close, exc_info
-import traceback
+import os
+import sys
 from pathlib import Path
 from collections import defaultdict
 from tabulate import tabulate
@@ -20,6 +19,16 @@ from yaam.utils.exceptions import ConfigLoadException
 
 #####################################################################
 
+def create_environment():
+    '''
+    deploy application environment if it doesn't exist
+    '''
+    APPDATA = Path(os.getenv("APPDATA"))
+    YAAM_DIR = APPDATA / "yaam"
+
+    os.makedirs(YAAM_DIR, exist_ok=True)
+
+
 def run_main():
     '''
     Main thread
@@ -29,7 +38,7 @@ def run_main():
     game : GameIncarnation = None
 
     try:
-        game = GameIncarnator().incarnate(Path(env("APPDATA")))
+        game = GameIncarnator().incarnate(Path(os.getenv("APPDATA")))
 
         data = defaultdict(list)
         for addon in sorted(game.addons, key=lambda x: x.name):
@@ -48,25 +57,6 @@ def run_main():
             Assert that the configuration {ex.config_path} exists. \
             Remember to run the game at least once in order to generate the configuration."
         )
-    except Exception as _:
-
-        logger.info(msg=str(_))
-        # Get current system exception
-        ex_type, ex_value, ex_traceback = exc_info()
-
-        # Extract unformatter stack traces as tuples
-        trace_back = traceback.extract_tb(ex_traceback)
-
-        # Format stacktrace
-        stack_trace = list()
-
-        for trace in trace_back:
-            stack_trace.append(f"File : {trace[0]} , Line : {trace[1]}, Func.Name : {trace[2]}, Message : {trace[3]}")
-
-        logger.info(msg=f"Exception type : {ex_type.__name__} ")
-        logger.info(msg=f"Exception message : {ex_value}")
-        logger.info(msg=f"Stack trace : {stack_trace}")
-        
     finally:
         if game:
             is_addon_update_only = sum([
@@ -91,6 +81,8 @@ def run_main():
 
 if __name__ == "__main__":
 
+    create_environment()
+
     execution_result = run_main()
 
-    close(execution_result)
+    sys.exit(execution_result)

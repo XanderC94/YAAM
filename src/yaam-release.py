@@ -4,47 +4,29 @@ Release execution module
 
 import os
 from pathlib import Path
-from sys import exit as close, stdout
-from logging import handlers
-from yaam.utils.logger import static_logger, logging
-from main import run_main
+import sys
+from yaam.utils.logger import init_static_logger, logging
+from yaam.utils.exceptions import exception_handler
+from main import run_main, create_environment
 
 if __name__ == "__main__":
-    WORK_DIR = Path(os.path.realpath(__file__)).parent
 
-    os.chdir(WORK_DIR)
+    # Add crash handler
+    sys.excepthook = exception_handler
 
-    APPDATA = Path(os.getenv("APPDATA"))
-    YAAM_DIR = APPDATA / "yaam"
-    LOG_DIR = YAAM_DIR / "log"
+    WORK_DIR = Path(os.getcwd())
+    TEMP_DIR = Path(os.getenv("TEMP"))
 
-    os.makedirs(LOG_DIR, exist_ok=True)
-
-    log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-
-    logger = static_logger()
-    logger.setLevel(logging.INFO)
-
-    fhandler = handlers.RotatingFileHandler(
-        LOG_DIR/"yaam.log",
-        mode='w',
-        encoding='utf-8',
-        backupCount=3,
-        maxBytes=(2*1024**2)
+    logger = init_static_logger(
+        # logger_name='Yaam-logger',
+        log_level=logging.INFO,
+        log_file=TEMP_DIR/"yaam-release.log"
     )
 
-    fhandler.setLevel(logging.DEBUG)
-    fhandler.setFormatter(log_formatter)
+    logger.info(msg=WORK_DIR)
 
-    shandler = logging.StreamHandler(stdout)
-    shandler.setLevel(logging.INFO)
-    shandler.setFormatter(log_formatter)
-
-    logger.addHandler(shandler)
-    logger.addHandler(fhandler)
-
-    logger.info(msg=os.getcwd())
+    create_environment()
 
     execution_result = run_main()
 
-    close(execution_result)
+    sys.exit(execution_result)
