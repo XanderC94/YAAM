@@ -10,7 +10,7 @@ $requirements | Sort-Object | Out-File "$root/requirements.txt" -Encoding utf8 -
 
 Write-Output "Updated required project modules file."
 
-$version = @(git describe --tags --always)
+$version = [System.String](@(git describe --tags --always))
 $product_name="Yet Another Addon Manager"
 $product_version="0.0.0.1"
 $company_name="https://github.com/XanderC94"
@@ -18,7 +18,7 @@ $description="YAAM-$version"
 $icon_path="res/icon/yaam.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
-$output_dir="bin/msvc"
+$output_dir="bin"
 $target="src/yaam-release.py"
 
 # Load manifest template and write in bin folder
@@ -40,7 +40,7 @@ $params = @(
     "--windows-company-name=$company_name",
     "--windows-file-description=$description",
     "--windows-icon-from-ico=$icon_path",
-    "--windows-onefile-tempdir-spec=%TEMP%/yaam-release-$version",
+    "--windows-onefile-tempdir-spec=%TEMP%/yaam-release",
     "--include-data-dir=$root/$defaults_dir=$defaults_dir",
     "--include-data-file=$root/bin/MANIFEST=MANIFEST",
     "--include-data-file=$root/README.md=README.md",

@@ -2,49 +2,27 @@
 Game model abstract class module
 '''
 
-from pathlib import Path
-from typing import Set, List, Generic, TypeVar, Union, Dict
-
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Set, List, Dict, Generic, TypeVar, Union
 from yaam.model.binding_type import BindingType
 
-C = TypeVar('C')
 A = TypeVar('A')
 B = TypeVar('B')
+C = TypeVar('C')
+D = TypeVar('D')
 
-class IGame(ABC, Generic[A, C, B]):
+class IYaamGameSettings(ABC, Generic[A, B, C, D]):
     '''
-    Game model Interface
+    Game yaam settings model interface
     '''
-
-    @property
-    def name(self) -> str:
-        '''
-        Return the game name
-        '''
-        return type(self).__name__
-
-    @property
-    @abstractmethod
-    def config_path(self) -> Path:
-        '''
-        Returns the game configuration path. That is the in-game configuration.
-        '''
-        return Path()
-
-    @property
-    @abstractmethod
-    def root(self) -> Path:
-        '''
-        Returns the game root directory.
-        '''
-        return Path()
 
     @property
     @abstractmethod
     def path(self) -> Path:
         '''
-        Returns the game executable path.
+        Returns the current settings path for the game.
+        That is the addons, arguments and chainloads settings.
         '''
         return Path()
 
@@ -52,25 +30,31 @@ class IGame(ABC, Generic[A, C, B]):
     @abstractmethod
     def binding(self) -> BindingType:
         '''
-        Returns the game binding type
+        Returns the game selected binding type
         '''
         return BindingType.AGNOSTIC
 
+    @abstractmethod
+    def set_binding(self, new_binding: BindingType):
+        '''
+        Set a new binding type for the game
+        '''
+
     @property
     @abstractmethod
-    def bin_directory(self) -> Path:
+    def bindings(self) -> Dict[BindingType, Dict[str, B]]:
         '''
-        Returns the game binaries directory.
+        Returns game arguments
         '''
-        return Path()
+        return dict()
 
-    # @property
-    # @abstractmethod
-    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
-    #     '''
-    #     Returns game arguments
-    #     '''
-    #     return dict()
+    @property
+    @abstractmethod
+    def bases(self) -> Dict[str, D]:
+        '''
+        Returns game basis
+        '''
+        return dict()
 
     @property
     @abstractmethod
@@ -87,6 +71,14 @@ class IGame(ABC, Generic[A, C, B]):
         Returns game addons
         '''
         return dict()
+
+    @property
+    @abstractmethod
+    def chains(self) -> List[List[str]]:
+        '''
+        Returns all the chainload sequences
+        '''
+        return set()
 
     @abstractmethod
     def addon(self, name: str) -> A:
@@ -140,6 +132,13 @@ class IGame(ABC, Generic[A, C, B]):
     @abstractmethod
     def load(self) -> bool:
         '''
-        Loads the game configuration settings.
+        Loads the yaam game settings
+        '''
+        return False
+
+    @abstractmethod
+    def save(self) -> bool:
+        '''
+        Save the yaam game settings
         '''
         return False

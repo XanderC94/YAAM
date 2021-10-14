@@ -1,12 +1,14 @@
 '''
 Command line argument module
 '''
+from dataclasses import dataclass
 from typing import TypeVar, Generic, Any
 from yaam.model.incarnator import Incarnator
 from yaam.model.argument_type import ArgumentType
 
 T = TypeVar('T')
 
+@dataclass(frozen=True)
 class ArgumentIncarnation(Generic[T], object):
     '''
     Immutable command line argument incarnation class
@@ -60,6 +62,7 @@ class ArgumentIncarnation(Generic[T], object):
         tokens = json_str[1:].split(" ")
         return ArgumentIncarnation(*tokens)
 
+@dataclass(frozen=True)
 class Argument(Incarnator[Any, ArgumentIncarnation[Any]], object):
     '''
     Immutable Command line Argument class

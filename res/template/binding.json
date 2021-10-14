@@ -1,0 +1,17 @@
+{
+    "bindings": {
+        "category": [
+            {
+                "name": "an addon name",
+                "path": "an addon path, relative for .dll, absolute for .exe",
+                "update": "[true, fale] Whether the addon should be updated when the manager run the game",
+                "enabled": "[true, false] Whether the addon is enabled at all (will not be chainloaded or run)"
+            }
+        ],
+        "available_categories": [
+            "exe", 
+            "dx9", "dx11",  "Can be specified both but only one will be used for defining the chainload. Default is dx9, use -dx11 in the program arguments to use dx11",
+            "agnostic", ".dlls not depending on dx9 or dx11 (ex.: ReShade)"
+        ]
+    }
+}

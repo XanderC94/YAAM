@@ -1,51 +1,58 @@
 '''
 Guild Wars 2 model class
 '''
-from collections import defaultdict
 import json
-
-import os
+from collections import defaultdict
 
 from pathlib import Path
+from typing import Callable, Any, Dict, List, Tuple
 from bs4 import BeautifulSoup
+
+from yaam.model.game.config import IGameConfiguration
+from yaam.model.game.game import Game, IGameIncarnator
+from yaam.model.game.settings import IYaamGameSettings
+from yaam.utils.exceptions import ConfigLoadException
 
 from yaam.utils.logger import static_logger as logger
 from yaam.model.binding_type import BindingType
 from yaam.model.mutable.addon import MutableAddon
-from yaam.model.mutable.addon_base import MutableAddonBase, AddonBase
+from yaam.model.mutable.addon_base import MutableAddonBase
 from yaam.model.mutable.binding import MutableBinding
-from yaam.model.immutable.argument import Argument, ArgumentIncarnation
-from yaam.model.game.abstract import AbstractGame
-from yaam.model.incarnator import Incarnator
-from yaam.model.game.incarnation import AbstractGameIncarnation
+from yaam.model.mutable.argument import MutableArgument, ArgumentIncarnation
+from yaam.model.game.abstract_config import AbstractGameConfiguration
+from yaam.model.game.stub import YaamGameSettingsStub
+from yaam.model.context import ApplicationContext, GameContext
+from yaam.utils.normalize import normalize_abs_path
+
 
 #############################################################################################
 #############################################################################################
 
-class GuildWars2(AbstractGame):
+class GW2Config(AbstractGameConfiguration):
     '''
     Guild Wars 2 model class
     '''
 
-    def __init__(self, appdata: Path):
+    def __init__(self, appdata_dir: Path):
 
-        super().__init__(appdata)
+        super().__init__(appdata_dir, BindingType.DXGI_9)
 
-        self._config_path = self._app_data / "Guild Wars 2" / "GFXSettings.Gw2-64.exe.xml"
+        self._name = "Guild Wars 2"
+        self._config_path = self._appdata_dir / self._name / "GFXSettings.Gw2-64.exe.xml"
         self._root = Path("C:\\Program Files\\Guild Wars 2")
         self._exe = "Gw2-64.exe"
 
     @property
     def bin_directory(self) -> Path:
-        return self.root / ("bin64" if "64" in self._exe else "bin")
+        return self.game_root / ("bin64" if "64" in self._exe else "bin")
 
     def load(self) -> bool:
 
         load_ok = False
 
-        logger().info(msg = f"Reading root path from {self.config_path}.", )
+        logger().info(msg = f"Reading root path from {self.path}.", )
 
-        with open(self.config_path, encoding="utf-8") as _:
+        with open(self.path, encoding="utf-8") as _:
 
             gw2_config_xml = BeautifulSoup(_, features="xml")
             gw2_app_token = gw2_config_xml.find("GSA_SDK").find("APPLICATION")
@@ -60,62 +67,75 @@ class GuildWars2(AbstractGame):
             else:
                 load_ok = True
 
-        if load_ok:
-            # Load all addons with default bindings
-            working_dir = Path(os.getcwd())
-            defaults_path = working_dir / "res/default"
-            arguments_metedata_path = defaults_path / "arguments.json"
-            addons_metedata_path = defaults_path / "addons.json"
-
-            if arguments_metedata_path.exists():
-                with open(arguments_metedata_path, encoding="utf-8") as _:
-                    json_obj = json.load(_)
-                    if "arguments" in json_obj:
-                        for obj in json_obj["arguments"]:
-                            argument = Argument.from_dict(obj)
-                            self.add_argument(argument)
-
-                if len(self.arguments) > 0:
-                    logger().info(msg="Default Arguments loaded...")
-
-            if addons_metedata_path.exists():
-                with open(addons_metedata_path, encoding="utf-8") as _:
-                    json_obj = json.load(_)
-                    if "addons" in json_obj:
-                        for obj in json_obj["addons"]:
-                            base = AddonBase.from_dict(obj)
-                            self.add_addon(base)
-
-                if len(self.addons) > 0:
-                    logger().info(msg="Default Addons loaded...")
-
         return load_ok
 
 #############################################################################################
 #############################################################################################
 
-class GuildWars2Incarnation(AbstractGameIncarnation):
+class YaamGW2Settings(YaamGameSettingsStub):
     '''
-    Guild Wars 2 Incarnation model class
+    Guild Wars 2 Yaam settings model class
     '''
 
-    def __init__(self, game: GuildWars2):
+    def __init__(self, context: GameContext, default_binding: BindingType = BindingType.AGNOSTIC):
 
-        super().__init__(game)
+        super().__init__(context.yaam_game_dir / "settings.json", default_binding)
 
-        self._config_path = self.game.config_path.parent / "Settings.json"
+        self._context = context
+
+    def add_base(self, base: MutableAddonBase):
+        '''
+        Add a new addon base
+        '''
+        if base.name not in self._bases:
+            self._bases[base.name] = base
+
+    def add_binding(self, binding: MutableBinding):
+        '''
+        Add a new addon binding
+        '''
+        if (binding.typing not in self.bindings) or (binding.name not in self.binding[binding.typing]):
+            self.bindings[binding.typing] = binding
+
+    def add_chain(self, chain: List[str]):
+        '''
+        Add a new chainload sequence
+        '''
+        self._chains.append(chain)
 
     def load(self) -> bool:
 
         load_ok : bool = False
 
-        if self.config_path.exists():
+        self._load_props(self._context.args_path, {
+            "arguments": (MutableArgument.from_dict, self.add_argument)
+        })
+        
+        self._load_props(self._context.addons_path, {
+            "addons": (MutableAddonBase.from_dict, self.add_base)
+        })
 
-            with open(self.config_path, encoding="utf-8") as _:
+        self._load_props(self._context.bindings_path, {
+            "bindings": (self._load_bindings, lambda x : None)
+        })
+
+        self._load_props(self._context.chains_path, {
+            "chains": (lambda x : x, self.add_base)
+        })
+        
+        logger().info(msg=f"Loaded {len(self.arguments)} arguments...")
+        logger().info(msg=f"Loaded {len(self.addons)} addons...")
+        logger().info(msg=f"Loaded {len(self.bindings)} bindings...")
+        logger().info(msg=f"Loaded {len(self.chains)} chainload sequences...")
+        
+        if self.path.exists():
+            
+            # to do... Load current settings
+            with open(self.path, encoding="utf-8", mode='r') as _:
 
                 settings = json.load(_)
 
-                self.__objectify_json_settings(settings)
+                # self.__objectify_json_settings(settings)
 
                 if "dx11" in self._args:
                     self._binding_type = BindingType.DXGI_11
@@ -123,6 +143,38 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
                 load_ok = True
 
         return load_ok and self._incarnate_addons()
+
+    def _load_props(self, path:Path, mappers: Dict[str, Tuple[Callable[[Any], Any], Callable[[Any], None]]]):
+        '''
+        Load and fill specified prop
+        '''
+        if path.exists():
+            with open(path, encoding="utf-8", mode='r') as _:
+                json_obj = json.load(_)
+                for (key, (mapper, filler)) in mappers:
+                    if key in json_obj:
+                        for obj in json_obj[key]:
+                            filler(mapper(obj))
+
+    def _load_bindings(self, json_obj: dict):
+        for (key, value) in json_obj.items():
+
+            binding_type = BindingType.from_string(key)
+
+            if binding_type not in self._bindings:
+                self._bindings[binding_type] = dict()
+
+            for obj in value:
+                # remove slashes and make absolute
+                if 'path' in obj:
+                    obj['path'] = normalize_abs_path(obj['path'], self._context.game_root)
+
+                if binding_type == BindingType.SHADER:
+                    # To Do...
+                    pass
+
+                binding = MutableBinding.from_dict(obj, binding_type)
+                self._bindings[binding_type][binding.name] = binding
 
     def __objectify_json_settings(self, json_obj: dict) -> None:
 
@@ -132,12 +184,15 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
         if "arguments" in json_obj:
             for obj in json_obj['arguments']:
                 arginc = ArgumentIncarnation.from_string(obj)
-                self.add_argument(arginc)
+                if self.has_argument(arginc.name):
+                    arg = self.argument(arginc.name)
+                    arg.value = arginc.value
+                    arg.enabled = True
 
         if "addons" in json_obj:
             for obj in json_obj['addons']:
                 base = MutableAddonBase.from_dict(obj)
-                self.game.add_addon(base)
+                self.add_base(base)
 
         if "bindings" in json_obj:
             for (key, value) in json_obj['bindings'].items():
@@ -158,7 +213,7 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
                         if obj['path'].startswith("\\") or obj['path'].startswith("/"):
                             obj['path'] = obj['path'][1:]
 
-                        obj['path'] = self.root / Path(obj['path'])
+                        obj['path'] = self._context.game_root / Path(obj['path'])
                     
                     if binding_type == BindingType.SHADER:
                         # To Do...
@@ -183,7 +238,7 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
             if binding_type in self._bindings:
                 for (addon_name, binding) in self._bindings[binding_type].items():
 
-                    addon_base = self.game.addon(addon_name)
+                    addon_base = self.bases[addon_name]
                     if addon_base is None:
                         addon_base = MutableAddonBase(addon_name)
 
@@ -196,22 +251,33 @@ class GuildWars2Incarnation(AbstractGameIncarnation):
 
                     self.add_addon(addon)
 
-        for base in self.game.addons:
-            if not self.has_addon(base.name):
-                self.add_addon(MutableAddon(base, MutableBinding(base.name)))
-
         return len(self._addons)
 
+
+    def save(self) -> bool:
+        # To Do
+        return False
+
 #############################################################################################
 #############################################################################################
 
-class GuildWars2Incarnator(Incarnator[Path, GuildWars2Incarnation]):
+class GuildWars2(Game, IGameIncarnator):
     '''
     Guild Wars 2 model class incarnator
     '''
-    def incarnate(self, decoration: Path = None) -> GuildWars2Incarnation:
-        gw2inc = None
-        with GuildWars2(decoration) as gw2meta:
-            gw2inc = GuildWars2Incarnation(gw2meta)
-            gw2inc.load()
-        return gw2inc
+    def __init__(self, config: IGameConfiguration, settings: IYaamGameSettings) -> None:
+        Game.__init__(self, config, settings)
+
+    @staticmethod
+    def incarnate(app_context: ApplicationContext = None) -> Game:
+        gw2_config = GW2Config(app_context)
+
+        if not gw2_config.load():
+            raise ConfigLoadException(gw2_config.path)
+
+        game_context = app_context.create_game_environment(gw2_config.name, gw2_config.game_root)
+
+        yaam_gw2_settings = YaamGW2Settings(game_context, gw2_config.native_binding)
+        yaam_gw2_settings.load()
+
+        return GuildWars2(gw2_config, yaam_gw2_settings)

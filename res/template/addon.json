@@ -1,0 +1,6 @@
+{
+    "name": "an addon name",
+    "uri": "an addon download link to the latest release",
+    "contribs": "one or more contributors to the addon developement",
+    "description": "a description of the addon"
+}

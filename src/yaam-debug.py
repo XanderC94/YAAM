@@ -5,9 +5,10 @@ Debug execution module
 import os
 from pathlib import Path
 import sys
+from yaam.model.context import ApplicationContext
 from yaam.utils.logger import init_static_logger, logging
 from yaam.utils.exceptions import exception_handler
-from main import run_main, create_environment
+from main import run_main
 
 if __name__ == "__main__":
 
@@ -24,8 +25,10 @@ if __name__ == "__main__":
 
     logger.debug(msg=WORK_DIR)
 
-    create_environment()
+    app_ctx = ApplicationContext()
 
-    execution_result = run_main()
+    app_ctx.create_app_environment()
+
+    execution_result = run_main(app_ctx)
 
     sys.exit(execution_result)

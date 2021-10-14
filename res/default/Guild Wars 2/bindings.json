@@ -1,0 +1,85 @@
+{
+    "bindings": {
+        "exe": [
+            {
+                "name":"WinAuth",
+                "path": "P:\\x86\\WinAuth\\WinAuth.exe"
+            },
+            {
+                "name":"BlishHUD",
+                "path": "P:\\amd64\\BlishHUD\\Blish HUD.exe"
+            },
+            {
+                "name": "YoloMouse",
+                "path": "P:\\amd64\\YoloMouse\\YoloMouse.exe"
+            }
+        ],
+        "dx9": [
+            {
+                "name":"ArcDPS",
+                "path": "bin64\\d3d9.dll"
+            },
+            {
+                "name":"ArcDPS BoonsTable",
+                "path": "bin64\\d3d9_arcdps_table.dll"
+            },
+            {
+                "name":"ArcDPS BuildPad",
+                "path": "bin64\\d3d9_arcdps_buildpad.dll"
+            },
+            {
+                "name":"ArcDPS Mount Tool",
+                "path": "bin64\\d3d9_arcdps_MountTool.dll"
+            },
+            {
+                "name":"ArcDPS KillProof Me",
+                "path": "bin64\\d3d11_arcdps_killproof_me.dll"
+            },
+            {
+                "name":"ArcDps BHUD bridge",
+                "path": "bin64\\arcdps_bhud.dll"
+            },
+            {
+                "name":"GW2 Radial Mounts",
+                "path": "bin64\\d3d9_chainload.dll"
+            }
+        ],
+        "dx11": [
+            {
+                "name":"ArcDPS",
+                "path": "d3d11.dll"
+            },
+            {
+                "name":"ArcDPS BoonsTable",
+                "path": "d3d11_arcdps_table.dll"
+            },
+            {
+                "name":"ArcDPS BuildPad",
+                "path": "d3d11_arcdps_buildpad.dll"
+            },
+            {
+                "name":"ArcDPS KillProof Me",
+                "path": "d3d11_arcdps_killproof_me.dll"
+            },
+            {
+                "name":"ArcDPS Mount Tool",
+                "path": "d3d11_arcdps_MountTool.dll"
+            },
+            {
+                "name":"ArcDps BHUD bridge",
+                "path": "arcdps_bhud.dll"
+            },
+            {
+                "name":"GW2 Radial Mounts",
+                "path": "d3d11_chainload.dll"
+            }
+        ],
+        "shader": [
+            {
+                "name":"GShade",
+                "path": "dxgi.dll"
+            }
+        ], 
+        "agnostic": [ ]
+    }
+}

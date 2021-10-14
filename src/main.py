@@ -2,46 +2,35 @@
 YAAM main module
 '''
 
-import os
 import sys
-from pathlib import Path
 from collections import defaultdict
 from tabulate import tabulate
 from yaam.controller.update import update_addons
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
+from yaam.model.game.game import Game
 from yaam.utils.process import run
 from yaam.utils.options import Option
 from yaam.utils.logger import static_logger
 
-from yaam.model.game.gw2 import GuildWars2Incarnator as GameIncarnator
-from yaam.model.game.gw2 import GuildWars2Incarnation as GameIncarnation
+from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
+from yaam.model.context import ApplicationContext
 
 #####################################################################
 
-def create_environment():
-    '''
-    deploy application environment if it doesn't exist
-    '''
-    APPDATA = Path(os.getenv("APPDATA"))
-    YAAM_DIR = APPDATA / "yaam"
-
-    os.makedirs(YAAM_DIR, exist_ok=True)
-
-
-def run_main():
+def run_main(app_context : ApplicationContext):
     '''
     Main thread
     '''
     logger = static_logger()
 
-    game : GameIncarnation = None
+    game : Game = None
 
     try:
-        game = GameIncarnator().incarnate(Path(os.getenv("APPDATA")))
+        game = GuildWars2.incarnate(app_context)
 
         data = defaultdict(list)
-        for addon in sorted(game.addons, key=lambda x: x.base.name):
+        for addon in sorted(game.settings.addons, key=lambda x: x.base.name):
             table = addon.to_table()
             for (key, value) in table.items():
                 data[key].append(value)
@@ -60,18 +49,18 @@ def run_main():
     finally:
         if game:
             is_addon_update_only = sum([
-                1 for _ in Option.UPDATE_ADDONS.aliases if _ in game.arguments
+                1 for _ in Option.UPDATE_ADDONS.aliases if _ in game.settings.arguments
             ]) > 0
 
-            disable_dll_addons(game.addons)
-            restore_dll_addons(game.addons)
+            disable_dll_addons(game.settings.addons)
+            restore_dll_addons(game.settings.addons)
 
-            update_addons(game.addons)
+            update_addons(game.settings.addons)
 
             if not is_addon_update_only:
-                run(game.path, game.root, game.arguments)
+                run(game.config.game_path, game.config.game_root, game.settings.arguments)
 
-                for addon in game.addons:
+                for addon in game.settings.addons:
                     if addon.is_enabled and addon.is_exe():
                         run(addon.path, addon.path.parent)
 
@@ -81,8 +70,10 @@ def run_main():
 
 if __name__ == "__main__":
 
-    create_environment()
+    app_ctx = ApplicationContext()
 
-    execution_result = run_main()
+    app_ctx.create_app_environment()
+
+    execution_result = run_main(app_ctx)
 
     sys.exit(execution_result)
