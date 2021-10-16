@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     logger.debug(msg=WORK_DIR)
 
-    app_ctx = ApplicationContext()
+    app_ctx = ApplicationContext(debug=True)
 
     app_ctx.create_app_environment()
 

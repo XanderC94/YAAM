@@ -78,6 +78,10 @@
             {
                 "name":"GShade",
                 "path": "dxgi.dll"
+            },
+            {
+                "name":"ReShade",
+                "path": "dxgi.dll"
             }
         ], 
         "agnostic": [ ]
