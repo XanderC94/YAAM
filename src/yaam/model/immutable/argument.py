@@ -1,34 +1,41 @@
 '''
 Command line argument module
 '''
-from dataclasses import dataclass
-from typing import TypeVar, Generic, Any
-from yaam.model.incarnator import Incarnator
+from dataclasses import dataclass, field
+from typing import TypeVar, Generic
 from yaam.model.argument_type import ArgumentType
 
 T = TypeVar('T')
 
 @dataclass(frozen=True)
-class ArgumentIncarnation(Generic[T], object):
+class ArgumentSynthesis(Generic[T], object):
     '''
-    Immutable command line argument incarnation class
+    Immutable command line argument synthetis class
     '''
+    _name          : str    = field(init=True)
+    _value         : T      = field(init=True, default=None)
 
-    def __init__(self, name: str, value: T = None):
-        self._name = name
-        self._value = value
+    # def __init__(self, name: str, value: T = None):
+    #     self._name = name
+    #     self._value = value
 
     def __hash__(self) -> int:
         return hash(self.name)
 
     def __eq__(self, o: object) -> bool:
 
-        if isinstance(o, ArgumentIncarnation):
+        if isinstance(o, Argument):
             return self.__hash__() == o.__hash__()
         elif isinstance(o, str):
             return self.name == o or self.name == o[1:]
-
         return super().__eq__(o)
+
+    def __str__(self) -> str:
+        return (
+            f"-{self._name} {self._value}"
+            if self._value is not None
+            else f"-{self._name}"
+        )
 
     @property
     def name(self) ->str:
@@ -51,45 +58,47 @@ class ArgumentIncarnation(Generic[T], object):
         '''
         self._value = value
 
-    def __str__(self) -> str:
-        return f"-{self._name} {self._value}" if self._value else f"-{self._name}"
-
     @staticmethod
     def from_string(json_str: str):
         '''
         Create argument incarnation representation from a string
         '''
         tokens = json_str[1:].split(" ")
-        return ArgumentIncarnation(*tokens)
+        return ArgumentSynthesis(*tokens)
 
 @dataclass(frozen=True)
-class Argument(Incarnator[Any, ArgumentIncarnation[Any]], object):
+class Argument(object):
     '''
     Immutable Command line Argument class
     '''
+    _name          : str            = field(init=True)
+    _values        : list           = field(init=True)
+    _value_type    : ArgumentType   = field(init=True)
+    _descr         : str            = field(init=True)
+    _deprecated    : bool           = field(init=True)
+    _user_defined  : bool           = field(init=True)
 
-    def __init__(self, name: str, values: list, value_type = ArgumentType.NONE,
-            descr = str(), deprecated = False, user_defined=False) -> None:
+    # def __init__(self, name: str, values: list, value_type: ArgumentType = ArgumentType.NONE,
+    #         descr: str = str(), deprecated: bool = False, user_defined:bool = False) -> None:
 
-        self._name = name
-        self._values = values
-        self._value_type = value_type
-        self._descr = descr
-        self._deprecated = deprecated
-        self._user_defined = user_defined
+    #     self._name = name
+    #     self._values = values
+    #     self._value_type = value_type
+    #     self._descr = descr
+    #     self._deprecated = deprecated
+    #     self._user_defined = user_defined
 
     def __hash__(self) -> int:
         return hash(self.name)
 
     def __eq__(self, o: object) -> bool:
 
-        if isinstance(o, ArgumentIncarnation):
+        if isinstance(o, ArgumentSynthesis):
             return self.__hash__() == o.__hash__()
         elif isinstance(o, str):
             return self.name == o or self.name == o[1:]
-            
         return super().__eq__(o)
-
+    
     @property
     def name(self) -> str():
         '''
@@ -132,24 +141,16 @@ class Argument(Incarnator[Any, ArgumentIncarnation[Any]], object):
         '''
         return self._user_defined
 
-    def incarnate(self, decoration: Any = None) -> ArgumentIncarnation[Any]:
-        '''
-        Create an incarnation of this command line argument
-        '''
-        return ArgumentIncarnation(self._name, decoration)
-
     @staticmethod
     def from_dict(json_obj: dict):
         '''
         Create argument incarnation representation from a string
         '''
         name = json_obj["name"]
-        values = json_obj["values"] if "values" in json_obj else []
-        value_type = (
-            ArgumentType.from_string(json_obj["value_type"])
-            if "value_type" in json_obj else ArgumentType.BOOLEAN
-        )
-        deprecated = json_obj["deprecated"] if "deprecated" in json_obj else False
-        user_defined = json_obj["user_defined"] if "user_defined" in json_obj else len(values) == 0
+        values = json_obj.get("values", [])
+        value_type = ArgumentType.from_string(json_obj.get("value_type", "boolean"))
+        descr = json_obj.get("description", "")
+        deprecated = json_obj.get("deprecated", False)
+        user_defined = json_obj.get("user_defined", len(values) == 0)
 
-        return Argument(name, values, value_type, deprecated, user_defined)
+        return Argument(name, values, value_type, descr, deprecated, user_defined)

@@ -46,7 +46,7 @@ class ArgumentType(Enum):
         enum_repr = ArgumentType.NONE
 
         for arg_type in ArgumentType:
-            if string_repr == str(arg_type):
+            if string_repr.lower() == str(arg_type).lower():
                 enum_repr = arg_type
                 break
 

@@ -1,8 +1,8 @@
 '''
 Guild Wars 2 model class
 '''
+
 import json
-from collections import defaultdict
 
 from pathlib import Path
 from typing import Callable, Any, Dict, List, Tuple
@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup
 from yaam.model.game.config import IGameConfiguration
 from yaam.model.game.game import Game, IGameIncarnator
 from yaam.model.game.settings import IYaamGameSettings
+from yaam.model.immutable.argument import ArgumentSynthesis
+from yaam.model.immutable.binding import Binding
 from yaam.utils.exceptions import ConfigLoadException
 
 from yaam.utils.logger import static_logger as logger
@@ -18,12 +20,15 @@ from yaam.model.binding_type import BindingType
 from yaam.model.mutable.addon import MutableAddon
 from yaam.model.mutable.addon_base import MutableAddonBase
 from yaam.model.mutable.binding import MutableBinding
-from yaam.model.mutable.argument import MutableArgument, ArgumentIncarnation
+from yaam.model.mutable.argument import MutableArgument
 from yaam.model.game.abstract_config import AbstractGameConfiguration
-from yaam.model.game.stub import YaamGameSettingsStub
+from yaam.model.game.yaam_settings import YaamGameSettings
 from yaam.model.context import ApplicationContext, GameContext
 from yaam.utils.normalize import normalize_abs_path
 
+Mapper = Callable[[Any], Any]
+Consumer = Callable[[Any], None]
+SwissKnife = Dict[str, Tuple[Mapper, Consumer]]
 
 #############################################################################################
 #############################################################################################
@@ -72,7 +77,7 @@ class GW2Config(AbstractGameConfiguration):
 #############################################################################################
 #############################################################################################
 
-class YaamGW2Settings(YaamGameSettingsStub):
+class YaamGW2Settings(YaamGameSettings):
     '''
     Guild Wars 2 Yaam settings model class
     '''
@@ -94,8 +99,8 @@ class YaamGW2Settings(YaamGameSettingsStub):
         '''
         Add a new addon binding
         '''
-        if (binding.typing not in self.bindings) or (binding.name not in self.binding[binding.typing]):
-            self.bindings[binding.typing] = binding
+        if (binding.typing not in self._bindings) or (binding.name not in self._bindings[binding.typing]):
+            self._bindings[binding.typing][binding.name] = binding
 
     def add_chain(self, chain: List[str]):
         '''
@@ -105,60 +110,73 @@ class YaamGW2Settings(YaamGameSettingsStub):
 
     def load(self) -> bool:
 
-        load_ok : bool = False
-
-        self._load_props(self._context.args_path, {
+        self.__load_list_props(self._context.args_path, {
             "arguments": (MutableArgument.from_dict, self.add_argument)
         })
-        
-        self._load_props(self._context.addons_path, {
+
+        self.__load_list_props(self._context.addons_path, {
             "addons": (MutableAddonBase.from_dict, self.add_base)
         })
 
-        self._load_props(self._context.bindings_path, {
-            "bindings": (self._load_bindings, lambda x : None)
+        self.__load_list_props(self._context.chains_path, {
+            "chains": (lambda x: x, self.add_chain)
         })
 
-        self._load_props(self._context.chains_path, {
-            "chains": (lambda x : x, self.add_base)
+        self.__load_dict_props(self._context.bindings_path, {
+            "bindings": (self.__load_bindings, lambda x: None)
+        })
+
+        logger().info(msg=f"Loaded {len(self._args)} arguments...")
+        logger().info(msg=f"Loaded {len(self._bases)} bases...")
+        logger().info(msg=f"Loaded {sum([ len(_) for _ in self._bindings.values() ])} bindings...")
+        logger().info(msg=f"Loaded {len(self._chains)} chainload sequences...")
+
+
+        status = self.__incarnate_addons()
+
+        # load enabled-disabled settings
+        self.__load_list_props(self._settings_path, {
+            "arguments": (ArgumentSynthesis.from_string, self.__update_arguments)
         })
         
-        logger().info(msg=f"Loaded {len(self.arguments)} arguments...")
-        logger().info(msg=f"Loaded {len(self.addons)} addons...")
-        logger().info(msg=f"Loaded {len(self.bindings)} bindings...")
-        logger().info(msg=f"Loaded {len(self.chains)} chainload sequences...")
-        
-        if self.path.exists():
-            
-            # to do... Load current settings
-            with open(self.path, encoding="utf-8", mode='r') as _:
+        self.__load_dict_props(self._settings_path, {
+            "bindings": (self.__update_bindings, lambda x: None)
+        })
 
-                settings = json.load(_)
+        if self.has_argument("dx11") and self.argument("dx11").enabled:
+            self._binding_type = BindingType.DXGI_11
+        elif self.has_argument("dx12") and self.argument("dx12").enabled:
+            self._binding_type = BindingType.DXGI_12
 
-                # self.__objectify_json_settings(settings)
+        logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
 
-                if "dx11" in self._args:
-                    self._binding_type = BindingType.DXGI_11
+        return status
 
-                load_ok = True
-
-        return load_ok and self._incarnate_addons()
-
-    def _load_props(self, path:Path, mappers: Dict[str, Tuple[Callable[[Any], Any], Callable[[Any], None]]]):
+    def __load_list_props(self, path:Path, mappers: SwissKnife):
         '''
-        Load and fill specified prop
+        Load and fill specified list props
         '''
         if path.exists():
             with open(path, encoding="utf-8", mode='r') as _:
                 json_obj = json.load(_)
-                for (key, (mapper, filler)) in mappers:
+                for (key, (mapper, consumer)) in mappers.items():
                     if key in json_obj:
                         for obj in json_obj[key]:
-                            filler(mapper(obj))
+                            consumer(mapper(obj))
 
-    def _load_bindings(self, json_obj: dict):
+    def __load_dict_props(self, path: Path, mappers: SwissKnife):
+        '''
+        Load and fill specified dict props
+        '''
+        if path.exists():
+            with open(path, encoding="utf-8", mode='r') as _:
+                json_obj = json.load(_)
+                for (key, (mapper, consumer)) in mappers.items():
+                    if key in json_obj:
+                        consumer(mapper(json_obj[key]))
+
+    def __load_bindings(self, json_obj: dict):
         for (key, value) in json_obj.items():
-
             binding_type = BindingType.from_string(key)
 
             if binding_type not in self._bindings:
@@ -172,87 +190,59 @@ class YaamGW2Settings(YaamGameSettingsStub):
                 if binding_type == BindingType.SHADER:
                     # To Do...
                     pass
-
+                
                 binding = MutableBinding.from_dict(obj, binding_type)
-                self._bindings[binding_type][binding.name] = binding
+                self.add_binding(binding)
 
-    def __objectify_json_settings(self, json_obj: dict) -> None:
+    def __update_bindings(self, json_obj: dict):
+        for (key, value) in json_obj.items():
+            binding_type = BindingType.from_string(key)
+            for _ in value:
+                b = Binding.from_dict(_, binding_type)
+                if binding_type in self._bindings and b.name in self._bindings[binding_type]:
+                    binding = self._bindings[binding_type][b.name]
+                    binding.enabled = b.enabled
+                    binding.updateable = b.updateable
+                    # binding.path = b.path
 
-        self._args.clear()
-        self._bindings.clear()
 
-        if "arguments" in json_obj:
-            for obj in json_obj['arguments']:
-                arginc = ArgumentIncarnation.from_string(obj)
-                if self.has_argument(arginc.name):
-                    arg = self.argument(arginc.name)
-                    arg.value = arginc.value
-                    arg.enabled = True
+    def __update_arguments(self, synth: ArgumentSynthesis):
+        if self.has_argument(synth.name):
+            arg = self.argument(synth.name)
+            arg.value = synth.value
+            arg.enabled = True
 
-        if "addons" in json_obj:
-            for obj in json_obj['addons']:
-                base = MutableAddonBase.from_dict(obj)
-                self.add_base(base)
-
-        if "bindings" in json_obj:
-            for (key, value) in json_obj['bindings'].items():
-                binding_type = BindingType.from_string(key)
-
-                if binding_type not in self._bindings:
-                    self._bindings[binding_type] = dict()
-
-                for obj in value:
-                    # remove slashes and make absolute
-                    if binding_type != BindingType.EXE and 'path' in obj:
-                        while obj['path'].startswith("../") or obj['path'].startswith("..\\"):
-                            obj['path'] = obj['path'][3:]
-
-                        while obj['path'].startswith("."):
-                            obj['path'] = obj['path'][1:]
-
-                        if obj['path'].startswith("\\") or obj['path'].startswith("/"):
-                            obj['path'] = obj['path'][1:]
-
-                        obj['path'] = self._context.game_root / Path(obj['path'])
-                    
-                    if binding_type == BindingType.SHADER:
-                        # To Do...
-                        pass
-
-                    binding = MutableBinding.from_dict(obj, binding_type)
-                    self._bindings[binding_type][binding.name] = binding
-
-    def _incarnate_addons(self) -> bool:
-
+    def __incarnate_addons(self) -> bool:
         '''
         Creates addons incarnations from bases and bindings
         '''
-        binding_lut = defaultdict(default_factory=lambda:False)
-        binding_lut[BindingType.SHADER] = True
-        binding_lut[BindingType.EXE] = True
-        binding_lut[BindingType.AGNOSTIC] = True
-        binding_lut[self.binding] = True
-
         # build addons incarnations by binding
         for binding_type in BindingType:
             if binding_type in self._bindings:
                 for (addon_name, binding) in self._bindings[binding_type].items():
 
-                    addon_base = self.bases[addon_name]
+                    addon_base = self._bases.get(addon_name, None)
+
                     if addon_base is None:
+                        # create base for dangling binding
                         addon_base = MutableAddonBase(addon_name)
+                        self.add_base(addon_base) # add placeholder
 
                     addon = MutableAddon(addon_base, binding)
 
-                    if binding_type not in binding_lut or binding_lut[binding_type] is False:
-                        addon.is_enabled = False
-                    elif binding_type is BindingType.SHADER and binding_lut[binding_type] is True:
-                        binding_lut[binding_type] = False # Only one shader
-
                     self.add_addon(addon)
 
-        return len(self._addons)
+        # create binding dangling bases
+        for (addon_name, base) in self._bases.items():
+            if addon_name not in self._addons:
+                binding = Binding(addon_name)
+                self.add_binding(binding) # add placeholder
+                addon = MutableAddon(base, binding)
+                self.add_addon(addon)
 
+        logger().info(msg=f"Incarnated {len(self._addons)} addons...")
+
+        return len(self._addons)
 
     def save(self) -> bool:
         # To Do
@@ -270,7 +260,7 @@ class GuildWars2(Game, IGameIncarnator):
 
     @staticmethod
     def incarnate(app_context: ApplicationContext = None) -> Game:
-        gw2_config = GW2Config(app_context)
+        gw2_config = GW2Config(app_context.appdata_dir)
 
         if not gw2_config.load():
             raise ConfigLoadException(gw2_config.path)

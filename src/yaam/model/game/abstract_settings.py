@@ -3,7 +3,7 @@ Abstract Game class module
 '''
 
 from pathlib import Path
-from typing import Dict, Set, List, TypeVar, Union
+from typing import Dict, List, TypeVar, ValuesView, Union
 from yaam.model.binding_type import BindingType
 from yaam.model.game.settings import IYaamGameSettings
 
@@ -21,11 +21,11 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
 
         self._settings_path = settings_path
         
-        self._args : Set[C] = set()
-        self._bases : Dict[str, D] = list()
+        self._args : Dict[str, C] = dict()
+        self._bases : Dict[str, D] = dict()
+        self._chains : List[List[str]] = list()
         self._addons : List[A] = list()
         self._bindings : Dict[BindingType, Dict[str, B]] = dict()
-        self._chains : List[List[str]] = list()
         self._binding_type : BindingType = binding
     
     @property
@@ -39,17 +39,17 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
     def set_binding(self, new_binding: BindingType):
         self._binding_type = new_binding
 
-    @property
-    def bindings(self) -> Dict[BindingType, Dict[str, B]]:
-        return self._bindings
+    # @property
+    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
+    #     return self._bindings
+
+    # @property
+    # def bases(self) -> Dict[str, D]:
+    #     return self._bases
 
     @property
-    def bases(self) -> Dict[str, D]:
-        return self._bases
-
-    @property
-    def arguments(self) -> Set[A]:
-        return self._args
+    def arguments(self) -> ValuesView[C]:
+        return self._args.values()
 
     @property
     def addons(self) -> List[A]:
@@ -60,16 +60,16 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         return self._chains
 
     def has_addon(self, obj: Union[str, A]) -> bool:
-        return obj in self._addons
+        return obj in self._bases if isinstance(obj, str) else obj in self._addons
 
-    def has_argument(self, obj: Union[str, C]) -> bool:
-        return obj in self._args
+    def has_argument(self, name: str) -> bool:
+        return name in self._args
 
     def addon(self, name: str) -> A:
         return next((_ for _ in self._addons if name == _.name), None)
 
     def argument(self, name: str) -> C:
-        return next((_ for _ in self._args if name == _), None)
+        return self._args.get(name, None)
 
     def add_addon(self, addon: A) -> bool:
         ret = not self.has_addon(addon)
@@ -84,11 +84,11 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         ret = not self.has_argument(arg)
 
         if ret:
-            self._args.add(arg)
+            self._args[str(arg)] = arg
 
         return ret
 
-    def remove(self, addon: A) -> bool:
+    def remove(self, addon: str) -> bool:
         ret = addon in self._addons
 
         if ret:

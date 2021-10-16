@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 
-from yaam.model.immutable.addon import Addon
+from yaam.model.mutable.addon import MutableAddon as Addon
 from yaam.utils.logger import static_logger as logger
 
 def restore_bin_dir(bin_dir: Path) -> bool:
@@ -76,7 +76,7 @@ def restore_dll_addons(addons: Iterable[Addon]) -> int:
     '''
     ret = 0
     for addon in addons:
-        if addon.binding.is_dll() and addon.binding.is_enabled:
+        if addon.binding.is_dll() and addon.binding.enabled:
             p = addon.binding.path
             if Path(f"{p}.disabled").exists():
                 logger().info(msg=f"Addon {addon.base.name}({p.name}) will be restored...")
@@ -93,7 +93,7 @@ def disable_dll_addons(addons: Iterable[Addon]) -> int:
 
     ret = 0
     for addon in addons:
-        if addon.binding.is_dll() and not addon.binding.is_enabled:
+        if addon.binding.is_dll() and not addon.binding.enabled:
             p = addon.binding.path
             if p.exists():
                 logger().info(msg=f"Addon {addon.base.name}({p.name}) will be suppressed...")

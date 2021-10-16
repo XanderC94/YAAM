@@ -4,7 +4,7 @@ Game model abstract class module
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Set, List, Dict, Generic, TypeVar, Union
+from typing import List, Generic, TypeVar, Union, ValuesView
 from yaam.model.binding_type import BindingType
 
 A = TypeVar('A')
@@ -24,7 +24,7 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         Returns the current settings path for the game.
         That is the addons, arguments and chainloads settings.
         '''
-        return Path()
+        return None
 
     @property
     @abstractmethod
@@ -32,7 +32,7 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         '''
         Returns the game selected binding type
         '''
-        return BindingType.AGNOSTIC
+        return None
 
     @abstractmethod
     def set_binding(self, new_binding: BindingType):
@@ -40,29 +40,29 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         Set a new binding type for the game
         '''
 
-    @property
-    @abstractmethod
-    def bindings(self) -> Dict[BindingType, Dict[str, B]]:
-        '''
-        Returns game arguments
-        '''
-        return dict()
+    # @property
+    # @abstractmethod
+    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
+    #     '''
+    #     Returns game arguments
+    #     '''
+    #     return None
+
+    # @property
+    # @abstractmethod
+    # def bases(self) -> Dict[str, D]:
+    #     '''
+    #     Returns game basis
+    #     '''
+    #     return None
 
     @property
     @abstractmethod
-    def bases(self) -> Dict[str, D]:
-        '''
-        Returns game basis
-        '''
-        return dict()
-
-    @property
-    @abstractmethod
-    def arguments(self) -> Set[C]:
+    def arguments(self) -> ValuesView[C]:
         '''
         Returns game arguments
         '''
-        return set()
+        return None
 
     @property
     @abstractmethod
@@ -70,7 +70,7 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         '''
         Returns game addons
         '''
-        return dict()
+        return None
 
     @property
     @abstractmethod
@@ -78,7 +78,7 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         '''
         Returns all the chainload sequences
         '''
-        return set()
+        return None
 
     @abstractmethod
     def addon(self, name: str) -> A:
@@ -102,7 +102,7 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         return False
 
     @abstractmethod
-    def has_argument(self, obj: Union[str, C]) -> bool:
+    def has_argument(self, name: str) -> bool:
         '''
         Returns if the game has the requested argument
         '''

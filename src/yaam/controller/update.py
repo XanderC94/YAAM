@@ -10,7 +10,7 @@ import requests
 from yaam.utils.validators.url import url as url_validator
 from yaam.utils.hashing import Hasher
 from yaam.utils.logger import static_logger as logger
-from yaam.model.immutable.addon import Addon
+from yaam.model.mutable.addon import MutableAddon as Addon
 
 class UpdateResult(Enum):
     '''
@@ -57,7 +57,7 @@ def update_dll_addon(addon: Addon):
     
     if not addon.binding.is_dll():
         ret_code = UpdateResult.NOT_DLL
-    elif not addon.binding.is_enabled:
+    elif not addon.binding.enabled:
         ret_code = UpdateResult.DISABLED
     elif not url_validator(addon.base.update_url):
     # elif not len(addon.update_url):
@@ -83,7 +83,7 @@ def update_dll_addon(addon: Addon):
         fail_code = UpdateResult.NONE
 
         if addon.binding.path.exists():
-            if addon.binding.is_updateable:
+            if addon.binding.updateable:
                 logger().info(msg=f"Checking {addon.base.name}({addon.binding.path.name}) updates...")
 
                 remote_hash = Hasher.SHA256.make_hash_from_bytes(data)

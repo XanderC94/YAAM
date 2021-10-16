@@ -4,7 +4,7 @@ Contexts module
 import os
 from pathlib import Path
 from typing import Dict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import shutil
 import json
 
@@ -13,37 +13,60 @@ class GameContext(object):
     '''
     Game context module
     '''
-    def __init__(self,
-        game_root: Path,
-        yaam_game_dir : Path,
-        args_path: Path,
-        addons_path: Path,
-        bindings_path: Path,
-        chains_path: Path):
+    game_root      : Path = field(init=True)
+    yaam_game_dir  : Path = field(init=True)
+    args_path      : Path = field(init=True)
+    addons_path    : Path = field(init=True)
+    bindings_path  : Path = field(init=True)
+    chains_path    : Path = field(init=True)
 
-        self.game_root = game_root
-        self.yaam_game_dir = yaam_game_dir
-        self.args_path = args_path
-        self.addons_path = addons_path
-        self.bindings_path = bindings_path
-        self.chains_path = chains_path
+    # def __init__(self,
+    #     game_root: Path,
+    #     yaam_game_dir : Path,
+    #     args_path: Path,
+    #     addons_path: Path,
+    #     bindings_path: Path,
+    #     chains_path: Path):
+
+    #     self.game_root = game_root
+    #     self.yaam_game_dir = yaam_game_dir
+    #     self.args_path = args_path
+    #     self.addons_path = addons_path
+    #     self.bindings_path = bindings_path
+    #     self.chains_path = chains_path
 
 class ApplicationContext(object):
     '''
     Application context class
     '''
 
-    def __init__(self):
+    def __init__(self, debug = False):
         
+        self._debug = debug
         self._appdata_dir = Path(os.getenv("APPDATA"))
         self._temp_dir = Path(os.getenv("TEMP"))
+        self._work_dir = Path(os.getcwd())
         self._yaam_dir = self._appdata_dir / "yaam"
         self._res_dir = self._yaam_dir / "res"
         self._version = str()
-        self._yaam_temp_dir = self._temp_dir / "yaam-release"
+        self._yaam_temp_dir = self._temp_dir / "yaam-release" if not debug else self._work_dir
 
         self.__game_contexts: Dict[str, GameContext] = dict()
 
+    @property
+    def debug(self):
+        '''
+        Return if the application is running in debug mode
+        '''
+        return self._debug
+
+    @property
+    def appdata_dir(self) -> Path:
+        '''
+        Returns the APPDATA directory of the current system
+        '''
+        return self._appdata_dir
+        
     def create_app_environment(self):
         '''
         Deploy application environment if it doesn't exist
@@ -51,9 +74,10 @@ class ApplicationContext(object):
         os.makedirs(self._yaam_dir, exist_ok=True)
         os.makedirs(self._res_dir, exist_ok=True)
 
-        with open(self._yaam_temp_dir / "MANIFEST", encoding="urf-8", mode="r") as _:
-            manifest = json.load(_)
-            self._version = manifest['version']
+        if not self._debug:
+            with open(self._yaam_temp_dir / "MANIFEST", encoding="urf-8", mode="r") as _:
+                manifest = json.load(_)
+                self._version = manifest['version']
 
     def create_game_environment(self, game_name: str, game_root: Path) -> GameContext:
         '''

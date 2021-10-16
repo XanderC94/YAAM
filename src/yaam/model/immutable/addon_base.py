@@ -83,8 +83,8 @@ class AddonBase(object):
         '''
         return AddonBase(
             json['name'],
-            json['uri'] if 'uri' in json else "",
-            json['description'] if 'description' in json else "",
-            json['contribs'] if 'contribs' in json else [],
+            json.get('uri', None),
+            json.get('description', ""),
+            json.get('contribs', []),
             default_binding_type
         )

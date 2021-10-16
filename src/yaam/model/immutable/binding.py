@@ -11,13 +11,13 @@ class Binding(object):
 
     def __init__(self,
         name: str, path: Path = Path(),
-        enabled: bool = False, update: bool = False,
+        enabled: bool = False, updateable: bool = False,
         binding_type: BindingType = BindingType.AGNOSTIC):
 
         self._name = name
         self._path = path
         self._enabled = enabled
-        self._update = update
+        self._updateable = updateable
         self._binding_type = binding_type
 
     def __hash__(self) -> int:
@@ -38,14 +38,14 @@ class Binding(object):
         return self._path
 
     @property
-    def is_updateable(self) -> bool:
+    def updateable(self) -> bool:
         '''
         Returns whether or not this addon should be updated
         '''
-        return self._update
+        return self._updateable
 
     @property
-    def is_enabled(self) -> bool:
+    def enabled(self) -> bool:
         '''
         Returns whether or not this addon is enabled
         '''
@@ -71,14 +71,14 @@ class Binding(object):
         return self._path.suffix == ".exe"
 
     @staticmethod
-    def from_dict(json:dict, binding_type: BindingType):
+    def from_dict(json_obj:dict, binding_type: BindingType):
         '''
         Create object representation of this class from dict representation
         '''
         return Binding(
-            json["name"],
-            Path(json["path"]),
-            json["enabled"] if "enabled" in json else False,
-            json["update"] if "update" in json else False,
+            json_obj["name"],
+            Path(json_obj.get("path", "")),
+            json_obj.get("enabled", False),
+            json_obj.get("update", False),
             binding_type
         )

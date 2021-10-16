@@ -12,14 +12,14 @@ class MutableBinding(Binding):
 
     def __init__(self,
         name: str, path: Path = Path(),
-        enabled: bool = False, update: bool = False,
+        enabled: bool = False, updateable: bool = False,
         binding_type: BindingType = BindingType.AGNOSTIC):
         
         super().__init__(
             name=name,
             path=path,
             enabled=enabled,
-            update=update,
+            updateable=updateable,
             binding_type=binding_type
         )
 
@@ -37,15 +37,15 @@ class MutableBinding(Binding):
         '''
         self._path = new_path
 
-    @Binding.is_updateable.setter
-    def is_updateable(self, update : bool):
+    @Binding.updateable.setter
+    def updateable(self, updateable : bool):
         '''
         Set whether or not this addon should be updated
         '''
-        self._update = update
+        self._updateable = updateable
 
-    @Binding.is_enabled.setter
-    def is_enabled(self, enabled : bool) -> str:
+    @Binding.enabled.setter
+    def enabled(self, enabled : bool) -> str:
         '''
         Set whether or not this addon is enabled
         '''
@@ -57,3 +57,16 @@ class MutableBinding(Binding):
         Set the addon binding type
         '''
         self._binding_type = new_binding
+
+    @staticmethod
+    def from_dict(json_obj:dict, binding_type: BindingType):
+        '''
+        Create object representation of this class from dict representation
+        '''
+        return MutableBinding(
+            json_obj["name"],
+            Path(json_obj.get("path", "")),
+            json_obj.get("enabled", False),
+            json_obj.get("update", False),
+            binding_type
+        )

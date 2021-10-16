@@ -3,6 +3,7 @@ YAAM main module
 '''
 
 import sys
+import time
 from collections import defaultdict
 from tabulate import tabulate
 from yaam.controller.update import update_addons
@@ -48,23 +49,34 @@ def run_main(app_context : ApplicationContext):
         )
     finally:
         if game:
-            is_addon_update_only = sum([
-                1 for _ in Option.UPDATE_ADDONS.aliases if _ in game.settings.arguments
-            ]) > 0
+            # is_addon_update_only = sum([
+            #     1 for _ in Option.UPDATE_ADDONS.aliases if _ in game.settings.arguments
+            # ]) > 0
 
-            disable_dll_addons(game.settings.addons)
-            restore_dll_addons(game.settings.addons)
+            is_addon_update_only = True
 
-            update_addons(game.settings.addons)
+            start = time.time()
+            addons_synthesis = game.synthetize()
+            end = time.time()
+            logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
+
+            disable_dll_addons(addons_synthesis)
+            restore_dll_addons(addons_synthesis)
+
+            update_addons(addons_synthesis)
 
             if not is_addon_update_only:
-                run(game.config.game_path, game.config.game_root, game.settings.arguments)
+                run(
+                    game.config.game_path,
+                    game.config.game_root,
+                    [str(_.synthetize()) for _ in game.settings.arguments if not _.deprecated and _.enabled]
+                )
 
-                for addon in game.settings.addons:
+                for addon in addons_synthesis:
                     if addon.is_enabled and addon.is_exe():
                         run(addon.path, addon.path.parent)
 
-                logger.info(msg="Stack complete. Closing...")
+            logger.info(msg="Stack complete. Closing...")
 
     return game is not None
 
