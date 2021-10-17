@@ -3,10 +3,13 @@ Contexts module
 '''
 import os
 from pathlib import Path
-from typing import Dict
+import sys
+from typing import Dict, Sequence
 from dataclasses import dataclass, field
 import shutil
 import json
+
+from yaam.model.config import AppConfig
 
 @dataclass(frozen=True)
 class GameContext(object):
@@ -20,28 +23,12 @@ class GameContext(object):
     bindings_path  : Path = field(init=True)
     chains_path    : Path = field(init=True)
 
-    # def __init__(self,
-    #     game_root: Path,
-    #     yaam_game_dir : Path,
-    #     args_path: Path,
-    #     addons_path: Path,
-    #     bindings_path: Path,
-    #     chains_path: Path):
-
-    #     self.game_root = game_root
-    #     self.yaam_game_dir = yaam_game_dir
-    #     self.args_path = args_path
-    #     self.addons_path = addons_path
-    #     self.bindings_path = bindings_path
-    #     self.chains_path = chains_path
-
-class ApplicationContext(object):
+class AppContext(object):
     '''
     Application context class
     '''
 
     def __init__(self, debug = False):
-        
         self._debug = debug
         self._appdata_dir = Path(os.getenv("APPDATA"))
         self._temp_dir = Path(os.getenv("TEMP"))
@@ -50,8 +37,11 @@ class ApplicationContext(object):
         self._res_dir = self._yaam_dir / "res"
         self._version = str()
         self._yaam_temp_dir = self._temp_dir / "yaam-release" if not debug else self._work_dir
+        
+        self._execution_path = Path()
 
-        self.__game_contexts: Dict[str, GameContext] = dict()
+        self._game_contexts: Dict[str, GameContext] = dict()
+        self._app_config = AppConfig()
 
     @property
     def debug(self):
@@ -61,12 +51,19 @@ class ApplicationContext(object):
         return self._debug
 
     @property
+    def config(self):
+        '''
+        Return the application configuration
+        '''
+        return self._app_config
+
+    @property
     def appdata_dir(self) -> Path:
         '''
         Returns the APPDATA directory of the current system
         '''
         return self._appdata_dir
-        
+
     def create_app_environment(self):
         '''
         Deploy application environment if it doesn't exist
@@ -79,12 +76,16 @@ class ApplicationContext(object):
                 manifest = json.load(_)
                 self._version = manifest['version']
 
+        vargs = sys.argv
+        self._execution_path = vargs[0]
+        self._app_config.load(self._yaam_dir / "config.yaml", vargs[1:])
+
     def create_game_environment(self, game_name: str, game_root: Path) -> GameContext:
         '''
         Create game environment
         '''
-        if game_name not in self.__game_contexts:
-            
+        if game_name not in self._game_contexts:
+
             yaam_game_dir = self._res_dir / game_name
             yaam_game_dir.mkdir(exist_ok=True)
 
@@ -93,19 +94,21 @@ class ApplicationContext(object):
             bindings_path = yaam_game_dir / "bindings.json"
             chains_path = yaam_game_dir / "chains.json"
 
+            tmp_yaam_game_dir = self._yaam_temp_dir / "res/default" / game_name
+
             if not arguments_path.exists():
-                shutil.copyfile(self._yaam_temp_dir / "res/default" / game_name / "arguments.json", arguments_path)
+                shutil.copyfile(tmp_yaam_game_dir / "arguments.json", arguments_path)
 
             if not addons_path.exists():
-                shutil.copyfile(self._yaam_temp_dir / "res/default" / game_name / "addons.json", addons_path)
+                shutil.copyfile(tmp_yaam_game_dir / "addons.json", addons_path)
 
             if not bindings_path.exists():
-                shutil.copyfile(self._yaam_temp_dir / "res/default" / game_name / "bindings.json", bindings_path)
+                shutil.copyfile(tmp_yaam_game_dir / "bindings.json", bindings_path)
 
             if not chains_path.exists():
-                shutil.copyfile(self._yaam_temp_dir / "res/default" / game_name / "chains.json", chains_path)
+                shutil.copyfile(tmp_yaam_game_dir / "chains.json", chains_path)
 
-            self.__game_contexts[game_name] = GameContext(
+            self._game_contexts[game_name] = GameContext(
                 game_root,
                 yaam_game_dir,
                 arguments_path,
@@ -114,13 +117,13 @@ class ApplicationContext(object):
                 chains_path
             )
 
-        return self.__game_contexts[game_name]
+        return self._game_contexts[game_name]
 
     def game_context(self, game_name: str) -> GameContext:
         '''
         Return the specified game context if exists
         '''
-        if game_name in self.__game_contexts:
-            return self.__game_contexts[game_name]
+        if game_name in self._game_contexts:
+            return self._game_contexts[game_name]
         else:
             return None

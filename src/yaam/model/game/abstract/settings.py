@@ -4,8 +4,8 @@ Abstract Game class module
 
 from pathlib import Path
 from typing import Dict, List, TypeVar, ValuesView, Union
-from yaam.model.binding_type import BindingType
-from yaam.model.game.settings import IYaamGameSettings
+from yaam.model.type.binding import BindingType
+from yaam.model.game.contract.settings import IYaamGameSettings
 
 A = TypeVar('A')
 B = TypeVar('B')

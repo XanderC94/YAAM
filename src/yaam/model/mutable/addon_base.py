@@ -2,7 +2,7 @@
 Addon module
 '''
 from typing import List
-from yaam.model.binding_type import BindingType
+from yaam.model.type.binding import BindingType
 from yaam.model.immutable.addon_base import AddonBase
 
 class MutableAddonBase(AddonBase):
@@ -12,7 +12,7 @@ class MutableAddonBase(AddonBase):
 
     def __init__(self,
         name: str,
-        update_url: str = str(),
+        uri: str = str(),
         descr: str = str(),
         contribs: List[str] = None,
         dependencies: List[str] = None,
@@ -21,7 +21,7 @@ class MutableAddonBase(AddonBase):
 
         super().__init__(
             name=name,
-            update_url=update_url,
+            uri=uri,
             descr=descr,
             contribs=contribs,
             dependencies=dependencies,
@@ -35,12 +35,12 @@ class MutableAddonBase(AddonBase):
         '''
         self._name = new_name
 
-    @AddonBase.update_url.setter
-    def update_url(self, new_update_url: str) -> None:
+    @AddonBase.uri.setter
+    def uri(self, new_uri: str) -> None:
         '''
         Set the addon update url
         '''
-        self._update_url = new_update_url
+        self._uri = new_uri
 
     @AddonBase.description.setter
     def description(self, new_description: str) -> None:

@@ -3,8 +3,8 @@ Abstract Game class module
 '''
 
 from pathlib import Path
-from yaam.model.binding_type import BindingType
-from yaam.model.game.config import IGameConfiguration
+from yaam.model.type.binding import BindingType
+from yaam.model.game.contract.config import IGameConfiguration
 
 class AbstractGameConfiguration(IGameConfiguration):
     '''

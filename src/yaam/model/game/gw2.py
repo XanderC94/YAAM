@@ -8,23 +8,25 @@ from pathlib import Path
 from typing import Callable, Any, Dict, List, Tuple
 from bs4 import BeautifulSoup
 
-from yaam.model.game.config import IGameConfiguration
-from yaam.model.game.game import Game, IGameIncarnator
-from yaam.model.game.settings import IYaamGameSettings
+from yaam.utils.exceptions import ConfigLoadException
+from yaam.utils.normalize import normalize_abs_path
+from yaam.utils.logger import static_logger as logger
+
+from yaam.model.game.contract.config import IGameConfiguration
+from yaam.model.game.contract.incarnator import IGameIncarnator
+from yaam.model.game.contract.settings import IYaamGameSettings
+from yaam.model.game.base import Game
 from yaam.model.immutable.argument import ArgumentSynthesis
 from yaam.model.immutable.binding import Binding
-from yaam.utils.exceptions import ConfigLoadException
 
-from yaam.utils.logger import static_logger as logger
-from yaam.model.binding_type import BindingType
+from yaam.model.type.binding import BindingType
 from yaam.model.mutable.addon import MutableAddon
 from yaam.model.mutable.addon_base import MutableAddonBase
 from yaam.model.mutable.binding import MutableBinding
 from yaam.model.mutable.argument import MutableArgument
-from yaam.model.game.abstract_config import AbstractGameConfiguration
-from yaam.model.game.yaam_settings import YaamGameSettings
-from yaam.model.context import ApplicationContext, GameContext
-from yaam.utils.normalize import normalize_abs_path
+from yaam.model.game.abstract.config import AbstractGameConfiguration
+from yaam.model.game.stub.settings import YaamGameSettings
+from yaam.model.context import AppContext, GameContext
 
 Mapper = Callable[[Any], Any]
 Consumer = Callable[[Any], None]
@@ -190,7 +192,7 @@ class YaamGW2Settings(YaamGameSettings):
                 if binding_type == BindingType.SHADER:
                     # To Do...
                     pass
-                
+
                 binding = MutableBinding.from_dict(obj, binding_type)
                 self.add_binding(binding)
 
@@ -259,7 +261,7 @@ class GuildWars2(Game, IGameIncarnator):
         Game.__init__(self, config, settings)
 
     @staticmethod
-    def incarnate(app_context: ApplicationContext = None) -> Game:
+    def incarnate(app_context: AppContext = None) -> Game:
         gw2_config = GW2Config(app_context.appdata_dir)
 
         if not gw2_config.load():

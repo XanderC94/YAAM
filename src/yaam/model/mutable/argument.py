@@ -4,7 +4,7 @@ Mutable Argument module
 
 from typing import TypeVar
 from yaam.model.immutable.argument import Argument, ArgumentSynthesis
-from yaam.model.synthetizer import Synthetizer
+from yaam.patterns.synthetizer import Synthetizer
 
 T = TypeVar('T')
 

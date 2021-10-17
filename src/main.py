@@ -8,18 +8,18 @@ from collections import defaultdict
 from tabulate import tabulate
 from yaam.controller.update import update_addons
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
-from yaam.model.game.game import Game
+from yaam.model.game.base import Game
 from yaam.utils.process import run
-from yaam.utils.options import Option
+from yaam.model.options import Option
 from yaam.utils.logger import static_logger
 
 from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
-from yaam.model.context import ApplicationContext
+from yaam.model.context import AppContext
 
 #####################################################################
 
-def run_main(app_context : ApplicationContext):
+def run_main(app_context : AppContext):
     '''
     Main thread
     '''
@@ -49,11 +49,7 @@ def run_main(app_context : ApplicationContext):
         )
     finally:
         if game:
-            # is_addon_update_only = sum([
-            #     1 for _ in Option.UPDATE_ADDONS.aliases if _ in game.settings.arguments
-            # ]) > 0
-
-            is_addon_update_only = True
+            is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
 
             start = time.time()
             addons_synthesis = game.synthetize()
@@ -69,12 +65,12 @@ def run_main(app_context : ApplicationContext):
                 run(
                     game.config.game_path,
                     game.config.game_root,
-                    [str(_.synthetize()) for _ in game.settings.arguments if not _.deprecated and _.enabled]
+                    [str(_.synthetize()) for _ in game.settings.arguments if not _.meta.deprecated and _.enabled]
                 )
 
                 for addon in addons_synthesis:
-                    if addon.is_enabled and addon.is_exe():
-                        run(addon.path, addon.path.parent)
+                    if addon.binding.enabled and addon.binding.is_exe():
+                        run(addon.binding.path, addon.binding.path.parent)
 
             logger.info(msg="Stack complete. Closing...")
 
@@ -82,10 +78,10 @@ def run_main(app_context : ApplicationContext):
 
 if __name__ == "__main__":
 
-    app_ctx = ApplicationContext()
+    app_context = AppContext()
 
-    app_ctx.create_app_environment()
+    app_context.create_app_environment()
 
-    execution_result = run_main(app_ctx)
+    execution_result = run_main(app_context)
 
     sys.exit(execution_result)

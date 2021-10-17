@@ -2,7 +2,7 @@
 Addon module
 '''
 from typing import List
-from yaam.model.binding_type import BindingType
+from yaam.model.type.binding import BindingType
 
 class AddonBase(object):
     '''
@@ -10,14 +10,14 @@ class AddonBase(object):
     '''
     def __init__(self,
         name: str,
-        update_url: str = str(),
+        uri: str = str(),
         descr: str = str(),
         contribs: List[str] = None,
         dependencies: List[str] = None,
         default_binding_type: BindingType = BindingType.AGNOSTIC):
 
         self._name = name
-        self._update_url = update_url
+        self._uri = uri
         self._descr = descr
         self._contributors: List[str] = contribs if contribs else list()
         self._decependencies: List[str] = dependencies if dependencies else list()
@@ -42,11 +42,11 @@ class AddonBase(object):
         return self._name
 
     @property
-    def update_url(self) -> str:
+    def uri(self) -> str:
         '''
-        The update_url of the addon
+        The uri of the addon
         '''
-        return self._update_url
+        return self._uri
 
     @property
     def description(self) -> str:

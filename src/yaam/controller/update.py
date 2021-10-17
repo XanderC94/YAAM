@@ -59,12 +59,12 @@ def update_dll_addon(addon: Addon):
         ret_code = UpdateResult.NOT_DLL
     elif not addon.binding.enabled:
         ret_code = UpdateResult.DISABLED
-    elif not url_validator(addon.base.update_url):
-    # elif not len(addon.update_url):
+    elif not url_validator(addon.base.uri):
+    # elif not len(addon.uri):
         logger().info(msg=f"No valid update URL provided for {addon.base.name}({addon.binding.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
-        res = requests.get(addon.base.update_url)
+        res = requests.get(addon.base.uri)
 
         data : bytes = res.content
 

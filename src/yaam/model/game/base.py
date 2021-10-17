@@ -1,21 +1,17 @@
 '''
 '''
-from abc import abstractmethod
 from typing import List
-from yaam.model.binding_type import BindingType
-from yaam.model.incarnator import StaticIncarnator
-from yaam.model.game.config import IGameConfiguration
-from yaam.model.game.settings import IYaamGameSettings
-from yaam.model.context import ApplicationContext
+from copy import deepcopy
+from yaam.model.type.binding import BindingType
+from yaam.model.game.contract.config import IGameConfiguration
+from yaam.model.game.contract.settings import IYaamGameSettings
 from yaam.model.mutable.addon import MutableAddon
 from yaam.model.mutable.addon_base import MutableAddonBase
 from yaam.model.mutable.argument import MutableArgument
 from yaam.model.mutable.binding import MutableBinding
-from yaam.model.synthetizer import Synthetizer
+from yaam.patterns.synthetizer import Synthetizer
 
-from copy import deepcopy
-
-IYaamGameSettingsStub = IYaamGameSettings[
+IYGS = IYaamGameSettings[
     MutableAddon, MutableBinding, MutableArgument, MutableAddonBase
 ]
 
@@ -23,7 +19,7 @@ class Game(Synthetizer[List[MutableAddon]]):
     '''
     Game class trait
     '''
-    def __init__(self, config: IGameConfiguration, settings: IYaamGameSettingsStub) -> None:
+    def __init__(self, config: IGameConfiguration, settings: IYGS) -> None:
         self._config = config
         self._yaam_settings = settings
 
@@ -35,7 +31,7 @@ class Game(Synthetizer[List[MutableAddon]]):
         return self._config
 
     @property
-    def settings(self) -> IYaamGameSettingsStub:
+    def settings(self) -> IYGS:
         '''
         Return the yaam's game setting
         '''
@@ -62,17 +58,3 @@ class Game(Synthetizer[List[MutableAddon]]):
                 binding_lut.remove(addon.binding.typing)
 
         return addons_copy
-
-class IGameIncarnator(StaticIncarnator[ApplicationContext, Game]):
-    '''
-    Game class static incarnator trait
-    '''
-
-    @staticmethod
-    @abstractmethod
-    def incarnate(app_context: ApplicationContext = None) -> Game:
-        '''
-        Create an incarnation of the game
-        '''
-        return None
-    

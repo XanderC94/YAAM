@@ -5,7 +5,7 @@ Release execution module
 import os
 from pathlib import Path
 import sys
-from yaam.model.context import ApplicationContext
+from yaam.model.context import AppContext
 from yaam.utils.logger import init_static_logger, logging
 from yaam.utils.exceptions import exception_handler
 from main import run_main
@@ -26,10 +26,10 @@ if __name__ == "__main__":
 
     logger.info(msg=WORK_DIR)
 
-    app_ctx = ApplicationContext()
+    app_context = AppContext()
 
-    app_ctx.create_app_environment()
+    app_context.create_app_environment()
 
-    execution_result = run_main(app_ctx)
+    execution_result = run_main(app_context)
 
     sys.exit(execution_result)

@@ -2,7 +2,7 @@
 Binding model module
 '''
 from pathlib import Path
-from yaam.model.binding_type import BindingType
+from yaam.model.type.binding import BindingType
 from yaam.model.immutable.binding import Binding
 
 class MutableBinding(Binding):

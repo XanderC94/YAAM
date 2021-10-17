@@ -5,7 +5,7 @@ Game model abstract class module
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List, Generic, TypeVar, Union, ValuesView
-from yaam.model.binding_type import BindingType
+from yaam.model.type.binding import BindingType
 
 A = TypeVar('A')
 B = TypeVar('B')

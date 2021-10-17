@@ -19,7 +19,8 @@ $icon_path="res/icon/yaam.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
 $output_dir="bin"
-$target="src/yaam-release.py"
+$target_name="yaam-release.py"
+$target="src/$target_name"
 
 # Load manifest template and write in bin folder
 # Then embed the manifest into the application executable
@@ -48,3 +49,5 @@ $params = @(
 )
 
 @(python -m nuitka $params $target)
+
+Rename-Item "$root/$output_dir/$target_name" "$target_name-$version"

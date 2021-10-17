@@ -3,7 +3,7 @@ Command line argument module
 '''
 from dataclasses import dataclass, field
 from typing import TypeVar, Generic
-from yaam.model.argument_type import ArgumentType
+from yaam.model.type.argument import ArgumentType
 
 T = TypeVar('T')
 
@@ -78,16 +78,6 @@ class Argument(object):
     _deprecated    : bool           = field(init=True)
     _user_defined  : bool           = field(init=True)
 
-    # def __init__(self, name: str, values: list, value_type: ArgumentType = ArgumentType.NONE,
-    #         descr: str = str(), deprecated: bool = False, user_defined:bool = False) -> None:
-
-    #     self._name = name
-    #     self._values = values
-    #     self._value_type = value_type
-    #     self._descr = descr
-    #     self._deprecated = deprecated
-    #     self._user_defined = user_defined
-
     def __hash__(self) -> int:
         return hash(self.name)
 
@@ -98,7 +88,7 @@ class Argument(object):
         elif isinstance(o, str):
             return self.name == o or self.name == o[1:]
         return super().__eq__(o)
-    
+
     @property
     def name(self) -> str():
         '''
@@ -128,14 +118,14 @@ class Argument(object):
         return self._descr
 
     @property
-    def is_deprecated(self):
+    def deprecated(self):
         '''
         Return if whether the argument is deprecated or temporaly disable
         '''
         return self._deprecated
 
     @property
-    def is_user_defined(self):
+    def user_defined(self):
         '''
         Return whether the argument values are user defined
         '''
