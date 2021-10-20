@@ -7,12 +7,13 @@ class BindingType(Enum):
     '''
     Addon binary binding type
     '''
-    AGNOSTIC = (-1, set())
-    EXE = (0, set(["exe"]))
-    DXGI_9 = (1, set(["dx9", "d3d9"]))
-    DXGI_11 = (2, set(["dx11", "d3d11"]))
-    DXGI_12 = (3, set(["dx12", "dxgi", "d3d12"]))
-    SHADER = (4, set(["shader", "shaders", "reshade"]))
+    AGNOSTIC = (0, set())
+    EXE = (1, set(["exe"]))
+    DXGI_9 = (2, set(["dx9", "d3d9"]))
+    DXGI_10 = (3, set(["dx10", "d3d9"]))
+    DXGI_11 = (4, set(["dx11", "d3d10"]))
+    DXGI_12 = (5, set(["dx12", "d3d12"]))
+    VULKAN = (6, set(["vk", "vulkan"]))
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, BindingType):
@@ -45,11 +46,11 @@ class BindingType(Enum):
         '''
         Return the enum representation of the string
         '''
-        render = BindingType.AGNOSTIC
+        binding = BindingType.AGNOSTIC
 
         for bind_type in BindingType:
             if str_repr == bind_type.name or str_repr in bind_type.aliases:
-                render = bind_type
+                binding = bind_type
                 break
         
-        return render
+        return binding

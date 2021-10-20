@@ -17,12 +17,11 @@ from yaam.model.game.contract.incarnator import IGameIncarnator
 from yaam.model.game.contract.settings import IYaamGameSettings
 from yaam.model.game.base import Game
 from yaam.model.immutable.argument import ArgumentSynthesis
-from yaam.model.immutable.binding import Binding
 
 from yaam.model.type.binding import BindingType
-from yaam.model.mutable.addon import MutableAddon
-from yaam.model.mutable.addon_base import MutableAddonBase
-from yaam.model.mutable.binding import MutableBinding
+from yaam.model.mutable.addon import Addon
+from yaam.model.mutable.addon_base import AddonBase
+from yaam.model.mutable.binding import Binding
 from yaam.model.mutable.argument import MutableArgument
 from yaam.model.game.abstract.config import AbstractGameConfiguration
 from yaam.model.game.stub.settings import YaamGameSettings
@@ -90,14 +89,14 @@ class YaamGW2Settings(YaamGameSettings):
 
         self._context = context
 
-    def add_base(self, base: MutableAddonBase):
+    def add_base(self, base: AddonBase):
         '''
         Add a new addon base
         '''
         if base.name not in self._bases:
             self._bases[base.name] = base
 
-    def add_binding(self, binding: MutableBinding):
+    def add_binding(self, binding: Binding):
         '''
         Add a new addon binding
         '''
@@ -117,7 +116,7 @@ class YaamGW2Settings(YaamGameSettings):
         })
 
         self.__load_list_props(self._context.addons_path, {
-            "addons": (MutableAddonBase.from_dict, self.add_base)
+            "addons": (AddonBase.from_dict, self.add_base)
         })
 
         self.__load_list_props(self._context.chains_path, {
@@ -132,7 +131,6 @@ class YaamGW2Settings(YaamGameSettings):
         logger().info(msg=f"Loaded {len(self._bases)} bases...")
         logger().info(msg=f"Loaded {sum([ len(_) for _ in self._bindings.values() ])} bindings...")
         logger().info(msg=f"Loaded {len(self._chains)} chainload sequences...")
-
 
         status = self.__incarnate_addons()
 
@@ -189,24 +187,19 @@ class YaamGW2Settings(YaamGameSettings):
                 if 'path' in obj:
                     obj['path'] = normalize_abs_path(obj['path'], self._context.game_root)
 
-                if binding_type == BindingType.SHADER:
-                    # To Do...
-                    pass
-
-                binding = MutableBinding.from_dict(obj, binding_type)
+                binding = Binding.from_dict(obj, binding_type)
                 self.add_binding(binding)
 
     def __update_bindings(self, json_obj: dict):
         for (key, value) in json_obj.items():
             binding_type = BindingType.from_string(key)
             for _ in value:
-                b = Binding.from_dict(_, binding_type)
-                if binding_type in self._bindings and b.name in self._bindings[binding_type]:
-                    binding = self._bindings[binding_type][b.name]
-                    binding.enabled = b.enabled
-                    binding.updateable = b.updateable
+                binding_setup = Binding.from_dict(_, binding_type)
+                if binding_type in self._bindings and binding_setup.name in self._bindings[binding_type]:
+                    binding = self._bindings[binding_type][binding_setup.name]
+                    binding.enabled = binding_setup.enabled
+                    binding.updateable = binding_setup.updateable
                     # binding.path = b.path
-
 
     def __update_arguments(self, synth: ArgumentSynthesis):
         if self.has_argument(synth.name):
@@ -227,10 +220,10 @@ class YaamGW2Settings(YaamGameSettings):
 
                     if addon_base is None:
                         # create base for dangling binding
-                        addon_base = MutableAddonBase(addon_name)
+                        addon_base = AddonBase(addon_name)
                         self.add_base(addon_base) # add placeholder
 
-                    addon = MutableAddon(addon_base, binding)
+                    addon = Addon(addon_base, binding)
 
                     self.add_addon(addon)
 
@@ -239,7 +232,7 @@ class YaamGW2Settings(YaamGameSettings):
             if addon_name not in self._addons:
                 binding = Binding(addon_name)
                 self.add_binding(binding) # add placeholder
-                addon = MutableAddon(base, binding)
+                addon = Addon(base, binding)
                 self.add_addon(addon)
 
         logger().info(msg=f"Incarnated {len(self._addons)} addons...")

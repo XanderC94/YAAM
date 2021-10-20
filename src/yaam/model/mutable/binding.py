@@ -3,9 +3,8 @@ Binding model module
 '''
 from pathlib import Path
 from yaam.model.type.binding import BindingType
-from yaam.model.immutable.binding import Binding
 
-class MutableBinding(Binding):
+class Binding(object):
     '''
     Mutable Addon binding model
     '''
@@ -14,44 +13,92 @@ class MutableBinding(Binding):
         name: str, path: Path = Path(),
         enabled: bool = False, updateable: bool = False,
         binding_type: BindingType = BindingType.AGNOSTIC):
-        
-        super().__init__(
-            name=name,
-            path=path,
-            enabled=enabled,
-            updateable=updateable,
-            binding_type=binding_type
-        )
 
-    @Binding.name.setter
+        self._name = name
+        self._path = path
+        self._enabled = enabled
+        self._updateable = updateable
+        self._binding_type = binding_type
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.typing))
+
+    @property
+    def name(self) -> str:
+        '''
+        Returns the Addon name
+        '''
+        return self._name
+
+    @property
+    def path(self) -> Path:
+        '''
+        Returns the addon path
+        '''
+        return self._path
+
+    @property
+    def updateable(self) -> bool:
+        '''
+        Returns whether or not this addon should be updated
+        '''
+        return self._updateable
+
+    @property
+    def enabled(self) -> bool:
+        '''
+        Returns whether or not this addon is enabled
+        '''
+        return self._enabled
+
+    @property
+    def typing(self) -> BindingType:
+        '''
+        Returns the addon binding type
+        '''
+        return self._binding_type
+
+    def is_dll(self) -> bool:
+        '''
+        Returns whether this addon is a .dll or not
+        '''
+        return self._path.suffix == ".dll"
+
+    def is_exe(self) -> bool:
+        '''
+        Return whether this addon is an .exe or not
+        '''
+        return self._path.suffix == ".exe"
+
+    @name.setter
     def name(self, new_name : str):
         '''
         Set the Addon name
         '''
         self._name = new_name
 
-    @Binding.path.setter
+    @path.setter
     def path(self, new_path : Path):
         '''
         Set the Addon path
         '''
         self._path = new_path
 
-    @Binding.updateable.setter
+    @updateable.setter
     def updateable(self, updateable : bool):
         '''
         Set whether or not this addon should be updated
         '''
         self._updateable = updateable
 
-    @Binding.enabled.setter
+    @enabled.setter
     def enabled(self, enabled : bool) -> str:
         '''
         Set whether or not this addon is enabled
         '''
         self._enabled = enabled
 
-    @Binding.typing.setter
+    @typing.setter
     def typing(self, new_binding : BindingType):
         '''
         Set the addon binding type
@@ -63,7 +110,7 @@ class MutableBinding(Binding):
         '''
         Create object representation of this class from dict representation
         '''
-        return MutableBinding(
+        return Binding(
             json_obj["name"],
             Path(json_obj.get("path", "")),
             json_obj.get("enabled", False),

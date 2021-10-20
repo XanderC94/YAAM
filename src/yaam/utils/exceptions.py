@@ -3,6 +3,7 @@ Custom exception module
 '''
 from pathlib import Path
 import sys
+from typing import Any
 from yaam.utils.logger import static_logger as logger
 
 def exception_handler(ex_type, ex_value, ex_traceback):
@@ -22,3 +23,13 @@ class ConfigLoadException(Exception):
     def __init__(self, config_path: Path):
         super().__init__()
         self.config_path = config_path
+
+class Found(Exception):
+    '''
+    Element found exception 
+    '''
+
+    def __init__(self, obj: Any, *args) -> None:
+        super().__init__(*args)
+        self.content = obj
+        

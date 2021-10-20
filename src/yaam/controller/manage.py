@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 
-from yaam.model.mutable.addon import MutableAddon as Addon
+from yaam.model.mutable.addon import Addon as Addon
 from yaam.utils.logger import static_logger as logger
 
 def restore_bin_dir(bin_dir: Path) -> bool:

@@ -29,18 +29,6 @@ def run_main(app_context : AppContext):
 
     try:
         game = GuildWars2.incarnate(app_context)
-
-        data = defaultdict(list)
-        for addon in sorted(game.settings.addons, key=lambda x: x.base.name):
-            table = addon.to_table()
-            for (key, value) in table.items():
-                data[key].append(value)
-
-        if len(data):
-            logger.info(msg="Loaded addons: ")
-            table = tabulate(data, headers="keys", tablefmt='rst', colalign=("left",))
-            logger.info(msg=f"\n{table}\n")
-
     except ConfigLoadException as ex:
         logger.info(
             msg = f"Configuration loading error. \
@@ -55,6 +43,17 @@ def run_main(app_context : AppContext):
             addons_synthesis = game.synthetize()
             end = time.time()
             logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
+
+            data = defaultdict(list)
+            for addon in sorted(addons_synthesis, key=lambda x: x.base.name):
+                table = addon.to_table()
+                for (key, value) in table.items():
+                    data[key].append(value)
+
+            if len(data):
+                logger.info(msg="Loaded addons: ")
+                table = tabulate(data, headers="keys", tablefmt='rst', colalign=("left",))
+                logger.info(msg=f"\n{table}\n")
 
             disable_dll_addons(addons_synthesis)
             restore_dll_addons(addons_synthesis)

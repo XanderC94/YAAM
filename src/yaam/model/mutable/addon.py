@@ -1,15 +1,15 @@
 '''
 Mutable Addon module
 '''
-from yaam.model.mutable.binding import MutableBinding, Binding
-from yaam.model.mutable.addon_base import MutableAddonBase, AddonBase
+from yaam.model.mutable.binding import Binding
+from yaam.model.mutable.addon_base import AddonBase
 
-class MutableAddon(object):
+class Addon(object):
     '''
     Mutable Addon incarnation class
     '''
 
-    def __init__(self, base: MutableAddonBase, binding: MutableBinding):
+    def __init__(self, base: AddonBase, binding: Binding):
 
         self._base = base
         self._binding = binding
@@ -18,7 +18,10 @@ class MutableAddon(object):
         return hash((self._binding.name, self._binding.typing))
 
     def __eq__(self, o: object) -> bool:
-        if issubclass(type(o), AddonBase):
+
+        if issubclass(type(o), Addon):
+            return self.__hash__() == o.__hash__()
+        elif issubclass(type(o), AddonBase):
             return self._base == o
         elif issubclass(type(o), Binding):
             return self._binding == o
@@ -28,14 +31,14 @@ class MutableAddon(object):
         return super().__eq__(o)
 
     @property
-    def base(self) -> MutableAddonBase:
+    def base(self) -> AddonBase:
         '''
         Return the Addon Base object
         '''
         return self._base
 
     @property
-    def binding(self) -> MutableBinding:
+    def binding(self) -> Binding:
         '''
         Return the Addon Binding object
         '''

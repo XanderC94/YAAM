@@ -1,21 +1,24 @@
 '''
+Base game module
 '''
+
 from typing import List
 from copy import deepcopy
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
 from yaam.model.game.contract.settings import IYaamGameSettings
-from yaam.model.mutable.addon import MutableAddon
-from yaam.model.mutable.addon_base import MutableAddonBase
+from yaam.model.mutable.addon import Addon
+from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.argument import MutableArgument
-from yaam.model.mutable.binding import MutableBinding
+from yaam.model.mutable.binding import Binding
 from yaam.patterns.synthetizer import Synthetizer
+from yaam.utils.exceptions import Found
 
 IYGS = IYaamGameSettings[
-    MutableAddon, MutableBinding, MutableArgument, MutableAddonBase
+    Addon, Binding, MutableArgument, AddonBase
 ]
 
-class Game(Synthetizer[List[MutableAddon]]):
+class Game(Synthetizer[List[Addon]]):
     '''
     Game class trait
     '''
@@ -37,12 +40,11 @@ class Game(Synthetizer[List[MutableAddon]]):
         '''
         return self._yaam_settings
 
-    def synthetize(self) -> List[MutableAddon]:
+    def synthetize(self) -> List[Addon]:
         '''
         Synthetize a coherent list of addons to enable / disable / update / ...
         '''
         binding_lut = set([
-            BindingType.SHADER,
             BindingType.EXE,
             BindingType.AGNOSTIC,
             self.settings.binding,
@@ -54,7 +56,21 @@ class Game(Synthetizer[List[MutableAddon]]):
         for addon in addons_copy:
             if addon.binding.typing not in binding_lut:
                 addon.binding.enabled = False
-            elif addon.binding.typing is BindingType.SHADER and addon.binding.typing in binding_lut:
-                binding_lut.remove(addon.binding.typing)
+
+        # automated shader selection
+        index = None
+        try:
+            shader_priority = [ self.settings.binding, BindingType.AGNOSTIC, BindingType.EXE ]
+            for shader in shader_priority:
+                for (i, addon) in enumerate(addons_copy):
+                    if addon.base.is_shader() and addon.binding.typing == shader and addon.binding.enabled:
+                        raise Found(i)
+        except Found as found:
+            index = found.content
+        finally:
+            if index is not None:
+                for (i, addon) in enumerate(addons_copy):
+                    if i != index and addon.base.is_shader() and addon.binding.enabled:
+                        addon.binding.enabled = False
 
         return addons_copy

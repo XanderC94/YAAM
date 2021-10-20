@@ -10,7 +10,7 @@ import requests
 from yaam.utils.validators.url import url as url_validator
 from yaam.utils.hashing import Hasher
 from yaam.utils.logger import static_logger as logger
-from yaam.model.mutable.addon import MutableAddon as Addon
+from yaam.model.mutable.addon import Addon as Addon
 
 class UpdateResult(Enum):
     '''
