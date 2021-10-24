@@ -62,13 +62,16 @@ class Binding(object):
         '''
         Returns whether this addon is a .dll or not
         '''
-        return self._path.suffix == ".dll"
+        return self._binding_type.suffix == ".dll" or (
+            self._binding_type == BindingType.AGNOSTIC and
+            ".dll" in self._path.name
+        )
 
     def is_exe(self) -> bool:
         '''
         Return whether this addon is an .exe or not
         '''
-        return self._path.suffix == ".exe"
+        return self._binding_type.suffix == ".exe" or self._path.suffix == ".exe"
 
     @name.setter
     def name(self, new_name : str):

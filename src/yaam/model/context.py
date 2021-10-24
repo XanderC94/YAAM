@@ -4,7 +4,7 @@ Contexts module
 import os
 from pathlib import Path
 import sys
-from typing import Dict, Sequence
+from typing import Dict
 from dataclasses import dataclass, field
 import shutil
 import json
@@ -36,8 +36,8 @@ class AppContext(object):
         self._yaam_dir = self._appdata_dir / "yaam"
         self._res_dir = self._yaam_dir / "res"
         self._version = str()
-        self._yaam_temp_dir = self._temp_dir / "yaam-release" if not debug else self._work_dir
-        
+        self._yaam_temp_dir = self._temp_dir / f"yaam-release-{os.getpid()}" if not debug else self._work_dir
+
         self._execution_path = Path()
 
         self._game_contexts: Dict[str, GameContext] = dict()
@@ -71,14 +71,14 @@ class AppContext(object):
         os.makedirs(self._yaam_dir, exist_ok=True)
         os.makedirs(self._res_dir, exist_ok=True)
 
-        if not self._debug:
-            with open(self._yaam_temp_dir / "MANIFEST", encoding="urf-8", mode="r") as _:
+        if not self._debug and (self._yaam_temp_dir / "MANIFEST").exists():
+            with open(self._yaam_temp_dir / "MANIFEST", encoding="utf-8", mode="r") as _:
                 manifest = json.load(_)
                 self._version = manifest['version']
 
         vargs = sys.argv
         self._execution_path = vargs[0]
-        self._app_config.load(self._yaam_dir / "config.yaml", vargs[1:])
+        self._app_config.load(self._yaam_dir / "yaam.ini", vargs[1:])
 
     def create_game_environment(self, game_name: str, game_root: Path) -> GameContext:
         '''

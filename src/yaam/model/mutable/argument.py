@@ -3,20 +3,20 @@ Mutable Argument module
 '''
 
 from typing import TypeVar
-from yaam.model.immutable.argument import Argument, ArgumentSynthesis
+from yaam.model.immutable.argument import ArgumentInfo, ArgumentSynthesis
 from yaam.patterns.synthetizer import Synthetizer
 
 T = TypeVar('T')
 
-class MutableArgument(Synthetizer[ArgumentSynthesis[T]], object):
+class Argument(Synthetizer[ArgumentSynthesis[T]], object):
     '''
     Mutable Argument model class
     '''
 
-    def __init__(self, arg: Argument, value: T = None, enabled=False):
+    def __init__(self, arg: ArgumentInfo, value: T = None, enabled=False):
         self.value: T = value
         self.enabled : bool = enabled
-        self._argument: Argument = arg
+        self._argument: ArgumentInfo = arg
 
     def __str__(self) -> str:
         return self.meta.name
@@ -39,5 +39,5 @@ class MutableArgument(Synthetizer[ArgumentSynthesis[T]], object):
         enabled = json_obj.get('enabled', False)
         value = json_obj.get('value', None)
 
-        return MutableArgument(Argument.from_dict(json_obj), value, enabled)
+        return Argument(ArgumentInfo.from_dict(json_obj), value, enabled)
         

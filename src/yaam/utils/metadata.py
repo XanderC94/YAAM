@@ -14,8 +14,9 @@ def get_windows_namespace(path: Path):
     namespace = None
 
     if path.exists():
+        __path = path.resolve()
         shell=win32com.client.gencache.EnsureDispatch('Shell.Application', 0)
-        namespace = shell.NameSpace(str(path.parent if path.is_file() else path))
+        namespace = shell.NameSpace(str(__path.parent if __path.is_file() else __path))
 
     return (shell, namespace)
 
@@ -25,8 +26,9 @@ def get_wfile_metaheader(path: Path, namespace = None) -> List[str]:
     '''
     header = []
     if path.exists():
+        __path = path.resolve()
         if namespace is None:
-            [_, namespace] = get_windows_namespace(path)
+            [_, namespace] = get_windows_namespace(__path)
 
         i = 0
         while i >= 0:
@@ -44,8 +46,8 @@ def get_wfile_metadata(path: Path, namespace = None, header: List[str] = None) -
     Retreive windows file metadata
     '''
     metadata = {}
-    __path = path.resolve()
-    if __path.exists() and __path.is_file():
+    if path.exists() and path.is_file():
+        __path = path.resolve()
         if namespace is None:
             [_, namespace] = get_windows_namespace(__path)
 
@@ -65,9 +67,6 @@ if __name__ == "__main__":
 
     p = Path("C:/opt/Guild Wars 2/")
 
-    [s, n] = get_windows_namespace(p)
-    h = get_wfile_metaheader(p, namespace=n)
-
     for _ in p.iterdir():
-        if _.is_file():
-            print(get_wfile_metadata(path=_, namespace=n, header=h))
+        if _.is_file() and '.dll' in _.name:
+            print(get_wfile_metadata(path=_))

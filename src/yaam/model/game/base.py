@@ -4,27 +4,36 @@ Base game module
 
 from typing import List
 from copy import deepcopy
+from yaam.model.context import GameContext
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
 from yaam.model.game.contract.settings import IYaamGameSettings
 from yaam.model.mutable.addon import Addon
 from yaam.model.mutable.addon_base import AddonBase
-from yaam.model.mutable.argument import MutableArgument
+from yaam.model.mutable.argument import Argument
 from yaam.model.mutable.binding import Binding
 from yaam.patterns.synthetizer import Synthetizer
 from yaam.utils.exceptions import Found
 
 IYGS = IYaamGameSettings[
-    Addon, Binding, MutableArgument, AddonBase
+    Addon, Binding, Argument, AddonBase
 ]
 
 class Game(Synthetizer[List[Addon]]):
     '''
     Game class trait
     '''
-    def __init__(self, config: IGameConfiguration, settings: IYGS) -> None:
+    def __init__(self, config: IGameConfiguration, settings: IYGS, context: GameContext) -> None:
         self._config = config
         self._yaam_settings = settings
+        self._context = context
+
+    @property
+    def context(self) -> GameContext:
+        '''
+        Return the current game context
+        '''
+        return self._context
 
     @property
     def config(self) -> IGameConfiguration:

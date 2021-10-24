@@ -1,19 +1,28 @@
 '''
+Binding types module
 '''
+from collections import namedtuple
 from enum import Enum
 from typing import Set
+
+bindingtype = namedtuple(
+    typename='bindingtype',
+    field_names=['index', 'signature', 'aliases', 'can_shader', 'shader', 'suffix'],
+    defaults=[int(), str(), list(), False, str(), str()]
+)
+
 
 class BindingType(Enum):
     '''
     Addon binary binding type
     '''
-    AGNOSTIC = (0, set())
-    EXE = (1, set(["exe"]))
-    DXGI_9 = (2, set(["dx9", "d3d9"]))
-    DXGI_10 = (3, set(["dx10", "d3d9"]))
-    DXGI_11 = (4, set(["dx11", "d3d10"]))
-    DXGI_12 = (5, set(["dx12", "d3d12"]))
-    VULKAN = (6, set(["vk", "vulkan"]))
+    AGNOSTIC = bindingtype(0, "any", set(["agnostic", "none"]))
+    EXE = bindingtype(1, "exe", set(), suffix='.exe')
+    D3D9 = bindingtype(2, "d3d9", set(["dx9"]), True, "dxgi", '.dll')
+    D3D10 = bindingtype(3, "d3d10", set(["dx10"]), True, "dxgi", '.dll')
+    D3D11 = bindingtype(4, "d3d11", set(["dx11"]), True, "dxgi", '.dll')
+    D3D12 = bindingtype(5, "d3d12", set(["dx12"]), True, "dxgi", '.dll')
+    VULKAN = bindingtype(6, "vulkan", set(["vk"]), True, "vk", '.dll')
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, BindingType):
@@ -28,18 +37,45 @@ class BindingType(Enum):
         return hash(self.index)
 
     @property
-    def aliases(self) -> Set[str]:
-        '''
-        Return the possible aliases for the binding
-        '''
-        return self.value[1]
-
-    @property
     def index(self) -> int:
         '''
         Return the integer value of the enumeration
         '''
-        return super().value[0]
+        return super().value.index
+
+    @property
+    def signature(self) -> str:
+        '''
+        Return the preferred alias for the binding
+        '''
+        return self.value.signature
+
+    @property
+    def aliases(self) -> Set[str]:
+        '''
+        Return the possible aliases for the binding
+        '''
+        return self.value.aliases
+
+    def can_shader(self) -> bool:
+        '''
+        Return whether this kind of binding can shader
+        '''
+        return self.value.can_shader
+
+    @property
+    def suffix(self) -> str:
+        '''
+        Return the file suffix for this binding type
+        '''
+        return self.value.suffix
+
+    @property
+    def shader(self) -> str:
+        '''
+        Return the preferred shader signature for this binding
+        '''
+        return self.value.shader
 
     @staticmethod
     def from_string(str_repr: str):
@@ -48,9 +84,9 @@ class BindingType(Enum):
         '''
         binding = BindingType.AGNOSTIC
 
-        for bind_type in BindingType:
-            if str_repr == bind_type.name or str_repr in bind_type.aliases:
-                binding = bind_type
+        for _ in BindingType:
+            if str_repr == _.name or str_repr == _.signature or str_repr in _.aliases:
+                binding = _
                 break
-        
+
         return binding

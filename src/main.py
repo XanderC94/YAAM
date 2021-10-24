@@ -45,7 +45,7 @@ def run_main(app_context : AppContext):
             logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
 
             data = defaultdict(list)
-            for addon in sorted(addons_synthesis, key=lambda x: x.base.name):
+            for addon in sorted(addons_synthesis, key=lambda x: (not x.binding.enabled, x.base.name)):
                 table = addon.to_table()
                 for (key, value) in table.items():
                     data[key].append(value)
@@ -55,16 +55,21 @@ def run_main(app_context : AppContext):
                 table = tabulate(data, headers="keys", tablefmt='rst', colalign=("left",))
                 logger.info(msg=f"\n{table}\n")
 
-            disable_dll_addons(addons_synthesis)
-            restore_dll_addons(addons_synthesis)
+            disable_dll_addons(addons_synthesis, game.context)
+            restore_dll_addons(addons_synthesis, game.context)
 
             update_addons(addons_synthesis)
 
             if not is_addon_update_only:
+                args = []
+                for _ in game.settings.arguments:
+                    if not _.meta.deprecated and _.enabled:
+                        args.append(str(_.synthetize()))
+
                 run(
                     game.config.game_path,
                     game.config.game_root,
-                    [str(_.synthetize()) for _ in game.settings.arguments if not _.meta.deprecated and _.enabled]
+                    args
                 )
 
                 for addon in addons_synthesis:
@@ -77,10 +82,10 @@ def run_main(app_context : AppContext):
 
 if __name__ == "__main__":
 
-    app_context = AppContext()
+    app = AppContext()
 
-    app_context.create_app_environment()
+    app.create_app_environment()
 
-    execution_result = run_main(app_context)
+    execution_result = run_main(app)
 
     sys.exit(execution_result)

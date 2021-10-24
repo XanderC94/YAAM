@@ -22,7 +22,7 @@ from yaam.model.type.binding import BindingType
 from yaam.model.mutable.addon import Addon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.binding import Binding
-from yaam.model.mutable.argument import MutableArgument
+from yaam.model.mutable.argument import Argument
 from yaam.model.game.abstract.config import AbstractGameConfiguration
 from yaam.model.game.stub.settings import YaamGameSettings
 from yaam.model.context import AppContext, GameContext
@@ -41,7 +41,7 @@ class GW2Config(AbstractGameConfiguration):
 
     def __init__(self, appdata_dir: Path):
 
-        super().__init__(appdata_dir, BindingType.DXGI_9)
+        super().__init__(appdata_dir, BindingType.D3D9)
 
         self._name = "Guild Wars 2"
         self._config_path = self._appdata_dir / self._name / "GFXSettings.Gw2-64.exe.xml"
@@ -110,47 +110,44 @@ class YaamGW2Settings(YaamGameSettings):
         self._chains.append(chain)
 
     def load(self) -> bool:
-
+        # Load arguments
         self.__load_list_props(self._context.args_path, {
-            "arguments": (MutableArgument.from_dict, self.add_argument)
+            "arguments": (Argument.from_dict, self.add_argument)
+        })
+        # Load Argument enabled-disabled settings
+        self.__load_list_props(self._settings_path, {
+            "arguments": (ArgumentSynthesis.from_dict, self.__update_arguments)
         })
 
+        if self.has_argument("dx11") and self.argument("dx11").enabled:
+            self._binding_type = BindingType.D3D11
+        elif self.has_argument("dx12") and self.argument("dx12").enabled:
+            self._binding_type = BindingType.D3D12
+            
+        # Load Addon bases
         self.__load_list_props(self._context.addons_path, {
             "addons": (AddonBase.from_dict, self.add_base)
         })
-
-        self.__load_list_props(self._context.chains_path, {
-            "chains": (lambda x: x, self.add_chain)
-        })
-
+        # Load Addons bindings
         self.__load_dict_props(self._context.bindings_path, {
             "bindings": (self.__load_bindings, lambda x: None)
         })
-
+        # Load Addons bindings enabled-disabled settings
+        self.__load_dict_props(self._settings_path, {
+            "bindings": (self.__update_bindings, lambda x: None)
+        })
+        # Load chainloading sequences
+        self.__load_list_props(self._context.chains_path, {
+            "chains": (lambda x: x, self.add_chain)
+        })
+        
+        logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
         logger().info(msg=f"Loaded {len(self._args)} arguments...")
         logger().info(msg=f"Loaded {len(self._bases)} bases...")
         logger().info(msg=f"Loaded {sum([ len(_) for _ in self._bindings.values() ])} bindings...")
         logger().info(msg=f"Loaded {len(self._chains)} chainload sequences...")
 
-        status = self.__incarnate_addons()
-
-        # load enabled-disabled settings
-        self.__load_list_props(self._settings_path, {
-            "arguments": (ArgumentSynthesis.from_string, self.__update_arguments)
-        })
-        
-        self.__load_dict_props(self._settings_path, {
-            "bindings": (self.__update_bindings, lambda x: None)
-        })
-
-        if self.has_argument("dx11") and self.argument("dx11").enabled:
-            self._binding_type = BindingType.DXGI_11
-        elif self.has_argument("dx12") and self.argument("dx12").enabled:
-            self._binding_type = BindingType.DXGI_12
-
-        logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
-
-        return status
+        return self.__incarnate_addons()
 
     def __load_list_props(self, path:Path, mappers: SwissKnife):
         '''
@@ -184,10 +181,19 @@ class YaamGW2Settings(YaamGameSettings):
 
             for obj in value:
                 # remove slashes and make absolute
-                if 'path' in obj:
-                    obj['path'] = normalize_abs_path(obj['path'], self._context.game_root)
-
+                has_custom_path = 'path' in obj
+                obj['path'] = normalize_abs_path(obj.get('path', ''), self._context.game_root)
                 binding = Binding.from_dict(obj, binding_type)
+
+                # if the binding is a shader and the default name will be replaced with that
+                # specified with its current binding type
+                # in case of an agnostic binding, the current binding type of the game is used
+                if (binding_type.can_shader() or binding_type == BindingType.AGNOSTIC) and not has_custom_path:
+                    if binding.name in self._bases and self._bases[binding.name].is_shader():
+                        shader_name = binding_type.shader if binding_type.can_shader() else self._binding_type.shader
+                        shader_suffix = binding_type.suffix if binding_type.can_shader() else self._binding_type.suffix
+                        binding.path = binding.path / f"{shader_name}{shader_suffix}"
+
                 self.add_binding(binding)
 
     def __update_bindings(self, json_obj: dict):
@@ -250,8 +256,8 @@ class GuildWars2(Game, IGameIncarnator):
     '''
     Guild Wars 2 model class incarnator
     '''
-    def __init__(self, config: IGameConfiguration, settings: IYaamGameSettings) -> None:
-        Game.__init__(self, config, settings)
+    def __init__(self, config: IGameConfiguration, settings: IYaamGameSettings, game_context: GameContext) -> None:
+        Game.__init__(self, config, settings, game_context)
 
     @staticmethod
     def incarnate(app_context: AppContext = None) -> Game:
@@ -265,4 +271,4 @@ class GuildWars2(Game, IGameIncarnator):
         yaam_gw2_settings = YaamGW2Settings(game_context, gw2_config.native_binding)
         yaam_gw2_settings.load()
 
-        return GuildWars2(gw2_config, yaam_gw2_settings)
+        return GuildWars2(gw2_config, yaam_gw2_settings, game_context)

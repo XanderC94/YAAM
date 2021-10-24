@@ -60,9 +60,9 @@ class Addon(object):
 
         table['name'] = self._base.name
         table['path'] = self._binding.path.name
-        table['update'] = self._binding.updateable
         table['enabled'] = self._binding.enabled
-
+        table['update'] = self._binding.updateable
+        
         return table
         
     

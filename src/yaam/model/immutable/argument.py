@@ -15,16 +15,12 @@ class ArgumentSynthesis(Generic[T], object):
     _name          : str    = field(init=True)
     _value         : T      = field(init=True, default=None)
 
-    # def __init__(self, name: str, value: T = None):
-    #     self._name = name
-    #     self._value = value
-
     def __hash__(self) -> int:
         return hash(self.name)
 
     def __eq__(self, o: object) -> bool:
 
-        if isinstance(o, Argument):
+        if isinstance(o, ArgumentInfo):
             return self.__hash__() == o.__hash__()
         elif isinstance(o, str):
             return self.name == o or self.name == o[1:]
@@ -66,8 +62,18 @@ class ArgumentSynthesis(Generic[T], object):
         tokens = json_str[1:].split(" ")
         return ArgumentSynthesis(*tokens)
 
+    @staticmethod
+    def from_dict(json_obj: dict):
+        '''
+        Create argument incarnation representation from a string
+        '''
+        return ArgumentSynthesis(
+            json_obj.get('name', ''),
+            json_obj.get('value', '')
+        )
+
 @dataclass(frozen=True)
-class Argument(object):
+class ArgumentInfo(object):
     '''
     Immutable Command line Argument class
     '''
@@ -143,4 +149,4 @@ class Argument(object):
         deprecated = json_obj.get("deprecated", False)
         user_defined = json_obj.get("user_defined", len(values) == 0)
 
-        return Argument(name, values, value_type, descr, deprecated, user_defined)
+        return ArgumentInfo(name, values, value_type, descr, deprecated, user_defined)

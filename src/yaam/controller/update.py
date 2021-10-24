@@ -6,26 +6,28 @@ import zipfile
 from os import makedirs
 from enum import Enum
 from typing import Iterable
+# import validators # unfortunately it is not nuitka-compliant
 import requests
-from yaam.utils.validators.url import url as url_validator
+from yaam.model.type.binding import BindingType
+import yaam.utils.validators.url as validator
 from yaam.utils.hashing import Hasher
 from yaam.utils.logger import static_logger as logger
-from yaam.model.mutable.addon import Addon as Addon
+from yaam.model.mutable.addon import Addon
 
 class UpdateResult(Enum):
     '''
     Possible results of addon update
     '''
-    NO_URL = -5,
-    UPDATE_FAILED = -4,
-    CREATE_FAILED = -3,
-    NOT_DLL = -2,
-    DELETED = -1,
-    NONE = 0,
-    DISABLED = 1,
-    CREATED = 2,
-    UPDATED = 3,
-    UP_TO_DATE = 4,
+    NO_URL = -5
+    UPDATE_FAILED = -4
+    CREATE_FAILED = -3
+    NOT_DLL = -2
+    DELETED = -1
+    NONE = 0
+    DISABLED = 1
+    CREATED = 2
+    UPDATED = 3
+    UP_TO_DATE = 4
 
 def update_addons(addons: Iterable[Addon]):
     '''
@@ -52,15 +54,18 @@ def update_addon(addon: Addon):
     return ret_code
 
 def update_dll_addon(addon: Addon):
-
+    '''
+    Addon update routine
+    '''
     ret_code = UpdateResult.NONE
-    
+
+    logger().debug(msg=f"{addon.base.name}({addon.binding.path.name})")
+
     if not addon.binding.is_dll():
         ret_code = UpdateResult.NOT_DLL
     elif not addon.binding.enabled:
         ret_code = UpdateResult.DISABLED
-    elif not url_validator(addon.base.uri):
-    # elif not len(addon.uri):
+    elif not validator.url(addon.base.uri):
         logger().info(msg=f"No valid update URL provided for {addon.base.name}({addon.binding.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
@@ -72,11 +77,16 @@ def update_dll_addon(addon: Addon):
             if res.headers['Content-Disposition'].endswith(".zip"):
                 file_like_object = io.BytesIO(res.content)
                 zip_data = zipfile.ZipFile(file_like_object)
-                for f in zip_data.filelist:
-                    if f.filename.endswith(addon.path.suffix):
-                        h = zip_data.open(f.filename)
-                        data = h.read()
-                        h.close()
+
+                lu_suffix = addon.binding.typing.suffix
+                if addon.binding.typing == BindingType.AGNOSTIC:
+                    lu_suffix = addon.binding.path.suffix
+
+                for entry in zip_data.filelist:
+                    if entry.filename.endswith(lu_suffix):
+                        handle = zip_data.open(entry.filename)
+                        data = handle.read()
+                        handle.close()
                         break
 
         ok_code = UpdateResult.NONE
@@ -103,12 +113,12 @@ def update_dll_addon(addon: Addon):
             logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
             ok_code = UpdateResult.CREATED
             fail_code = UpdateResult.CREATE_FAILED
-        
+
         if not ok_code == UpdateResult.NONE and not fail_code == UpdateResult.NONE:
             # write file on disk
             if not addon.binding.path.parent.exists():
                 makedirs(addon.binding.path.parent)
-                
+
             with open(addon.binding.path, 'wb') as addon_file:
                 if addon_file.write(data):
                     ret_code = ok_code

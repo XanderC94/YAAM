@@ -14,6 +14,7 @@ class AddonBase(object):
         descr: str = str(),
         contribs: List[str] = None,
         dependencies: List[str] = None,
+        chainloads: List[str] = None,
         is_shader: bool = False):
 
         self._name = name
@@ -21,6 +22,7 @@ class AddonBase(object):
         self._descr = descr
         self._contributors: List[str] = contribs if contribs else list()
         self._dependencies: List[str] = dependencies if dependencies else list()
+        self._chainloads: List[str] = chainloads if chainloads else list()
 
         self._is_shader = is_shader
 
@@ -66,9 +68,16 @@ class AddonBase(object):
     @property
     def dependencies(self) -> List[str]:
         '''
-        A list of the addon dependencies. Addons that must exists in the addon has to work.
+        A list of the addon dependencies.
         '''
         return self._dependencies
+
+    @property
+    def chainloads(self) -> List[str]:
+        '''
+        A list of the addon chainload-able names.
+        '''
+        return self._chainloads
 
     def is_shader(self)-> bool:
         '''
@@ -111,6 +120,13 @@ class AddonBase(object):
         '''
         self._dependencies = dependencies
 
+    @chainloads.setter
+    def chainloads(self, chainloads: List[str]):
+        '''
+        Set the list of chainload-able names
+        '''
+        self._chainloads = chainloads
+
     def set_shader(self, is_shader: bool):
         '''
         Set if this addon represents a shader library or not
@@ -128,5 +144,6 @@ class AddonBase(object):
             descr=json_obj.get('description', ""),
             contribs=json_obj.get('contribs', []),
             dependencies=json_obj.get('dependencies', []),
+            chainloads=json_obj.get('chainloads', []),
             is_shader=json_obj.get('is_shader', False)
         )

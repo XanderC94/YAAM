@@ -2,9 +2,9 @@
 Application configuration module
 '''
 from copy import deepcopy
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Dict, Sequence
 from pathlib import Path
-import ruamel.yaml as yaml
+from configparser import ConfigParser
 from yaam.model.options import Option
 from yaam.utils.argparse import Parser
 from yaam.utils.logger import static_logger as logger
@@ -66,9 +66,10 @@ class AppConfig(object):
 
         if path.exists():
             with open(path, encoding='utf-8', mode='r') as _:
-                data = yaml.safe_load(_)
-                if "yaam" in data and data["yaam"] is not None:
-                    for (key, value) in data["yaam"].items():
+                parser = ConfigParser()
+                parser.read_file(_)
+                if parser.has_section('yaam'):
+                    for (key, value) in parser.items('yaam'):
                         opt = Option.from_string(key)
                         if opt is not None:
                             self.set_property(opt, value)
@@ -79,9 +80,8 @@ class AppConfig(object):
         '''
         parser = Parser()
         namespace = parser.parse(args)
-        logger().info(msg=namespace)
+        logger().debug(msg=namespace)
         for var in vars(namespace):
-            print(var)
             option = Option.from_string(var)
             if option is not None:
                 self.set_property(option, getattr(namespace, var), volatile=True)
