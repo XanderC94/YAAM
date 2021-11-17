@@ -6,8 +6,9 @@ import zipfile
 from os import makedirs
 from enum import Enum
 from typing import Iterable
-# import validators # unfortunately it is not nuitka-compliant
+from urllib3.exceptions import HTTPError
 import requests
+from requests.exceptions import RequestException
 from yaam.model.type.binding import BindingType
 import yaam.utils.validators.url as validator
 from yaam.utils.hashing import Hasher
@@ -69,62 +70,75 @@ def update_dll_addon(addon: Addon):
         logger().info(msg=f"No valid update URL provided for {addon.base.name}({addon.binding.path.name}).")
         ret_code = UpdateResult.NO_URL
     else:
-        res = requests.get(addon.base.uri)
 
-        data : bytes = res.content
+        try:
+            req_headers = {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
 
-        if 'Content-Disposition' in res.headers:
-            if res.headers['Content-Disposition'].endswith(".zip"):
-                file_like_object = io.BytesIO(res.content)
-                zip_data = zipfile.ZipFile(file_like_object)
-
-                lu_suffix = addon.binding.typing.suffix
-                if addon.binding.typing == BindingType.AGNOSTIC:
-                    lu_suffix = addon.binding.path.suffix
-
-                for entry in zip_data.filelist:
-                    if entry.filename.endswith(lu_suffix):
-                        handle = zip_data.open(entry.filename)
-                        data = handle.read()
-                        handle.close()
-                        break
-
-        ok_code = UpdateResult.NONE
-        fail_code = UpdateResult.NONE
-
-        if addon.binding.path.exists():
-            if addon.binding.updateable:
-                logger().info(msg=f"Checking {addon.base.name}({addon.binding.path.name}) updates...")
-
-                remote_hash = Hasher.SHA256.make_hash_from_bytes(data)
-                logger().info(msg=f"Remote hash is {remote_hash}.")
-
-                local_hash = Hasher.SHA256.make_hash_from_file(addon.binding.path)
-                logger().info(msg=f"Local hash is {local_hash}.")
-
-                if remote_hash == local_hash:
-                    logger().info(msg="Addon is up-to-date.")
-                    ret_code = UpdateResult.UP_TO_DATE
-                else:
-                    logger().info(msg="New addon update found. Downloading...")
-                    ok_code = UpdateResult.UPDATED
-                    fail_code = UpdateResult.UPDATE_FAILED
+            response = requests.get(addon.base.uri, timeout=10, allow_redirects=True, headers=req_headers)
+            
+        except RequestException as req_ex:
+            logger().error(req_ex)
+        except HTTPError as http_ex:
+            logger().error(http_ex)
+        except Exception as ex:
+            logger().critical(ex)
         else:
-            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
-            ok_code = UpdateResult.CREATED
-            fail_code = UpdateResult.CREATE_FAILED
+            data : bytes = response.content
 
-        if not ok_code == UpdateResult.NONE and not fail_code == UpdateResult.NONE:
-            # write file on disk
-            if not addon.binding.path.parent.exists():
-                makedirs(addon.binding.path.parent)
+            if 'Content-Disposition' in response.headers:
+                if response.headers['Content-Disposition'].endswith(".zip"):
+                    file_like_object = io.BytesIO(data)
+                    zip_data = zipfile.ZipFile(file_like_object)
 
-            with open(addon.binding.path, 'wb') as addon_file:
-                if addon_file.write(data):
-                    ret_code = ok_code
-                    logger().info(msg="Done.")
-                else:
-                    ret_code = fail_code
-                    logger().info(msg="Failed.")
+                    lu_suffix = addon.binding.typing.suffix
+                    if addon.binding.typing == BindingType.AGNOSTIC:
+                        lu_suffix = addon.binding.path.suffix
+
+                    for entry in zip_data.filelist:
+                        if entry.filename.endswith(lu_suffix):
+                            handle = zip_data.open(entry.filename)
+                            data = handle.read()
+                            handle.close()
+                            break
+
+            ok_code = UpdateResult.NONE
+            fail_code = UpdateResult.NONE
+
+            if addon.binding.path.exists():
+                if addon.binding.updateable:
+                    logger().info(msg=f"Checking {addon.base.name}({addon.binding.path.name}) updates...")
+
+                    remote_hash = Hasher.SHA256.make_hash_from_bytes(data)
+                    logger().info(msg=f"Remote hash is {remote_hash}.")
+
+                    local_hash = Hasher.SHA256.make_hash_from_file(addon.binding.path)
+                    logger().info(msg=f"Local hash is {local_hash}.")
+
+                    if remote_hash == local_hash:
+                        logger().info(msg="Addon is up-to-date.")
+                        ret_code = UpdateResult.UP_TO_DATE
+                    else:
+                        logger().info(msg="New addon update found. Downloading...")
+                        ok_code = UpdateResult.UPDATED
+                        fail_code = UpdateResult.UPDATE_FAILED
+            else:
+                logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
+                ok_code = UpdateResult.CREATED
+                fail_code = UpdateResult.CREATE_FAILED
+
+            if ok_code != UpdateResult.NONE and fail_code != UpdateResult.NONE:
+                # write file on disk
+                if not addon.binding.path.parent.exists():
+                    makedirs(addon.binding.path.parent)
+                with open(addon.binding.path, 'wb') as addon_file:
+                    if addon_file.write(data):
+                        ret_code = ok_code
+                        logger().info(msg="Done.")
+                    else:
+                        ret_code = fail_code
+                        logger().info(msg="Failed.")
 
     return ret_code

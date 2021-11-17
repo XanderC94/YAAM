@@ -36,7 +36,8 @@ class AppContext(object):
         self._yaam_dir = self._appdata_dir / "yaam"
         self._res_dir = self._yaam_dir / "res"
         self._version = str()
-        self._yaam_temp_dir = self._temp_dir / f"yaam-release-{os.getpid()}" if not debug else self._work_dir
+        # self._yaam_temp_dir = self._temp_dir / f"yaam-release-{os.getpid()}" if not debug else self._work_dir
+        self._yaam_temp_dir = self._temp_dir / "yaam-release" if not debug else self._work_dir
 
         self._execution_path = Path()
 

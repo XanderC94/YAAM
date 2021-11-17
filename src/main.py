@@ -4,11 +4,14 @@ YAAM main module
 
 import sys
 import time
+from copy import deepcopy
 from collections import defaultdict
+from typing import List
 from tabulate import tabulate
 from yaam.controller.update import update_addons
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
 from yaam.model.game.base import Game
+from yaam.model.mutable.addon import Addon
 from yaam.utils.process import run
 from yaam.model.options import Option
 from yaam.utils.logger import static_logger
@@ -19,6 +22,20 @@ from yaam.model.context import AppContext
 
 #####################################################################
 
+def print_addon_tableau(addons: List[Addon], printer = lambda x: print(x)):
+
+    data = defaultdict(list)
+    for addon in sorted(addons, key=lambda x: (not x.binding.enabled, x.base.name)):
+        table = addon.to_table()
+        for (key, value) in table.items():
+            data[key].append(value)
+
+    if len(data):
+        printer("Loaded addons: ")
+        table = tabulate(data, headers="keys", tablefmt='rst', colalign=("left",))
+        printer(f"\n{table}\n")
+
+
 def run_main(app_context : AppContext):
     '''
     Main thread
@@ -26,9 +43,10 @@ def run_main(app_context : AppContext):
     logger = static_logger()
 
     game : Game = None
-
+    game_stasis : Game = None
     try:
         game = GuildWars2.incarnate(app_context)
+        game_stasis = deepcopy(game)
     except ConfigLoadException as ex:
         logger.info(
             msg = f"Configuration loading error. \
@@ -38,27 +56,30 @@ def run_main(app_context : AppContext):
     finally:
         if game:
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
+            is_run_only = app_context.config.get_property(Option.RUN_STACK)
 
+            # save addons after editing
+            game.settings.save()
+
+            # in order to know HOW to correctly disable previous shaders and
+            # enable the new ones, if any, it is necessary to know the previous
+            # addon configuration incarnation
             start = time.time()
+            curr_game_binding = game.settings.binding
             addons_synthesis = game.synthetize()
+
+            prev_game_binding = game_stasis.settings.binding
+            prev_addons_synthesis = game_stasis.synthetize()
             end = time.time()
             logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
 
-            data = defaultdict(list)
-            for addon in sorted(addons_synthesis, key=lambda x: (not x.binding.enabled, x.base.name)):
-                table = addon.to_table()
-                for (key, value) in table.items():
-                    data[key].append(value)
+            print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 
-            if len(data):
-                logger.info(msg="Loaded addons: ")
-                table = tabulate(data, headers="keys", tablefmt='rst', colalign=("left",))
-                logger.info(msg=f"\n{table}\n")
+            if not is_run_only:
+                disable_dll_addons(addons_synthesis)
+                restore_dll_addons(addons_synthesis)
 
-            disable_dll_addons(addons_synthesis, game.context)
-            restore_dll_addons(addons_synthesis, game.context)
-
-            update_addons(addons_synthesis)
+                update_addons(addons_synthesis)
 
             if not is_addon_update_only:
                 args = []

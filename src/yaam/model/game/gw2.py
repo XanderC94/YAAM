@@ -93,15 +93,13 @@ class YaamGW2Settings(YaamGameSettings):
         '''
         Add a new addon base
         '''
-        if base.name not in self._bases:
-            self._bases[base.name] = base
+        self._bases[base.name] = base
 
     def add_binding(self, binding: Binding):
         '''
         Add a new addon binding
         '''
-        if (binding.typing not in self._bindings) or (binding.name not in self._bindings[binding.typing]):
-            self._bindings[binding.typing][binding.name] = binding
+        self._bindings[binding.typing][binding.name] = binding
 
     def add_chain(self, chain: List[str]):
         '''
@@ -123,7 +121,7 @@ class YaamGW2Settings(YaamGameSettings):
             self._binding_type = BindingType.D3D11
         elif self.has_argument("dx12") and self.argument("dx12").enabled:
             self._binding_type = BindingType.D3D12
-            
+
         # Load Addon bases
         self.__load_list_props(self._context.addons_path, {
             "addons": (AddonBase.from_dict, self.add_base)
@@ -140,7 +138,7 @@ class YaamGW2Settings(YaamGameSettings):
         self.__load_list_props(self._context.chains_path, {
             "chains": (lambda x: x, self.add_chain)
         })
-        
+
         logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
         logger().info(msg=f"Loaded {len(self._args)} arguments...")
         logger().info(msg=f"Loaded {len(self._bases)} bases...")
@@ -205,7 +203,6 @@ class YaamGW2Settings(YaamGameSettings):
                     binding = self._bindings[binding_type][binding_setup.name]
                     binding.enabled = binding_setup.enabled
                     binding.updateable = binding_setup.updateable
-                    # binding.path = b.path
 
     def __update_arguments(self, synth: ArgumentSynthesis):
         if self.has_argument(synth.name):

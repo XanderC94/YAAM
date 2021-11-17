@@ -5,7 +5,6 @@ import os
 
 from pathlib import Path
 from typing import Iterable
-from yaam.model.context import GameContext
 import yaam.utils.metadata as meta
 from yaam.model.mutable.addon import Addon
 from yaam.utils.logger import static_logger as logger
@@ -70,11 +69,20 @@ def disable_bin_dir(bin_dir: Path) -> bool:
 
     return ret
 
-def disable_dll_addons(addons: Iterable[Addon], game_context: GameContext = None) -> int:
+def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
     '''
     Overrides the typing of installed addons (.dll -> .dll.disabled)
     @addons : Iterable[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
     '''
+
+    prev_shader: Addon = None
+    if prev is not None:
+        for addon in prev:
+            # There can only be only one shader enabled by design
+            # therefore it is sufficient to just find the first enabled shader
+            if addon.base.is_shader() and addon.binding.enabled:
+                prev_shader = addon
+                break
 
     ret = 0
     for addon in addons:
@@ -84,7 +92,16 @@ def disable_dll_addons(addons: Iterable[Addon], game_context: GameContext = None
             can_disable = True
             path_disabled = Path(f"{path}.disabled")
             if addon.base.is_shader():
-                if match_dll_metainfo(addon):
+                # I need to match pointed shader path
+                # since most shaders share the same name
+                # therefore they can't be disabled indiscrimately
+                if match_dll_metainfo(addon) or (
+                    # cover for cases where old active shader doesn't have meta informations
+                    # since only one shader can be enabled at one time
+                    # the only one that can't match for lack of metadata is
+                    # the one previously enabled
+                    prev_shader is not None and addon.base.name == prev_shader.base.name and addon.binding.typing == prev_shader.binding.typing
+                ):
                     name_ext = addon.base.name.lower().replace(' ', '')
                     path_disabled = Path(f"{path}.{name_ext}")
                 else:
@@ -97,7 +114,7 @@ def disable_dll_addons(addons: Iterable[Addon], game_context: GameContext = None
 
     return ret
 
-def restore_dll_addons(addons: Iterable[Addon], game_context: GameContext = None) -> int:
+def restore_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
     '''
     Restore disabled addons.
     @addons : Iterable[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
@@ -107,28 +124,32 @@ def restore_dll_addons(addons: Iterable[Addon], game_context: GameContext = None
         if addon.binding.is_dll() and addon.binding.enabled:
             path = addon.binding.path
 
-            can_disable = True
+            can_enable = True
             path_disabled = Path(f"{path}.disabled")
             if addon.base.is_shader():
-                if match_dll_metainfo(addon):
-                    name_ext = addon.base.name.lower().replace(' ', '')
-                    path_disabled = Path(f"{path}.{name_ext}")
-                else:
-                    can_disable = False
+                # Disabled shaders doesn't need meta-information look-up
+                # since their extension is overridden and made unique
+                # since addons name are unique by design
+                name_ext = addon.base.name.lower().replace(' ', '')
+                path_disabled = Path(f"{path}.{name_ext}")
+                # NOTE: At most, metainfo might be checked on the overridden file
+                # to assert if is another shader with the wrong extension
+                # but it supposed to not be possible
+                # can_enable = match_dll_metainfo(addon, path_disabled)
 
-            if path_disabled.exists() and can_disable:
+            if path_disabled.exists() and can_enable:
                 logger().info(msg=f"Addon {addon.base.name}({path.name}) will be restored...")
                 os.rename(str(path_disabled), str(path))
                 ret += 1
 
     return ret
 
-def match_dll_metainfo(addon: Addon) -> bool:
+def match_dll_metainfo(addon: Addon, alt_path : Path = None) -> bool:
     '''
     Returns whether there are matching info between the addon
     and the linked .dll file
     '''
-    metadata = meta.get_wfile_metadata(addon.binding.path)
+    metadata = meta.get_wfile_metadata(alt_path if alt_path is not None else addon.binding.path)
 
     any_match = (
         addon.base.name.lower() in metadata.get('Name', '').lower()

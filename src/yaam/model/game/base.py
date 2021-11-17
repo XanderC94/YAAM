@@ -2,7 +2,7 @@
 Base game module
 '''
 
-from typing import List
+from typing import List, Final
 from copy import deepcopy
 from yaam.model.context import GameContext
 from yaam.model.type.binding import BindingType
@@ -14,6 +14,7 @@ from yaam.model.mutable.argument import Argument
 from yaam.model.mutable.binding import Binding
 from yaam.patterns.synthetizer import Synthetizer
 from yaam.utils.exceptions import Found
+from yaam.utils.logger import static_logger as logger
 
 IYGS = IYaamGameSettings[
     Addon, Binding, Argument, AddonBase
@@ -45,7 +46,7 @@ class Game(Synthetizer[List[Addon]]):
     @property
     def settings(self) -> IYGS:
         '''
-        Return the yaam's game setting
+        Return yaam's game setting
         '''
         return self._yaam_settings
 
@@ -62,6 +63,7 @@ class Game(Synthetizer[List[Addon]]):
         addons_copy = deepcopy(self.settings.addons)
 
         # override addon settings
+        # for those not in the LUT
         for addon in addons_copy:
             if addon.binding.typing not in binding_lut:
                 addon.binding.enabled = False
@@ -73,13 +75,16 @@ class Game(Synthetizer[List[Addon]]):
             for shader in shader_priority:
                 for (i, addon) in enumerate(addons_copy):
                     if addon.base.is_shader() and addon.binding.typing == shader and addon.binding.enabled:
+                        # first matching is chosen as shader
                         raise Found(i)
         except Found as found:
             index = found.content
         finally:
-            if index is not None:
-                for (i, addon) in enumerate(addons_copy):
-                    if i != index and addon.base.is_shader() and addon.binding.enabled:
-                        addon.binding.enabled = False
+            if index is None:
+                logger().info(msg="No compatible shader composition could be created. Disabling any enabled shader.")
+
+            for (i, addon) in enumerate(addons_copy):
+                if i != index and addon.base.is_shader() and addon.binding.enabled:
+                    addon.binding.enabled = False
 
         return addons_copy
