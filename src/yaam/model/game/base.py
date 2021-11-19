@@ -2,7 +2,7 @@
 Base game module
 '''
 
-from typing import List, Final
+from typing import List
 from copy import deepcopy
 from yaam.model.context import GameContext
 from yaam.model.type.binding import BindingType

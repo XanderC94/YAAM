@@ -20,7 +20,7 @@ class Addon(object):
     def __eq__(self, o: object) -> bool:
 
         if issubclass(type(o), Addon):
-            return self.__hash__() == o.__hash__()
+            return hash(self) == hash(o)
         elif issubclass(type(o), AddonBase):
             return self._base == o
         elif issubclass(type(o), Binding):

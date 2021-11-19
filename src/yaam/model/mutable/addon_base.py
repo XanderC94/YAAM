@@ -2,8 +2,9 @@
 Addon base module
 '''
 from typing import List
+from yaam.utils.json.jsonkin import Jsonkin
 
-class AddonBase(object):
+class AddonBase(Jsonkin):
     '''
     Base Addon class
     '''
@@ -11,7 +12,7 @@ class AddonBase(object):
     def __init__(self,
         name: str,
         uri: str = str(),
-        descr: str = str(),
+        description: str = str(),
         contribs: List[str] = None,
         dependencies: List[str] = None,
         chainloads: List[str] = None,
@@ -19,7 +20,7 @@ class AddonBase(object):
 
         self._name = name
         self._uri = uri
-        self._descr = descr
+        self._description = description
         self._contributors: List[str] = contribs if contribs else list()
         self._dependencies: List[str] = dependencies if dependencies else list()
         self._chainloads: List[str] = chainloads if chainloads else list()
@@ -27,11 +28,11 @@ class AddonBase(object):
         self._is_shader = is_shader
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return hash(self._name)
 
     def __eq__(self, o: object) -> bool:
         if issubclass(type(o), AddonBase):
-            return self.__hash__() == o.__hash__()
+            return hash(self) == hash(o)
         elif isinstance(o, str):
             return self._name == o
 
@@ -56,7 +57,7 @@ class AddonBase(object):
         '''
         A description of the addon
         '''
-        return self._descr
+        return self._description
 
     @property
     def contributors(self) -> List[str]:
@@ -134,16 +135,30 @@ class AddonBase(object):
         self._is_shader = is_shader
 
     @staticmethod
-    def from_dict(json_obj: dict):
+    def from_json(json_obj: dict):
         '''
         Return this class object from dict representation
         '''
         return AddonBase(
             name=json_obj['name'],
             uri=json_obj.get('uri', None),
-            descr=json_obj.get('description', ""),
+            description=json_obj.get('description', ""),
             contribs=json_obj.get('contribs', []),
             dependencies=json_obj.get('dependencies', []),
             chainloads=json_obj.get('chainloads', []),
             is_shader=json_obj.get('is_shader', False)
         )
+
+    def to_json(self) -> dict:
+        '''
+        Map the json rapresentation into an object of this class
+        '''
+        return {
+            'name': self.name,
+            'uri': self.uri,
+            'description': self.description,
+            'contribs': self.contributors,
+            'dependencies': self.dependencies,
+            'chainloads': self.chainloads,
+            'is_shader': self.is_shader()
+        }

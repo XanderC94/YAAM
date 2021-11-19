@@ -20,7 +20,7 @@ class GameContext(object):
     yaam_game_dir  : Path = field(init=True)
     args_path      : Path = field(init=True)
     addons_path    : Path = field(init=True)
-    bindings_path  : Path = field(init=True)
+    settings_path  : Path = field(init=True)
     chains_path    : Path = field(init=True)
 
 class AppContext(object):
@@ -92,7 +92,7 @@ class AppContext(object):
 
             arguments_path = yaam_game_dir / "arguments.json"
             addons_path = yaam_game_dir / "addons.json"
-            bindings_path = yaam_game_dir / "bindings.json"
+            settings_path = yaam_game_dir / "settings.json"
             chains_path = yaam_game_dir / "chains.json"
 
             tmp_yaam_game_dir = self._yaam_temp_dir / "res/default" / game_name
@@ -103,8 +103,8 @@ class AppContext(object):
             if not addons_path.exists():
                 shutil.copyfile(tmp_yaam_game_dir / "addons.json", addons_path)
 
-            if not bindings_path.exists():
-                shutil.copyfile(tmp_yaam_game_dir / "bindings.json", bindings_path)
+            if not settings_path.exists():
+                shutil.copyfile(tmp_yaam_game_dir / "settings.json", settings_path)
 
             if not chains_path.exists():
                 shutil.copyfile(tmp_yaam_game_dir / "chains.json", chains_path)
@@ -114,7 +114,7 @@ class AppContext(object):
                 yaam_game_dir,
                 arguments_path,
                 addons_path,
-                bindings_path,
+                settings_path,
                 chains_path
             )
 

@@ -142,3 +142,10 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         Save the yaam game settings
         '''
         return False
+    
+    @abstractmethod
+    def digest(self) ->  str:
+        '''
+        Return the setting digest
+        '''
+        return str()

@@ -3,8 +3,9 @@ Binding model module
 '''
 from pathlib import Path
 from yaam.model.type.binding import BindingType
+from yaam.utils.json.jsonkin import Jsonkin
 
-class Binding(object):
+class Binding(Jsonkin):
     '''
     Mutable Addon binding model
     '''
@@ -109,7 +110,7 @@ class Binding(object):
         self._binding_type = new_binding
 
     @staticmethod
-    def from_dict(json_obj:dict, binding_type: BindingType):
+    def from_json(json_obj: dict):
         '''
         Create object representation of this class from dict representation
         '''
@@ -117,6 +118,16 @@ class Binding(object):
             json_obj["name"],
             Path(json_obj.get("path", "")),
             json_obj.get("enabled", False),
-            json_obj.get("update", False),
-            binding_type
+            json_obj.get("update", False)
         )
+
+    def to_json(self):
+        '''
+        Map the json rapresentation into an object of this class
+        '''
+        return {
+            'name': self.name,
+            'path': str(self.path),
+            'enabled': self.enabled,
+            'update': self.updateable
+        }

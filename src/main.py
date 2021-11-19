@@ -22,8 +22,10 @@ from yaam.model.context import AppContext
 
 #####################################################################
 
-def print_addon_tableau(addons: List[Addon], printer = lambda x: print(x)):
-
+def print_addon_tableau(addons: List[Addon], printer = print):
+    '''
+    Print addon list as table to the specified printer stream
+    '''
     data = defaultdict(list)
     for addon in sorted(addons, key=lambda x: (not x.binding.enabled, x.base.name)):
         table = addon.to_table()
@@ -59,19 +61,30 @@ def run_main(app_context : AppContext):
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
 
             # save addons after editing
-            game.settings.save()
+            # only if edit has effectively made changes to the configuration
+            curr_settings_digest = game.settings.digest() 
+            prev_settings_digest = game_stasis.settings.digest()
+            logger.debug(msg=f"Current settings digest is {curr_settings_digest}.")
+            logger.debug(msg=f"Previous settings digest is {prev_settings_digest}.")
+
+            if curr_settings_digest != prev_settings_digest:
+                game.settings.save()
+                logger.info(msg="Settings changes have been saved.")
+            else:
+                logger.info(msg="No settings changes have been registered.")
 
             # in order to know HOW to correctly disable previous shaders and
             # enable the new ones, if any, it is necessary to know the previous
             # addon configuration incarnation
-            start = time.time()
             curr_game_binding = game.settings.binding
-            addons_synthesis = game.synthetize()
-
             prev_game_binding = game_stasis.settings.binding
-            prev_addons_synthesis = game_stasis.synthetize()
+
+            start = time.time()
+            addons_synthesis = game.synthetize()
             end = time.time()
             logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
+
+            prev_addons_synthesis = game_stasis.synthetize()
 
             print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 

@@ -1,19 +1,16 @@
 {
+    "arguments": [
+        {
+            "name": "autologin"
+        },
+        {
+            "name": "bmp"
+        },
+        {
+            "name": "dx11"
+        }
+    ],
     "bindings": {
-        "exe": [
-            {
-                "name":"WinAuth",
-                "path": "P:\\x86\\WinAuth\\WinAuth.exe"
-            },
-            {
-                "name":"BlishHUD",
-                "path": "P:\\amd64\\BlishHUD\\Blish HUD.exe"
-            },
-            {
-                "name": "YoloMouse",
-                "path": "P:\\amd64\\YoloMouse\\YoloMouse.exe"
-            }
-        ],
         "dx9": [
             {
                 "name":"ArcDPS",

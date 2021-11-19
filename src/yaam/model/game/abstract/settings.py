@@ -20,14 +20,14 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
     def __init__(self, settings_path: Path, binding : BindingType = BindingType.AGNOSTIC):
 
         self._settings_path = settings_path
-        
+
         self._args : Dict[str, C] = dict()
         self._bases : Dict[str, D] = dict()
         self._chains : List[List[str]] = list()
         self._addons : List[A] = list()
         self._bindings : Dict[BindingType, Dict[str, B]] = dict()
         self._binding_type : BindingType = binding
-    
+
     @property
     def path(self) -> Path:
         return self._settings_path

@@ -55,6 +55,11 @@ $params = @(
     "--output-dir=$output_dir"
 )
 
+if (Test-Path "$root/$output_dir/$target_name.exe")
+{
+    Move-Item -path "$root/$output_dir/$target_name.exe" -target "$root/$output_dir/$target_name.exe.bak" -force
+}
+
 @(python -m nuitka $params $target)
 
 # Rename-Item "$root/$output_dir/$target_name.exe" "$target_name-$version.exe"

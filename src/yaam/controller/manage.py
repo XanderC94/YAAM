@@ -100,7 +100,9 @@ def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
                     # since only one shader can be enabled at one time
                     # the only one that can't match for lack of metadata is
                     # the one previously enabled
-                    prev_shader is not None and addon.base.name == prev_shader.base.name and addon.binding.typing == prev_shader.binding.typing
+                    prev_shader is not None and
+                    addon.base.name == prev_shader.base.name and
+                    addon.binding.typing == prev_shader.binding.typing
                 ):
                     name_ext = addon.base.name.lower().replace(' ', '')
                     path_disabled = Path(f"{path}.{name_ext}")

@@ -4,11 +4,13 @@ Command line argument module
 from dataclasses import dataclass, field
 from typing import TypeVar, Generic
 from yaam.model.type.argument import ArgumentType
+from yaam.utils.json.jsonkin import Jsonkin
+from yaam.utils.json.repr import jsonrepr
 
 T = TypeVar('T')
 
 @dataclass(frozen=True)
-class ArgumentSynthesis(Generic[T], object):
+class ArgumentSynthesis(Generic[T], Jsonkin):
     '''
     Immutable command line argument synthetis class
     '''
@@ -16,12 +18,12 @@ class ArgumentSynthesis(Generic[T], object):
     _value         : T      = field(init=True, default=None)
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return hash((self._name, self._value))
 
     def __eq__(self, o: object) -> bool:
 
         if isinstance(o, ArgumentInfo):
-            return self.__hash__() == o.__hash__()
+            return hash(self) == hash(o)
         elif isinstance(o, str):
             return self.name == o or self.name == o[1:]
         return super().__eq__(o)
@@ -63,24 +65,32 @@ class ArgumentSynthesis(Generic[T], object):
         return ArgumentSynthesis(*tokens)
 
     @staticmethod
-    def from_dict(json_obj: dict):
+    def from_json(json_obj: dict):
         '''
         Create argument incarnation representation from a string
         '''
         return ArgumentSynthesis(
             json_obj.get('name', ''),
-            json_obj.get('value', '')
+            json_obj.get('value', None)
         )
 
+    def to_json(self) -> dict:
+        arg = { 'name': self.name }
+
+        if self.value is not None:
+            arg['value'] = jsonrepr(self.value)
+
+        return arg
+
 @dataclass(frozen=True)
-class ArgumentInfo(object):
+class ArgumentInfo(Jsonkin):
     '''
     Immutable Command line Argument class
     '''
     _name          : str            = field(init=True)
     _values        : list           = field(init=True)
     _value_type    : ArgumentType   = field(init=True)
-    _descr         : str            = field(init=True)
+    _description         : str            = field(init=True)
     _deprecated    : bool           = field(init=True)
     _user_defined  : bool           = field(init=True)
 
@@ -90,7 +100,7 @@ class ArgumentInfo(object):
     def __eq__(self, o: object) -> bool:
 
         if isinstance(o, ArgumentSynthesis):
-            return self.__hash__() == o.__hash__()
+            return hash(self) == hash(o)
         elif isinstance(o, str):
             return self.name == o or self.name == o[1:]
         return super().__eq__(o)
@@ -117,11 +127,11 @@ class ArgumentInfo(object):
         return self._value_type
 
     @property
-    def descr(self):
+    def description(self):
         '''
         Return the argument description
         '''
-        return self._descr
+        return self._description
 
     @property
     def deprecated(self):
@@ -138,15 +148,25 @@ class ArgumentInfo(object):
         return self._user_defined
 
     @staticmethod
-    def from_dict(json_obj: dict):
+    def from_json(json_obj: dict):
         '''
         Create argument incarnation representation from a string
         '''
         name = json_obj["name"]
         values = json_obj.get("values", [])
         value_type = ArgumentType.from_string(json_obj.get("value_type", "boolean"))
-        descr = json_obj.get("description", "")
+        description = json_obj.get("description", "")
         deprecated = json_obj.get("deprecated", False)
         user_defined = json_obj.get("user_defined", len(values) == 0)
 
-        return ArgumentInfo(name, values, value_type, descr, deprecated, user_defined)
+        return ArgumentInfo(name, values, value_type, description, deprecated, user_defined)
+
+    def to_json(self) -> dict:
+        return {
+            'name': self.name,
+            'values': jsonrepr(self.values),
+            'value_type': self.typing.name,
+            'description': self.description,
+            'deprecated': self.deprecated,
+            'user_defined': self.user_defined
+        }
