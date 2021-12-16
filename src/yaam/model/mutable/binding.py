@@ -11,8 +11,10 @@ class Binding(Jsonkin):
     '''
 
     def __init__(self,
-        name: str, path: Path = Path(),
-        enabled: bool = False, updateable: bool = False,
+        name: str = str(), 
+        path: Path = Path(),
+        enabled: bool = False, 
+        updateable: bool = False,
         binding_type: BindingType = BindingType.AGNOSTIC):
 
         self._name = name

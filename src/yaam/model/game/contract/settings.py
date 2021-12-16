@@ -4,7 +4,7 @@ Game model abstract class module
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Generic, TypeVar, Union, ValuesView
+from typing import Dict, List, Generic, TypeVar, Union, ValuesView
 from yaam.model.type.binding import BindingType
 
 A = TypeVar('A')
@@ -40,21 +40,21 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         Set a new binding type for the game
         '''
 
-    # @property
-    # @abstractmethod
-    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
-    #     '''
-    #     Returns game arguments
-    #     '''
-    #     return None
+    @property
+    @abstractmethod
+    def bindings(self) -> Dict[BindingType, Dict[str, B]]:
+        '''
+        Returns game arguments
+        '''
+        return None
 
-    # @property
-    # @abstractmethod
-    # def bases(self) -> Dict[str, D]:
-    #     '''
-    #     Returns game basis
-    #     '''
-    #     return None
+    @property
+    @abstractmethod
+    def bases(self) -> Dict[str, D]:
+        '''
+        Returns game basis
+        '''
+        return None
 
     @property
     @abstractmethod

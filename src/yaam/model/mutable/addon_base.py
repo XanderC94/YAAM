@@ -10,7 +10,7 @@ class AddonBase(Jsonkin):
     '''
 
     def __init__(self,
-        name: str,
+        name: str = str(),
         uri: str = str(),
         description: str = str(),
         contribs: List[str] = None,
@@ -80,6 +80,7 @@ class AddonBase(Jsonkin):
         '''
         return self._chainloads
 
+    @property
     def is_shader(self)-> bool:
         '''
         Return whether this addon is a shader library or not
@@ -105,7 +106,7 @@ class AddonBase(Jsonkin):
         '''
         Set the addon description
         '''
-        self._descr = new_description
+        self._description = new_description
 
     @contributors.setter
     def contributors(self, contribs: List[str]):
@@ -128,7 +129,8 @@ class AddonBase(Jsonkin):
         '''
         self._chainloads = chainloads
 
-    def set_shader(self, is_shader: bool):
+    @is_shader.setter
+    def is_shader(self, is_shader: bool):
         '''
         Set if this addon represents a shader library or not
         '''
@@ -160,5 +162,5 @@ class AddonBase(Jsonkin):
             'contribs': self.contributors,
             'dependencies': self.dependencies,
             'chainloads': self.chainloads,
-            'is_shader': self.is_shader()
+            'is_shader': self.is_shader
         }

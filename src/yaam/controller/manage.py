@@ -80,7 +80,7 @@ def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
         for addon in prev:
             # There can only be only one shader enabled by design
             # therefore it is sufficient to just find the first enabled shader
-            if addon.base.is_shader() and addon.binding.enabled:
+            if addon.base.is_shader and addon.binding.enabled:
                 prev_shader = addon
                 break
 
@@ -91,7 +91,7 @@ def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
 
             can_disable = True
             path_disabled = Path(f"{path}.disabled")
-            if addon.base.is_shader():
+            if addon.base.is_shader:
                 # I need to match pointed shader path
                 # since most shaders share the same name
                 # therefore they can't be disabled indiscrimately
@@ -128,7 +128,7 @@ def restore_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
 
             can_enable = True
             path_disabled = Path(f"{path}.disabled")
-            if addon.base.is_shader():
+            if addon.base.is_shader:
                 # Disabled shaders doesn't need meta-information look-up
                 # since their extension is overridden and made unique
                 # since addons name are unique by design

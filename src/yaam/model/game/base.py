@@ -74,7 +74,7 @@ class Game(Synthetizer[List[Addon]]):
             shader_priority = [ self.settings.binding, BindingType.AGNOSTIC, BindingType.EXE ]
             for shader in shader_priority:
                 for (i, addon) in enumerate(addons_copy):
-                    if addon.base.is_shader() and addon.binding.typing == shader and addon.binding.enabled:
+                    if addon.base.is_shader and addon.binding.typing == shader and addon.binding.enabled:
                         # first matching is chosen as shader
                         raise Found(i)
         except Found as found:
@@ -84,7 +84,7 @@ class Game(Synthetizer[List[Addon]]):
                 logger().info(msg="No compatible shader composition could be created. Disabling any enabled shader.")
 
             for (i, addon) in enumerate(addons_copy):
-                if i != index and addon.base.is_shader() and addon.binding.enabled:
+                if i != index and addon.base.is_shader and addon.binding.enabled:
                     addon.binding.enabled = False
 
         return addons_copy

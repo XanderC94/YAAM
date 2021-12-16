@@ -5,38 +5,19 @@ YAAM main module
 import sys
 import time
 from copy import deepcopy
-from collections import defaultdict
-from typing import List
-from tabulate import tabulate
+from yaam.controller.cmd.repl import repl
 from yaam.controller.update import update_addons
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
 from yaam.model.game.base import Game
-from yaam.model.mutable.addon import Addon
 from yaam.utils.process import run
 from yaam.model.options import Option
 from yaam.utils.logger import static_logger
-
+from yaam.utils.print import print_addon_tableau
 from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
 from yaam.model.context import AppContext
 
 #####################################################################
-
-def print_addon_tableau(addons: List[Addon], printer = print):
-    '''
-    Print addon list as table to the specified printer stream
-    '''
-    data = defaultdict(list)
-    for addon in sorted(addons, key=lambda x: (not x.binding.enabled, x.base.name)):
-        table = addon.to_table()
-        for (key, value) in table.items():
-            data[key].append(value)
-
-    if len(data):
-        printer("Loaded addons: ")
-        table = tabulate(data, headers="keys", tablefmt='rst', colalign=("left",))
-        printer(f"\n{table}\n")
-
 
 def run_main(app_context : AppContext):
     '''
@@ -57,12 +38,21 @@ def run_main(app_context : AppContext):
         )
     finally:
         if game:
+            is_edit_mode = app_context.config.get_property(Option.EDIT)
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
 
+            prev_game_binding = game_stasis.settings.binding
+            prev_addons_synthesis = game_stasis.synthetize()
+
+            print_addon_tableau(prev_addons_synthesis, lambda x: logger.info(msg=x))
+
+            if is_edit_mode:
+                repl(game)
+
             # save addons after editing
             # only if edit has effectively made changes to the configuration
-            curr_settings_digest = game.settings.digest() 
+            curr_settings_digest = game.settings.digest()
             prev_settings_digest = game_stasis.settings.digest()
             logger.debug(msg=f"Current settings digest is {curr_settings_digest}.")
             logger.debug(msg=f"Previous settings digest is {prev_settings_digest}.")
@@ -77,14 +67,11 @@ def run_main(app_context : AppContext):
             # enable the new ones, if any, it is necessary to know the previous
             # addon configuration incarnation
             curr_game_binding = game.settings.binding
-            prev_game_binding = game_stasis.settings.binding
 
             start = time.time()
             addons_synthesis = game.synthetize()
             end = time.time()
             logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
-
-            prev_addons_synthesis = game_stasis.synthetize()
 
             print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 

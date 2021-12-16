@@ -23,7 +23,7 @@ class Option(Enum):
     '''
     UPDATE_ADDONS = OptionEntry(
         index=0,
-        aliases=set(["update", "update-addons", "update_addons"]),
+        aliases=set(["update", "update-addons", "update_addons", "u"]),
         default=False,
         descr="Only update addons without running the game",
         action="store_true"
@@ -31,9 +31,17 @@ class Option(Enum):
 
     RUN_STACK = OptionEntry(
         index=1,
-        aliases=set(["run", "run-stack", "run_stack"]),
+        aliases=set(["run", "run-stack", "run_stack", "r"]),
         default=False,
         descr="Only run the game without updating the addons",
+        action="store_true"
+    )
+
+    EDIT = OptionEntry(
+        index=2,
+        aliases=set(["edit", "e"]),
+        default=False,
+        descr="Run YAAM edit repl",
         action="store_true"
     )
 
@@ -105,6 +113,12 @@ class OptionGroup(Enum):
         index=0,
         options=[Option.RUN_STACK, Option.UPDATE_ADDONS],
         mutually_exclusive=True
+    )
+
+    GLOBAL=OptionGroupEntry(
+        index=1,
+        options=[Option.EDIT],
+        mutually_exclusive=False
     )
 
     def __hash__(self) -> int:

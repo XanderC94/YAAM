@@ -183,7 +183,7 @@ class YaamGW2Settings(YaamGameSettings):
                 # specified with its current binding type
                 # in case of an agnostic binding, the current binding type of the game is used
                 if (binding_type.can_shader() or binding_type == BindingType.AGNOSTIC) and not has_custom_path:
-                    if binding.name in self._bases and self._bases[binding.name].is_shader():
+                    if binding.name in self._bases and self._bases[binding.name].is_shader:
                         shader_name = binding_type.shader if binding_type.can_shader() else self._binding_type.shader
                         shader_suffix = binding_type.suffix if binding_type.can_shader() else self._binding_type.suffix
                         binding.path = binding.path / f"{shader_name}{shader_suffix}"

@@ -22,7 +22,7 @@ class Parser(object):
 
             for opt in opt_group.options:
                 parse_group.add_argument(
-                    *[f"--{alias}" if len(alias) > 1 else f"-{alias}" for alias in opt.aliases],
+                    *[f"--{alias}" if len(alias) > 2 else f"-{alias}" for alias in opt.aliases],
                     action=opt.action,
                     help=opt.descr,
                     default=opt.default

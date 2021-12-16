@@ -11,18 +11,18 @@ bindingtype = namedtuple(
     defaults=[int(), str(), list(), False, str(), str()]
 )
 
-
 class BindingType(Enum):
     '''
     Addon binary binding type
     '''
-    AGNOSTIC = bindingtype(0, "any", set(["agnostic", "none"]))
-    EXE = bindingtype(1, "exe", set(), suffix='.exe')
-    D3D9 = bindingtype(2, "d3d9", set(["dx9"]), True, "dxgi", '.dll')
-    D3D10 = bindingtype(3, "d3d10", set(["dx10"]), True, "dxgi", '.dll')
-    D3D11 = bindingtype(4, "d3d11", set(["dx11"]), True, "dxgi", '.dll')
-    D3D12 = bindingtype(5, "d3d12", set(["dx12"]), True, "dxgi", '.dll')
-    VULKAN = bindingtype(6, "vulkan", set(["vk"]), True, "vk", '.dll')
+    NONE = bindingtype(0, "", set([""]))
+    AGNOSTIC = bindingtype(1, "any", set(["agnostic", "none"]))
+    EXE = bindingtype(2, "exe", set(), suffix='.exe')
+    D3D9 = bindingtype(3, "d3d9", set(["dx9"]), True, "dxgi", '.dll')
+    D3D10 = bindingtype(4, "d3d10", set(["dx10"]), True, "dxgi", '.dll')
+    D3D11 = bindingtype(5, "d3d11", set(["dx11"]), True, "dxgi", '.dll')
+    D3D12 = bindingtype(6, "d3d12", set(["dx12"]), True, "dxgi", '.dll')
+    VULKAN = bindingtype(7, "vulkan", set(["vk"]), True, "vk", '.dll')
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, BindingType):
@@ -82,7 +82,7 @@ class BindingType(Enum):
         '''
         Return the enum representation of the string
         '''
-        binding = BindingType.AGNOSTIC
+        binding = BindingType.NONE
 
         for _ in BindingType:
             if str_repr == _.name or str_repr == _.signature or str_repr in _.aliases:

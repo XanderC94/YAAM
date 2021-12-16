@@ -39,13 +39,13 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
     def set_binding(self, new_binding: BindingType):
         self._binding_type = new_binding
 
-    # @property
-    # def bindings(self) -> Dict[BindingType, Dict[str, B]]:
-    #     return self._bindings
+    @property
+    def bindings(self) -> Dict[BindingType, Dict[str, B]]:
+        return self._bindings
 
-    # @property
-    # def bases(self) -> Dict[str, D]:
-    #     return self._bases
+    @property
+    def bases(self) -> Dict[str, D]:
+        return self._bases
 
     @property
     def arguments(self) -> ValuesView[C]:
