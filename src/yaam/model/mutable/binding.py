@@ -65,16 +65,14 @@ class Binding(Jsonkin):
         '''
         Returns whether this addon is a .dll or not
         '''
-        return self._binding_type.suffix == ".dll" or (
-            self._binding_type == BindingType.AGNOSTIC and
-            ".dll" in self._path.name
-        )
+        return (self._binding_type is not BindingType.EXE
+            and self._binding_type is not BindingType.NONE)
 
     def is_exe(self) -> bool:
         '''
         Return whether this addon is an .exe or not
         '''
-        return self._binding_type.suffix == ".exe" or self._path.suffix == ".exe"
+        return self._binding_type is BindingType.EXE
 
     @name.setter
     def name(self, new_name : str):

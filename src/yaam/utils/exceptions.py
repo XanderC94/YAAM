@@ -24,9 +24,25 @@ class ConfigLoadException(Exception):
         super().__init__()
         self.config_path = config_path
 
+class GitHubException(Exception):
+    '''
+    GitHub related exceptions
+    '''
+
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+
+class UpdateException(Exception):
+    '''
+    Update related exceptions
+    '''
+
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+
 class Found(Exception):
     '''
-    Element found exception 
+    Element found exception
     '''
 
     def __init__(self, obj: Any, *args) -> None:

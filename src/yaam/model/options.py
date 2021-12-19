@@ -45,6 +45,14 @@ class Option(Enum):
         action="store_true"
     )
 
+    AUTOCLOSE = OptionEntry(
+        index=3,
+        aliases=set(["auto-close", "auto_close", "a"]),
+        default=False,
+        descr="Auto close YAAM after main script completed",
+        action="store_true"
+    )
+
     def __hash__(self) -> int:
         return hash(tuple([self.index, *[ _ for _ in self.aliases ], self.default]))
 
@@ -117,7 +125,7 @@ class OptionGroup(Enum):
 
     GLOBAL=OptionGroupEntry(
         index=1,
-        options=[Option.EDIT],
+        options=[Option.EDIT, Option.AUTOCLOSE],
         mutually_exclusive=False
     )
 

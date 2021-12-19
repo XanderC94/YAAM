@@ -6,7 +6,7 @@ import sys
 import time
 from copy import deepcopy
 from yaam.controller.cmd.repl import repl
-from yaam.controller.update import update_addons
+from yaam.controller.update import AddonUpdater
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
 from yaam.model.game.base import Game
 from yaam.utils.process import run
@@ -41,14 +41,15 @@ def run_main(app_context : AppContext):
             is_edit_mode = app_context.config.get_property(Option.EDIT)
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
+            is_auto_close = app_context.config.get_property(Option.AUTOCLOSE)
 
             prev_game_binding = game_stasis.settings.binding
             prev_addons_synthesis = game_stasis.synthetize()
 
             print_addon_tableau(prev_addons_synthesis, lambda x: logger.info(msg=x))
 
-            if is_edit_mode:
-                repl(game)
+            # if is_edit_mode:
+            #     repl(game)
 
             # save addons after editing
             # only if edit has effectively made changes to the configuration
@@ -79,7 +80,7 @@ def run_main(app_context : AppContext):
                 disable_dll_addons(addons_synthesis)
                 restore_dll_addons(addons_synthesis)
 
-                update_addons(addons_synthesis)
+                AddonUpdater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:
                 args = []
@@ -96,6 +97,9 @@ def run_main(app_context : AppContext):
                 for addon in addons_synthesis:
                     if addon.binding.enabled and addon.binding.is_exe():
                         run(addon.binding.path, addon.binding.path.parent)
+
+            if not is_auto_close:
+                input("Press any key to close...")
 
             logger.info(msg="Stack complete. Closing...")
 

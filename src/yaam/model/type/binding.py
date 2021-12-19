@@ -16,7 +16,7 @@ class BindingType(Enum):
     Addon binary binding type
     '''
     NONE = bindingtype(0, "", set([""]))
-    AGNOSTIC = bindingtype(1, "any", set(["agnostic", "none"]))
+    AGNOSTIC = bindingtype(1, "any", set(["agnostic", "none"]), can_shader=True)
     EXE = bindingtype(2, "exe", set(), suffix='.exe')
     D3D9 = bindingtype(3, "d3d9", set(["dx9"]), True, "dxgi", '.dll')
     D3D10 = bindingtype(4, "d3d10", set(["dx10"]), True, "dxgi", '.dll')
