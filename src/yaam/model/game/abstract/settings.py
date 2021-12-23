@@ -23,8 +23,6 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
 
         self._args : Dict[str, C] = dict()
         self._bases : Dict[str, D] = dict()
-        self._chains : List[List[str]] = list()
-        self._addons : List[A] = list()
         self._bindings : Dict[BindingType, Dict[str, B]] = dict()
         self._binding_type : BindingType = binding
 
@@ -51,33 +49,23 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
     def arguments(self) -> ValuesView[C]:
         return self._args.values()
 
-    @property
-    def addons(self) -> List[A]:
-        return self._addons
+    def has_addon_base(self, objname: str) -> bool:
+        return objname in self._bases
 
-    @property
-    def chains(self) -> List[List[str]]:
-        return self._chains
-
-    def has_addon(self, obj: Union[str, A]) -> bool:
-        return obj in self._bases if isinstance(obj, str) else obj in self._addons
+    def has_addon_binding(self, objname: str, btype: BindingType) -> bool:
+        return btype in self._bindings and objname in self._bindings[btype]
 
     def has_argument(self, name: str) -> bool:
         return name in self._args
 
-    def addon(self, name: str) -> A:
-        return next((_ for _ in self._addons if name == _.name), None)
+    def addon_base(self, name: str) -> A:
+        return self._bases.get(name, None)
+
+    def addon_binding(self, name: str, btype: BindingType) -> A:
+        return self._bindings.get(btype, dict()).get(name, None)
 
     def argument(self, name: str) -> C:
         return self._args.get(name, None)
-
-    def add_addon(self, addon: A) -> bool:
-        ret = not self.has_addon(addon)
-
-        if ret:
-            self._addons.append(addon)
-
-        return ret
 
     def add_argument(self, arg: C) -> bool:
 
@@ -88,10 +76,29 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
 
         return ret
 
-    def remove(self, addon: str) -> bool:
-        ret = addon in self._addons
+    def remove_base(self, objname: str) -> bool:
+        ret = objname in self._bases
 
         if ret:
-            self._addons.remove(addon.name)
+            self._bases.pop(objname)
+            for key in self._bindings:
+                if objname in self._bindings[key]:
+                    self._bindings[key].pop(objname)
+
+        return ret
+
+    def remove_binding(self, objname: str, btype: BindingType = None) -> bool:
+   
+        ret = False
+
+        if btype is None:
+            for key in self._bindings:
+                if objname in self._bindings[key]:
+                    self._bindings[key].pop(objname)
+                    ret = True
+
+        elif btype in self._bindings and objname in self._bindings[btype]:
+            self._bindings[btype].pop(objname)
+            ret = True
 
         return ret

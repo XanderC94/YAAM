@@ -7,7 +7,7 @@ from copy import deepcopy
 from yaam.model.context import GameContext
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
-from yaam.model.game.contract.settings import IYaamGameSettings
+from yaam.model.game.contract.settings import IYaamGameSettings, ABCD
 from yaam.model.mutable.addon import Addon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.argument import Argument
@@ -16,9 +16,7 @@ from yaam.patterns.synthetizer import Synthetizer
 from yaam.utils.exceptions import Found
 from yaam.utils.logger import static_logger as logger
 
-IYGS = IYaamGameSettings[
-    Addon, Binding, Argument, AddonBase
-]
+IYGS = IYaamGameSettings[Addon, Binding, Argument, AddonBase]
 
 class Game(Synthetizer[List[Addon]]):
     '''
@@ -60,7 +58,7 @@ class Game(Synthetizer[List[Addon]]):
             self.settings.binding,
         ])
 
-        addons_copy = deepcopy(self.settings.addons)
+        addons_copy = deepcopy(self.settings.synthetize())
 
         # override addon settings
         # for those not in the LUT

@@ -41,7 +41,7 @@ def run_main(app_context : AppContext):
             is_edit_mode = app_context.config.get_property(Option.EDIT)
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
-            is_auto_close = app_context.config.get_property(Option.AUTOCLOSE)
+            is_export_only = app_context.config.get_property(Option.EXPORT)
 
             prev_game_binding = game_stasis.settings.binding
             prev_addons_synthesis = game_stasis.synthetize()
@@ -73,8 +73,9 @@ def run_main(app_context : AppContext):
             addons_synthesis = game.synthetize()
             end = time.time()
             logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
-
-            print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
+            
+            if curr_settings_digest != prev_settings_digest:
+                print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 
             if not is_run_only:
                 disable_dll_addons(addons_synthesis)
@@ -97,9 +98,6 @@ def run_main(app_context : AppContext):
                 for addon in addons_synthesis:
                     if addon.binding.enabled and addon.binding.is_exe():
                         run(addon.binding.path, addon.binding.path.parent)
-
-            if not is_auto_close:
-                input("Press any key to close...")
 
             logger.info(msg="Stack complete. Closing...")
 

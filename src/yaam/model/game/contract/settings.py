@@ -4,15 +4,22 @@ Game model abstract class module
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Generic, TypeVar, Union, ValuesView
+from typing import Dict, List, Generic, TypeVar, ValuesView
 from yaam.model.type.binding import BindingType
+from yaam.patterns.synthetizer import Synthetizer
 
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
 D = TypeVar('D')
 
-class IYaamGameSettings(ABC, Generic[A, B, C, D]):
+class ABCD(ABC, Generic[A, B, C, D]):
+    '''
+    4-generic class
+    '''
+    pass
+
+class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
     '''
     Game yaam settings model interface
     '''
@@ -52,7 +59,7 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
     @abstractmethod
     def bases(self) -> Dict[str, D]:
         '''
-        Returns game basis
+        Returns game addon basis
         '''
         return None
 
@@ -64,26 +71,17 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         '''
         return None
 
-    @property
     @abstractmethod
-    def addons(self) -> List[A]:
+    def addon_base(self, name: str) -> A:
         '''
-        Returns game addons
-        '''
-        return None
-
-    @property
-    @abstractmethod
-    def chains(self) -> List[List[str]]:
-        '''
-        Returns all the chainload sequences
+        Returns a game addon_base
         '''
         return None
 
     @abstractmethod
-    def addon(self, name: str) -> A:
+    def addon_binding(self, name: str, btype: BindingType) -> A:
         '''
-        Returns a game addon
+        Returns a game addon_base
         '''
         return None
 
@@ -95,7 +93,14 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         return None
 
     @abstractmethod
-    def has_addon(self, obj: Union[str, A]) -> bool:
+    def has_addon_base(self, objname: str) -> bool:
+        '''
+        Returns if the game has the requested addon
+        '''
+        return False
+
+    @abstractmethod
+    def has_addon_binding(self, objname: str, btype: BindingType) -> bool:
         '''
         Returns if the game has the requested addon
         '''
@@ -109,9 +114,16 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         return False
 
     @abstractmethod
-    def add_addon(self, addon: A) -> bool:
+    def add_addon_base(self, base: D) -> bool:
         '''
-        Add a new game addon
+        Add a new game addon base
+        '''
+        return False
+
+    @abstractmethod
+    def add_addon_binding(self, binding: B) -> bool:
+        '''
+        Add a new game addon binding
         '''
         return False
 
@@ -123,9 +135,16 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         return False
 
     @abstractmethod
-    def remove(self, addon: A) -> bool:
+    def remove_base(self, objname: str) -> bool:
         '''
-        Remove a game addon
+        Remove a game addon base
+        '''
+        return False
+
+    @abstractmethod
+    def remove_binding(self, objname: str, btype: BindingType = None) -> bool:
+        '''
+        Remove a game addon binding
         '''
         return False
 
@@ -142,10 +161,11 @@ class IYaamGameSettings(ABC, Generic[A, B, C, D]):
         Save the yaam game settings
         '''
         return False
-    
+
     @abstractmethod
     def digest(self) ->  str:
         '''
         Return the setting digest
         '''
         return str()
+ 

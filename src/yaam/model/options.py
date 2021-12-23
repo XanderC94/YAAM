@@ -45,11 +45,11 @@ class Option(Enum):
         action="store_true"
     )
 
-    AUTOCLOSE = OptionEntry(
-        index=3,
-        aliases=set(["auto-close", "auto_close", "a"]),
+    EXPORT = OptionEntry(
+        index=2,
+        aliases=set(["export", "x"]),
         default=False,
-        descr="Auto close YAAM after main script completed",
+        descr="Export YAAM settings",
         action="store_true"
     )
 
@@ -119,13 +119,13 @@ class OptionGroup(Enum):
     '''
     EXECUTION_MODE=OptionGroupEntry(
         index=0,
-        options=[Option.RUN_STACK, Option.UPDATE_ADDONS],
+        options=[Option.RUN_STACK, Option.UPDATE_ADDONS, Option.EXPORT],
         mutually_exclusive=True
     )
 
     GLOBAL=OptionGroupEntry(
         index=1,
-        options=[Option.EDIT, Option.AUTOCLOSE],
+        options=[Option.EDIT],
         mutually_exclusive=False
     )
 

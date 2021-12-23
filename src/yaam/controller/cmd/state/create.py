@@ -193,8 +193,6 @@ class REPLCreateMode(Enum):
         )
     }))
 
-    CHAIN = CreateMode(list, dict())
-
     def __eq__(self, obj: object) -> bool:
         if isinstance(obj, REPLCreateMode):
             return hash(self) == hash(obj)
@@ -335,7 +333,5 @@ class REPLCreateState(AREPLState):
                 self._game.settings.bases[self.__entity.name] = self.__entity
             elif self.__mode == REPLCreateMode.BINDING and isinstance(self.__entity, Binding):
                 self._game.settings.bindings[self.__entity.typing][self.__entity.name] = self.__entity
-            elif self.__mode == REPLCreateMode.CHAIN and isinstance(self.__entity, list):
-                self._game.settings.chains.append(self.__entity)
-
+            
         return super().postloop()

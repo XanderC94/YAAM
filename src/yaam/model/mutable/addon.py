@@ -63,7 +63,5 @@ class Addon(object):
         table['binding'] = self._binding.typing.name.lower()
         table['enabled'] = self._binding.enabled
         table['update'] = self._binding.updateable
-        
+
         return table
-        
-    

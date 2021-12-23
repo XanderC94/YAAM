@@ -5,7 +5,6 @@ Guild Wars 2 model class
 import shutil
 
 from pathlib import Path
-from typing import List
 from bs4 import BeautifulSoup
 
 from yaam.utils.exceptions import ConfigLoadException
@@ -21,7 +20,6 @@ from yaam.model.game.base import Game
 from yaam.model.immutable.argument import ArgumentSynthesis
 
 from yaam.model.type.binding import BindingType
-from yaam.model.mutable.addon import Addon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.binding import Binding
 from yaam.model.mutable.argument import Argument
@@ -87,24 +85,6 @@ class YaamGW2Settings(YaamGameSettings):
 
         self._context = context
 
-    def add_base(self, base: AddonBase):
-        '''
-        Add a new addon base
-        '''
-        self._bases[base.name] = base
-
-    def add_binding(self, binding: Binding):
-        '''
-        Add a new addon binding
-        '''
-        self._bindings[binding.typing][binding.name] = binding
-
-    def add_chain(self, chain: List[str]):
-        '''
-        Add a new chainload sequence
-        '''
-        self._chains.append(chain)
-
     def load(self) -> bool:
         # Load arguments
         consume_json_entries(
@@ -134,18 +114,16 @@ class YaamGW2Settings(YaamGameSettings):
             settings_json_obj, { "bindings": self.__load_bindings }
         )
 
-        # Load chainloading sequences
-        consume_json_entries(
-            read_json(self._context.chains_path), { "chains": self.add_chain }
-        )
-
         logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
         logger().info(msg=f"Loaded {len(self._args)} arguments...")
         logger().info(msg=f"Loaded {len(self._bases)} bases...")
         logger().info(msg=f"Loaded {sum([ len(_) for _ in self._bindings.values() ])} bindings...")
-        logger().info(msg=f"Loaded {len(self._chains)} chainload sequences...")
 
-        return self.__incarnate_addons()
+        n_dangling_bases = self.__resolve_dangling_bases()
+
+        logger().info(msg=f"Resolved {n_dangling_bases} danglings addon bases...")
+
+        return len(self._bases) > 0
 
     def __load_arguments(self, json_obj: list):
         for _ in json_obj:
@@ -163,7 +141,7 @@ class YaamGW2Settings(YaamGameSettings):
 
     def __load_addon_bases(self, json_obj: list):
         for _ in json_obj:
-            self.add_base(AddonBase.from_json(_))
+            self.add_addon_base(AddonBase.from_json(_))
 
     def __load_bindings(self, json_obj: dict):
         for (key, value) in json_obj.items():
@@ -188,39 +166,21 @@ class YaamGW2Settings(YaamGameSettings):
                         shader_suffix = binding_type.suffix if binding_type.can_shader() else self._binding_type.suffix
                         binding.path = binding.path / f"{shader_name}{shader_suffix}"
 
-                self.add_binding(binding)
+                self.add_addon_binding(binding)
 
-    def __incarnate_addons(self) -> bool:
-        '''
-        Creates addons incarnations from bases and bindings
-        '''
+    def __resolve_dangling_bases(self):
+        n_dangling_bases = 0
         # build addons incarnations by binding
-        for binding_type in BindingType:
-            if binding_type in self._bindings:
-                for (addon_name, binding) in self._bindings[binding_type].items():
+        for binding_type in self._bindings:
+            for addon_name in self._bindings[binding_type]:
+                if not self.has_addon_base(addon_name):
+                    # create base for dangling binding
+                    addon_base = AddonBase(addon_name)
+                    self.add_addon_base(addon_base) # add placeholder
+                    n_dangling_bases += 1
 
-                    addon_base = self._bases.get(addon_name, None)
+        return n_dangling_bases
 
-                    if addon_base is None:
-                        # create base for dangling binding
-                        addon_base = AddonBase(addon_name)
-                        self.add_base(addon_base) # add placeholder
-
-                    addon = Addon(addon_base, binding)
-
-                    self.add_addon(addon)
-
-        # create binding dangling bases
-        for (addon_name, base) in self._bases.items():
-            if addon_name not in self._addons:
-                binding = Binding(addon_name)
-                self.add_binding(binding) # add placeholder
-                addon = Addon(base, binding)
-                self.add_addon(addon)
-
-        logger().info(msg=f"Incarnated {len(self._addons)} addons...")
-
-        return len(self._addons)
 
     def save(self) -> bool:
         '''
