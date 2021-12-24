@@ -64,7 +64,7 @@ class Game(Synthetizer[List[Addon]]):
         # for those not in the LUT
         for addon in addons_copy:
             if addon.binding.typing not in binding_lut:
-                addon.binding.enabled = False
+                addon.binding.is_enabled = False
 
         # automated shader selection
         index = None
@@ -72,7 +72,7 @@ class Game(Synthetizer[List[Addon]]):
             shader_priority = [ self.settings.binding, BindingType.AGNOSTIC, BindingType.EXE ]
             for shader in shader_priority:
                 for (i, addon) in enumerate(addons_copy):
-                    if addon.base.is_shader and addon.binding.typing == shader and addon.binding.enabled:
+                    if addon.base.is_shader and addon.binding.typing == shader and addon.binding.is_enabled:
                         # first matching is chosen as shader
                         raise Found(i)
         except Found as found:
@@ -82,7 +82,7 @@ class Game(Synthetizer[List[Addon]]):
                 logger().info(msg="No compatible shader composition could be created. Disabling any enabled shader.")
 
             for (i, addon) in enumerate(addons_copy):
-                if i != index and addon.base.is_shader and addon.binding.enabled:
-                    addon.binding.enabled = False
+                if i != index and addon.base.is_shader and addon.binding.is_enabled:
+                    addon.binding.is_enabled = False
 
         return addons_copy

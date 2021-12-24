@@ -134,14 +134,14 @@ class ArgumentInfo(Jsonkin):
         return self._description
 
     @property
-    def deprecated(self):
+    def is_deprecated(self) -> bool:
         '''
         Return if whether the argument is deprecated or temporaly disable
         '''
         return self._deprecated
 
     @property
-    def user_defined(self):
+    def is_user_defined(self) -> bool:
         '''
         Return whether the argument values are user defined
         '''
@@ -167,6 +167,6 @@ class ArgumentInfo(Jsonkin):
             'values': jsonrepr(self.values),
             'value_type': self.typing.name,
             'description': self.description,
-            'deprecated': self.deprecated,
-            'user_defined': self.user_defined
+            'deprecated': self.is_deprecated,
+            'user_defined': self.is_user_defined
         }

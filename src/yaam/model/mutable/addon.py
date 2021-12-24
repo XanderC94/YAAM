@@ -61,7 +61,7 @@ class Addon(object):
         table['name'] = self._base.name
         table['path'] = self._binding.path.name
         table['binding'] = self._binding.typing.name.lower()
-        table['enabled'] = self._binding.enabled
-        table['update'] = self._binding.updateable
+        table['enabled'] = self._binding.is_enabled
+        table['update'] = self._binding.is_updateable
 
         return table

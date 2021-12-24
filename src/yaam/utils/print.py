@@ -13,7 +13,7 @@ def print_addon_tableau(addons: List[Addon], printer = print):
     Print addon list as table to the specified printer stream
     '''
     data = defaultdict(list)
-    for addon in sorted(addons, key=lambda x: (not x.binding.enabled, x.base.name)):
+    for addon in sorted(addons, key=lambda x: (not x.binding.is_enabled, x.base.name)):
         table = addon.to_table()
         for (key, value) in table.items():
             data[key].append(value)

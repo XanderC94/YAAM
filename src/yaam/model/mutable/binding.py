@@ -11,14 +11,16 @@ class Binding(Jsonkin):
     '''
 
     def __init__(self,
-        name: str = str(), 
+        name: str = str(),
         path: Path = Path(),
-        enabled: bool = False, 
+        args: list = None,
+        enabled: bool = False,
         updateable: bool = False,
         binding_type: BindingType = BindingType.AGNOSTIC):
 
         self._name = name
         self._path = path
+        self._args = args
         self._enabled = enabled
         self._updateable = updateable
         self._binding_type = binding_type
@@ -41,14 +43,21 @@ class Binding(Jsonkin):
         return self._path
 
     @property
-    def updateable(self) -> bool:
+    def args(self) -> Path:
+        '''
+        Returns the addon args
+        '''
+        return self._args
+
+    @property
+    def is_updateable(self) -> bool:
         '''
         Returns whether or not this addon should be updated
         '''
         return self._updateable
 
     @property
-    def enabled(self) -> bool:
+    def is_enabled(self) -> bool:
         '''
         Returns whether or not this addon is enabled
         '''
@@ -88,15 +97,22 @@ class Binding(Jsonkin):
         '''
         self._path = new_path
 
-    @updateable.setter
+    @args.setter
+    def args(self, new_args : list):
+        '''
+        Set the Addon path
+        '''
+        self._args = new_args
+
+    @is_updateable.setter
     def updateable(self, updateable : bool):
         '''
         Set whether or not this addon should be updated
         '''
         self._updateable = updateable
 
-    @enabled.setter
-    def enabled(self, enabled : bool) -> str:
+    @is_enabled.setter
+    def is_enabled(self, enabled : bool) -> str:
         '''
         Set whether or not this addon is enabled
         '''
@@ -115,10 +131,11 @@ class Binding(Jsonkin):
         Create object representation of this class from dict representation
         '''
         return Binding(
-            json_obj["name"],
-            Path(json_obj.get("path", "")),
-            json_obj.get("enabled", False),
-            json_obj.get("update", False)
+            name=json_obj.get("name", ""),
+            path=Path(json_obj.get("path", "")),
+            args=json_obj.get("args", []),
+            enabled=json_obj.get("enabled", False),
+            updateable=json_obj.get("update", False)
         )
 
     def to_json(self):
@@ -128,6 +145,7 @@ class Binding(Jsonkin):
         return {
             'name': self.name,
             'path': str(self.path),
-            'enabled': self.enabled,
-            'update': self.updateable
+            'args': self.args,
+            'enabled': self.is_enabled,
+            'update': self.is_updateable
         }

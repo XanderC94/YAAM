@@ -2,6 +2,7 @@
 Addon base module
 '''
 from typing import List
+from yaam.model.mutable.uri_info import UriInfo
 from yaam.utils.json.jsonkin import Jsonkin
 
 class AddonBase(Jsonkin):
@@ -12,6 +13,7 @@ class AddonBase(Jsonkin):
     def __init__(self,
         name: str = str(),
         uri: str = str(),
+        uri_info: UriInfo = None,
         description: str = str(),
         contribs: List[str] = None,
         dependencies: List[str] = None,
@@ -20,6 +22,7 @@ class AddonBase(Jsonkin):
 
         self._name = name
         self._uri = uri
+        self._uri_info = uri_info
         self._description = description
         self._contributors: List[str] = contribs if contribs else list()
         self._dependencies: List[str] = dependencies if dependencies else list()
@@ -51,6 +54,13 @@ class AddonBase(Jsonkin):
         The uri of the addon
         '''
         return self._uri
+
+    @property
+    def uri_info(self) -> UriInfo:
+        '''
+        Return useful info about the URI
+        '''
+        return self._uri_info
 
     @property
     def description(self) -> str:
@@ -144,6 +154,7 @@ class AddonBase(Jsonkin):
         return AddonBase(
             name=json_obj['name'],
             uri=json_obj.get('uri', None),
+            uri_info=UriInfo.from_json(json_obj.get('uri_info', dict())),
             description=json_obj.get('description', ""),
             contribs=json_obj.get('contribs', []),
             dependencies=json_obj.get('dependencies', []),
@@ -158,6 +169,7 @@ class AddonBase(Jsonkin):
         return {
             'name': self.name,
             'uri': self.uri,
+            'uri_info': self.uri_info.to_json(),
             'description': self.description,
             'contribs': self.contributors,
             'dependencies': self.dependencies,

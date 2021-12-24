@@ -75,7 +75,7 @@ class YaamGameSettings(AbstractYaamGameSettings[
         for bindings in self._bindings.values():
             for binding in bindings.values():
                 hasher.update(pickle.dumps([
-                    str(binding.path), binding.typing, binding.enabled, binding.updateable
+                    str(binding.path), binding.typing, binding.is_enabled, binding.is_updateable
                 ]))
 
         return hasher.hexdigest()

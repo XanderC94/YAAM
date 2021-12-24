@@ -80,13 +80,13 @@ def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
         for addon in prev:
             # There can only be only one shader enabled by design
             # therefore it is sufficient to just find the first enabled shader
-            if addon.base.is_shader and addon.binding.enabled:
+            if addon.base.is_shader and addon.binding.is_enabled:
                 prev_shader = addon
                 break
 
     ret = 0
     for addon in addons:
-        if addon.binding.is_dll() and not addon.binding.enabled:
+        if addon.binding.is_dll() and not addon.binding.is_enabled:
             path = addon.binding.path
 
             can_disable = True
@@ -123,7 +123,7 @@ def restore_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
     '''
     ret = 0
     for addon in addons:
-        if addon.binding.is_dll() and addon.binding.enabled:
+        if addon.binding.is_dll() and addon.binding.is_enabled:
             path = addon.binding.path
 
             can_enable = True

@@ -3,19 +3,19 @@ YAAM main module
 '''
 
 import sys
-import time
 from copy import deepcopy
 from yaam.controller.cmd.repl import repl
-from yaam.controller.update import AddonUpdater
+from yaam.controller.update.updater import AddonUpdater
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
 from yaam.model.game.base import Game
-from yaam.utils.process import run
+from yaam.utils import process
 from yaam.model.options import Option
 from yaam.utils.logger import static_logger
 from yaam.utils.print import print_addon_tableau
 from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
 from yaam.model.context import AppContext
+from yaam.utils.timer import Timer
 
 #####################################################################
 
@@ -69,11 +69,12 @@ def run_main(app_context : AppContext):
             # addon configuration incarnation
             curr_game_binding = game.settings.binding
 
-            start = time.time()
+            timer = Timer()
+            timer.tick()
             addons_synthesis = game.synthetize()
-            end = time.time()
-            logger.debug(msg=f"Addon synthesis lasted {end-start} seconds.")
-            
+            timer.tock()
+            logger.debug(msg=f"Addon synthesis lasted {timer.delta()} seconds.")
+
             if curr_settings_digest != prev_settings_digest:
                 print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 
@@ -86,18 +87,18 @@ def run_main(app_context : AppContext):
             if not is_addon_update_only:
                 args = []
                 for _ in game.settings.arguments:
-                    if not _.meta.deprecated and _.enabled:
+                    if not _.meta.is_deprecated and _.enabled:
                         args.append(str(_.synthetize()))
 
-                run(
+                process.arun(
                     game.config.game_path,
                     game.config.game_root,
                     args
                 )
 
                 for addon in addons_synthesis:
-                    if addon.binding.enabled and addon.binding.is_exe():
-                        run(addon.binding.path, addon.binding.path.parent)
+                    if addon.binding.is_enabled and addon.binding.is_exe():
+                        process.arun(addon.binding.path, addon.binding.path.parent)
 
             logger.info(msg="Stack complete. Closing...")
 

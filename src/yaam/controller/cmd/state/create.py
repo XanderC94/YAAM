@@ -177,7 +177,7 @@ class REPLCreateMode(Enum):
             attribute="enabled",
             typing=bool, optional=True,
             validator=YesValidator(),
-            handle=lambda obj, val: Binding.enabled.__set__(obj, bool(strtobool(val))),
+            handle=lambda obj, val: Binding.is_enabled.__set__(obj, bool(strtobool(val))),
             description="""
             Specify whether this addon binding is enabled or not
             """
@@ -186,7 +186,7 @@ class REPLCreateMode(Enum):
             attribute="updateable",
             typing=bool, optional=True,
             validator=YesValidator(),
-            handle=lambda obj, val: Binding.updateable.__set__(obj, bool(strtobool(val))),
+            handle=lambda obj, val: Binding.is_updateable.__set__(obj, bool(strtobool(val))),
             description="""
             Specify whether this addon binding should be updated or not
             """
