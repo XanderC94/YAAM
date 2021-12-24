@@ -45,14 +45,16 @@ class AppConfig(object):
                 self.__overridden[option] = deepcopy(obj)
             obj.value = value
             obj.volatile = volatile
+            print(obj)
         else:
             self.__property_map[option] = AppProperty(option, value, volatile)
 
     def get_property(self, option: Option) -> Any:
         '''
-        Return the specified property value, if exists, otherwise defalt
+        Return the specified property value, if exists, otherwise default
         '''
         prop = self.__property_map.get(option)
+        print(prop)
         return prop.value if prop is not None else option.default
 
     def load(self, path: Path, args: Sequence[str]):
@@ -81,9 +83,12 @@ class AppConfig(object):
         parser = Parser()
         namespace = parser.parse(args)
         logger().debug(msg=namespace)
+
+        loaded_options = set([Option.from_string(_) for _ in args])
+
         for var in vars(namespace):
             option = Option.from_string(var)
-            if option is not None:
+            if option is not None and option in loaded_options:
                 self.set_property(option, getattr(namespace, var), volatile=True)
 
     def save(self, path: Path):

@@ -46,11 +46,27 @@ class Option(Enum):
     )
 
     EXPORT = OptionEntry(
-        index=2,
+        index=3,
         aliases=set(["export", "x"]),
         default=False,
         descr="Export YAAM settings",
         action="store_true"
+    )
+
+    GITHUB_USER = OptionEntry(
+        index=4,
+        aliases=set(["github-user", "github_user"]),
+        default="",
+        descr="Set github user",
+        action="store"
+    )
+
+    GITHUB_API_TOKEN = OptionEntry(
+        index=5,
+        aliases=set(["github-api-token", "github_api_token"]),
+        default="",
+        descr="Set github API token",
+        action="store"
     )
 
     def __hash__(self) -> int:
@@ -125,7 +141,7 @@ class OptionGroup(Enum):
 
     GLOBAL=OptionGroupEntry(
         index=1,
-        options=[Option.EDIT],
+        options=[Option.EDIT, Option.GITHUB_USER, Option.GITHUB_API_TOKEN],
         mutually_exclusive=False
     )
 

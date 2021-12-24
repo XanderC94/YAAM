@@ -205,5 +205,5 @@ class ZipUpdater(object):
             except IOError as ex:
                 logger().error(ex)
                 ret_code = ret_code.error()
-
+                
         return ret_code

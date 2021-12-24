@@ -5,6 +5,8 @@ Github API helper module
 import re
 import platform
 import requests
+from requests.sessions import Session
+from yaam.utils.logger import static_logger as logger
 
 from yaam.utils.exceptions import GitHubException
 
@@ -12,6 +14,18 @@ class api(object):
     '''
     github api static class
     '''
+
+    @staticmethod
+    def open_session(user = str(), token = str()):
+        '''
+        Create github api session
+        '''
+        github = requests.Session()
+        if len(user) > 0 and len(token) > 0:
+            github.auth = (user, token)
+        
+        return github
+
     @staticmethod
     def assert_github_api_url(url: str):
         '''
@@ -31,7 +45,7 @@ class api(object):
         return re.match(api_github_latest_release_regex, url) is not None
 
     @staticmethod
-    def fetch_latest_release_download_url(url: str, **kwargs) -> str:
+    def fetch_latest_release_download_url(url: str, github: Session, **kwargs) -> str:
         '''
         Assert if url is a github api request for a latest release metadata 
         and return the 'browser_download_url' link
@@ -43,7 +57,10 @@ class api(object):
         target_uri = url
 
         if api.assert_latest_release_url(url):
-            response = requests.get(url, **kwargs)
+            response = github.get(url, **kwargs)
+
+            logger().debug(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
+            logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
 
             if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
                 

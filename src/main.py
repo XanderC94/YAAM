@@ -82,7 +82,8 @@ def run_main(app_context : AppContext):
                 disable_dll_addons(addons_synthesis)
                 restore_dll_addons(addons_synthesis)
 
-                AddonUpdater.update_addons(addons_synthesis)
+                updater = AddonUpdater(app_context.config)
+                updater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:
                 args = []

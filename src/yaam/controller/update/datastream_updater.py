@@ -93,12 +93,16 @@ class DatastreamUpdater(object):
                     ret_code = ret_code.error()
 
             if ret_code == UpdateResult.CREATED or ret_code == UpdateResult.UPDATED:
-                logger().info(msg=f"Launching installer {installer_path}")
-                if "msi" in installer_path.suffix:
-                    process.run("msiexec.exe", installer_dir, [f"/i {installer_path}"], slack=0)
-                else:
-                    process.run(installer_path, installer_dir, slack=0)
-                shutil.rmtree(installer_dir)
+                try:
+                    logger().info(msg=f"Launching installer {installer_path}")
+                    if "msi" in installer_path.suffix:
+                        process.run("msiexec.exe", installer_dir, [f"/i {installer_path}"], slack=0)
+                    else:
+                        process.run(installer_path, installer_dir, slack=0)
+                    shutil.rmtree(installer_dir)
+                except IOError as ex:
+                    logger().error(ex)
+                    ret_code = ret_code.error()
 
             with open(signature_path, 'w', encoding='utf-8') as _:
                 _.write(remote_signature)
