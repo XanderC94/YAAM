@@ -32,7 +32,7 @@ class Timer(object):
         Compute delta
 
         * computes tock-tick if tock has been called
-        * computes current_time-tick if tock has been called 
+        * computes current_time-tick if tock has not been called 
         or tick has been called after a tock
 
         '''

@@ -61,12 +61,3 @@ def get_wfile_metadata(path: Path, namespace = None, header: List[str] = None) -
                 metadata[attr] = value
 
     return metadata
-
-
-if __name__ == "__main__":
-
-    p = Path("C:/opt/Guild Wars 2/")
-
-    for _ in p.iterdir():
-        if _.is_file() and '.dll' in _.name:
-            print(get_wfile_metadata(path=_))

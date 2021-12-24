@@ -182,14 +182,15 @@ class ZipUpdater(object):
                     makedirs(unpack_dir)
 
                 if addon.base.uri_info.is_installer:
+
                     installer_dir = unpack_dir / "installer"
                     if not installer_dir.exists():
                         makedirs(installer_dir)
+
                     [ret_code, installer_path] = ZipUpdater.__unpack_installer_zip(zip_content, installer_dir, addon)
 
-                    logger().info(msg=f"Launching installer {installer_path}")
                     if "msi" in installer_path.suffix:
-                        process.run("msiexec.exe", installer_dir, [f"/i {installer_path}"], slack=0)
+                        process.run_command(f"msiexec.exe /i {installer_path}", slack=0)
                     else:
                         process.run(installer_path, installer_dir, slack=0)
 

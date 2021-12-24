@@ -45,7 +45,6 @@ class AppConfig(object):
                 self.__overridden[option] = deepcopy(obj)
             obj.value = value
             obj.volatile = volatile
-            print(obj)
         else:
             self.__property_map[option] = AppProperty(option, value, volatile)
 
@@ -54,7 +53,6 @@ class AppConfig(object):
         Return the specified property value, if exists, otherwise default
         '''
         prop = self.__property_map.get(option)
-        print(prop)
         return prop.value if prop is not None else option.default
 
     def load(self, path: Path, args: Sequence[str]):

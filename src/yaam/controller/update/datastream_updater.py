@@ -94,9 +94,8 @@ class DatastreamUpdater(object):
 
             if ret_code == UpdateResult.CREATED or ret_code == UpdateResult.UPDATED:
                 try:
-                    logger().info(msg=f"Launching installer {installer_path}")
                     if "msi" in installer_path.suffix:
-                        process.run("msiexec.exe", installer_dir, [f"/i {installer_path}"], slack=0)
+                        process.run_command(f"msiexec.exe /i {installer_path}", slack=0)
                     else:
                         process.run(installer_path, installer_dir, slack=0)
                     shutil.rmtree(installer_dir)
