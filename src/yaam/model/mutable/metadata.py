@@ -1,7 +1,6 @@
 '''
 Addon metadata class module
 '''
-from typing import List
 from yaam.utils.json.jsonkin import Jsonkin
 
 class AddonMetadata(Jsonkin):

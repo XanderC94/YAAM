@@ -192,9 +192,6 @@ class AddonUpdater(object):
         if remote_metadata is None:
             remote_metadata = AddonMetadata()
 
-        print(metadata)
-        print(remote_metadata)
-
         if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified:
 
             logger().info(msg="Local and remote metadata mismatch or empty.")
