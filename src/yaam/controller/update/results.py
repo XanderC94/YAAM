@@ -13,6 +13,7 @@ class UpdateResult(IntEnum):
     TO_CREATE = auto()
     TO_UPDATE = auto()
     UP_TO_DATE = auto()
+    UPDATE_METADATA = auto()
     UNPACKING_OK = auto()
     CREATED = auto()
     UPDATED = auto()

@@ -4,11 +4,9 @@ Zipped addons updater module
 from os import makedirs
 from pathlib import Path
 import shutil
-from typing import Tuple
 from zipfile import BadZipfile, ZipFile
 from requests.models import Response
 from yaam.controller.update.results import UpdateResult
-from yaam.utils.hashing import Hasher
 from yaam.utils.logger import static_logger as logger
 from yaam.model.mutable.addon import Addon
 from yaam.utils import process
@@ -19,47 +17,9 @@ class ZipUpdater(object):
     '''
     Static zipped addons updater class
     '''
-    @staticmethod
-    def __check_zip_hash(content: ZipFile, signature_path : Path, addon: Addon) -> Tuple[UpdateResult, str]:
 
-        ret_code = UpdateResult.NO_UPDATE
-
-        remote_signature = None
-        local_signature = None
-
-        is_not_online_installer = not addon.base.uri_info.is_installer or addon.base.uri_info.is_offline
-
-        if addon.binding.path.exists():
-            if addon.binding.is_updateable and is_not_online_installer:
-
-                logger().info(msg=f"Checking {addon.base.name}({addon.binding.path.name}) updates...")
-
-                # Check if the <addon name>.zip.signature file exists
-                if signature_path.exists():
-                    with open(signature_path, 'r', encoding='utf-8') as _:
-                        local_signature = _.read().replace('\n', '').replace(' ', '')
-                        logger().info(msg=f"Local hash is {local_signature}.")
-                else:
-                    logger().info(msg="Local hash not found.")
-
-                remote_signature = Hasher.SHA256.make_hash_from_bytes(content.fp.read())
-                logger().info(msg=f"Remote hash is {remote_signature}.")
-
-                if remote_signature == local_signature:
-                    logger().info(msg="Addon is up-to-date.")
-                    ret_code = UpdateResult.UP_TO_DATE
-                else:
-                    if local_signature is None:
-                        logger().info(msg="Local addon zip signature is missing. Updating...")
-                    else:
-                        logger().info(msg="New addon update found. Downloading...")
-                    ret_code = UpdateResult.TO_UPDATE
-        else:
-            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
-            remote_signature = Hasher.SHA256.make_hash_from_bytes(content.fp.read())
-            ret_code = UpdateResult.TO_CREATE
-
-        return (ret_code, remote_signature)
+    def __init__(self, code = UpdateResult.NONE) -> None:
+        self.__code = code
 
     @staticmethod
     def __unpack_zip(content: ZipFile, unpack_dir: Path, unpack_alias: str, addon: Addon) -> UpdateResult:
@@ -71,6 +31,8 @@ class ZipUpdater(object):
         root_items = zip_helper.get_root_items(content)
 
         is_single_root_folder = len(root_dirs) == 1 and len(root_items) == 1
+
+        logger().info(msg=f"Unpacking zipped {addon.base.name}...")
 
         for item in content.filelist:
 
@@ -93,7 +55,7 @@ class ZipUpdater(object):
                 target_file = extraction_target.parent / f"{curr_unpack_stem}{extraction_target.suffix}"
                 extraction_target = extraction_target.replace(target_file)
 
-            logger().info(msg=f"Created {addon.base.name}({extraction_target.name})...")
+            logger().info(msg=f"Unpacked {extraction_target.name} installer to {unpack_dir}.")
 
         if is_single_root_folder:
             shutil.rmtree(unpack_dir / root_dirs[0])
@@ -103,8 +65,12 @@ class ZipUpdater(object):
         return ret_code
 
     @staticmethod
-    def __unpack_installer_zip(content: ZipFile, unpack_dir: Path, addon: Addon) -> Tuple[UpdateResult, Path]:
+    def __unpack_installer_zip(content: ZipFile, unpack_dir: Path, addon: Addon) -> UpdateResult:
+
         ret_code = UpdateResult.UNPACKING_FAILED
+
+        if not unpack_dir.exists():
+            makedirs(unpack_dir)
 
         root_dirs = zip_helper.get_root_dirs(content)
 
@@ -112,11 +78,11 @@ class ZipUpdater(object):
 
         is_single_root_folder = len(root_dirs) == 1 and len(root_items) == 1
 
+        logger().info(msg=f"Unpacking zipped {addon.base.name} installer...")
+
         content.extractall(unpack_dir)
 
-        logger().info(msg=f"Unpacked {addon.base.name} installer to {str(unpack_dir)}...")
-
-        ret_code = UpdateResult.UNPACKING_OK
+        logger().info(msg=f"Unpacked {addon.base.name} installer to {unpack_dir}.")
 
         content_lookup_dir = unpack_dir if not is_single_root_folder else unpack_dir / root_dirs[0]
 
@@ -132,79 +98,67 @@ class ZipUpdater(object):
                     installer_path = _
                     break
 
-        return (ret_code, installer_path)
+        if "msi" in installer_path.suffix:
+            process.run_command(f"msiexec.exe /i {installer_path}", slack=0)
+        else:
+            process.run(installer_path, unpack_dir, slack=0)
 
-    @staticmethod
-    def update_from_zip(response: Response, addon: Addon):
+        shutil.rmtree(unpack_dir)
+
+        ret_code = UpdateResult.UNPACKING_OK
+
+        return ret_code
+
+    def update_from_zip(self, response: Response, addon: Addon) -> UpdateResult:
         '''
         Updated a zipped addon package
         '''
-        ret_code = UpdateResult.NONE
+        ret_code = self.__code
 
-        logger().info(msg=f"Unpacking zipped {addon.base.name}...")
+        if ret_code == UpdateResult.TO_CREATE:
+            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
+        else:
+            logger().info(msg=f"Updating {addon.base.name}({addon.binding.path.name})...")
 
-        # if the content is a zip,
-        # unpack all the content in the parent directory
-        # of file pointed by the addon path
         try:
-            zip_content : ZipFile = responses.unpack_zip(response.content)
+            # if the content is a zip,
+            # unpack all the content in the parent directory
+            # of file pointed by the addon path
+            zip_content : ZipFile = responses.repack_to_zip(response.content)
+
+            unpack_dir : Path = None
+            unpack_stem : str = None
+
+            if addon.binding.path.is_file():
+                unpack_dir : Path = addon.binding.path.parent
+                # renaming enabled only for dlls (for now)
+                unpack_stem = addon.binding.path.stem if addon.binding.is_dll() else None
+            else:
+                # if an addon doesn't specify a name (points to a folder)
+                # item are unpacked as-is (no rename) but will normally
+                # repacked to the root directoy if the zip root is a single folder
+                unpack_dir : Path = addon.binding.path
+
+            if not unpack_dir.exists():
+                makedirs(unpack_dir)
+
+            if addon.base.uri_info.is_installer:
+                ret_code = ZipUpdater.__unpack_installer_zip(zip_content, unpack_dir / "installer", addon)
+            else:
+                ret_code = ZipUpdater.__unpack_zip(zip_content, unpack_dir, unpack_stem, addon)
+
+        except IOError as ex:
+            logger().error(ex)
+            ret_code = ret_code.error()
         except BadZipfile as ex:
             logger().error(msg=str(ex))
-            return UpdateResult.INVALID_ZIP
-
-        unpack_dir : Path = None
-        unpack_stem = None
-
-        if addon.binding.path.is_file():
-            unpack_dir : Path = addon.binding.path.parent
-            # renaming enabled only for dlls (for now)
-            unpack_stem = addon.binding.path.stem if addon.binding.is_dll() else None
+            ret_code = UpdateResult.INVALID_ZIP
         else:
-            # if an addon doesn't specify a name (points to a folder)
-            # item are unpacked as-is (no rename) but will normally
-            # repacked to the root directoy if the zip root is a single folder
-            unpack_dir : Path = addon.binding.path
+            ret_code = ret_code.complete()
 
-        signature_path = None
+            if ret_code == UpdateResult.CREATED:
+                logger().info(msg=f"Created {addon.base.name}({addon.binding.path.name}).")
+            else:
+                logger().info(msg=f"Updated {addon.base.name}({addon.binding.path.name}).")
 
-        if unpack_stem is None:
-            stem = addon.base.name.replace(' ', '_').lower()
-            signature_path = unpack_dir / f"{stem}.zip.signature"
-        else:
-            signature_path = unpack_dir / f"{unpack_stem}.zip.signature"
-
-        [ret_code, remote_signature] = ZipUpdater.__check_zip_hash(zip_content, signature_path, addon)
-
-        if ret_code == UpdateResult.TO_CREATE or ret_code == UpdateResult.TO_UPDATE:
-            try:
-
-                if not unpack_dir.exists():
-                    makedirs(unpack_dir)
-
-                if addon.base.uri_info.is_installer:
-
-                    installer_dir = unpack_dir / "installer"
-                    if not installer_dir.exists():
-                        makedirs(installer_dir)
-
-                    [ret_code, installer_path] = ZipUpdater.__unpack_installer_zip(zip_content, installer_dir, addon)
-
-                    if "msi" in installer_path.suffix:
-                        process.run_command(f"msiexec.exe /i {installer_path}", slack=0)
-                    else:
-                        process.run(installer_path, installer_dir, slack=0)
-
-                    shutil.rmtree(installer_dir)
-                else:
-                    ret_code = ZipUpdater.__unpack_zip(zip_content, unpack_dir, unpack_stem, addon)
-
-                with open(signature_path, 'w', encoding='utf-8') as _:
-                    _.write(remote_signature)
-
-                ret_code = ret_code.complete()
-
-            except IOError as ex:
-                logger().error(ex)
-                ret_code = ret_code.error()
-                
         return ret_code

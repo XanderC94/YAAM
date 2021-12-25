@@ -2,13 +2,16 @@
 Lambdas and functional utilities
 '''
 
-from typing import Any, Callable, Dict, Tuple
+from typing import Callable, Dict, Tuple, TypeVar
 
-Mapper = Callable[[Any], Any]
-Consumer = Callable[[Any], None]
+T = TypeVar('T')
+K = TypeVar('K')
+
+Mapper = Callable[[T], K]
+Consumer = Callable[[T], None]
 SwissKnife = Dict[str, Tuple[Mapper, Consumer]]
 
-def identity(_: Any) :
+def identity(_: T) -> T:
     '''
     Identity function
     '''

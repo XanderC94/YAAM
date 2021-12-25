@@ -23,7 +23,7 @@ class api(object):
         github = requests.Session()
         if len(user) > 0 and len(token) > 0:
             github.auth = (user, token)
-        
+
         return github
 
     @staticmethod
@@ -34,7 +34,7 @@ class api(object):
         '''
         api_github_regex = r"https:\/\/api\.github\.com\/(.+)"
         return re.match(api_github_regex, url) is not None
-        
+
     @staticmethod
     def assert_latest_release_url(url: str):
         '''

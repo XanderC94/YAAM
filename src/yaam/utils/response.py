@@ -42,7 +42,7 @@ def unpack_content(response : Response, addon: Addon) -> bytes:
     
     return data
 
-def unpack_zip(content : bytes) -> zipfile.ZipFile:
+def repack_to_zip(content : bytes) -> zipfile.ZipFile:
     '''
     unpack content bytes to a zip
     '''
