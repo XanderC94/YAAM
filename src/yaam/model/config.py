@@ -62,6 +62,7 @@ class AppConfig(object):
         self.__load_configuration(path)
         self.__parse_commandline(args)
 
+
     def __load_configuration(self, path: Path):
 
         if path.exists():
@@ -82,7 +83,11 @@ class AppConfig(object):
         namespace = parser.parse(args)
         logger().debug(msg=namespace)
 
-        loaded_options = set([Option.from_string(_) for _ in args])
+        loaded_options = set([
+            Option.from_string(
+                _.removeprefix('-').removeprefix('-')
+            ) for _ in args
+        ])
 
         for var in vars(namespace):
             option = Option.from_string(var)

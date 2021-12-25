@@ -1,7 +1,7 @@
 '''
 Command line arguments parser
 '''
-import argparse
+from argparse import ArgumentParser, Namespace
 from typing import Sequence
 from yaam.model.options import OptionGroup
 
@@ -12,7 +12,7 @@ class Parser(object):
     def __init__(self) -> None:
         super().__init__()
 
-        self.__parser = argparse.ArgumentParser(prog="YAAM", description="Yet Another Addon Manager" )
+        self.__parser = ArgumentParser(prog="YAAM", description="Yet Another Addon Manager" )
 
         for opt_group in OptionGroup:
 
@@ -28,13 +28,13 @@ class Parser(object):
                     default=opt.default
                 )
 
-    def parse(self, args: Sequence[str]) -> argparse.Namespace:
+    def parse(self, args: Sequence[str]) -> Namespace:
         '''
         Parser command line arguments
         '''
         return self.__parser.parse_args(args)
 
-    def args(self):
+    def underlying_parser(self) -> ArgumentParser:
         '''
         Return parsed arguments
         '''

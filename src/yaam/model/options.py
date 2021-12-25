@@ -70,11 +70,13 @@ class Option(Enum):
     )
 
     def __hash__(self) -> int:
-        return hash(tuple([self.index, *[ _ for _ in self.aliases ], self.default]))
+        return hash(self.name)
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Option):
             return self.index == o.index
+        elif isinstance(o, str):
+            return self.name == o or o in self.aliases
         else:
             return False
 
@@ -121,7 +123,7 @@ class Option(Enum):
         obj = None
 
         for _ in Option:
-            if str_repr == _.name or str_repr in _.aliases:
+            if _ == str_repr:
                 obj = _
                 break
 

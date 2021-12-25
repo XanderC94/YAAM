@@ -28,18 +28,17 @@ def init_static_logger(
     logger = static_logger(logger_name)
     logger.setLevel(log_level)
 
-    if log_file.exists():
-        fhandler = handlers.RotatingFileHandler(
-            log_file,
-            mode='w',
-            encoding='utf-8',
-            backupCount=3,
-            maxBytes=(2*1024**2)
-        )
+    fhandler = handlers.RotatingFileHandler(
+        log_file,
+        mode='w',
+        encoding='utf-8',
+        backupCount=3,
+        maxBytes=(2*1024**2)
+    )
 
-        fhandler.setFormatter(log_formatter)
-        fhandler.setLevel(log_level)
-        logger.addHandler(fhandler)
+    fhandler.setFormatter(log_formatter)
+    fhandler.setLevel(log_level)
+    logger.addHandler(fhandler)
 
     shandler = logging.StreamHandler(log_stream)
     shandler.setLevel(log_level)
