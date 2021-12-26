@@ -2,6 +2,7 @@
 Binding model module
 '''
 from pathlib import Path
+from typing import List
 from yaam.model.type.binding import BindingType
 from yaam.utils.json.jsonkin import Jsonkin
 
@@ -13,14 +14,14 @@ class Binding(Jsonkin):
     def __init__(self,
         name: str = str(),
         path: Path = Path(),
-        args: list = None,
+        args: List[str] = None,
         enabled: bool = False,
         updateable: bool = False,
         binding_type: BindingType = BindingType.AGNOSTIC):
 
         self._name = name
         self._path = path
-        self._args = args
+        self._args = args if args is not None else list()
         self._enabled = enabled
         self._updateable = updateable
         self._binding_type = binding_type
@@ -43,7 +44,7 @@ class Binding(Jsonkin):
         return self._path
 
     @property
-    def args(self) -> Path:
+    def args(self) -> List[str]:
         '''
         Returns the addon args
         '''
@@ -98,7 +99,7 @@ class Binding(Jsonkin):
         self._path = new_path
 
     @args.setter
-    def args(self, new_args : list):
+    def args(self, new_args : List[str]):
         '''
         Set the Addon path
         '''

@@ -115,6 +115,9 @@ class AddonUpdater(object):
             logger().error(timeout_ex)
         except GitHubException as ex:
             logger().error(ex)
+        
+        if metadata is None:
+            metadata = AddonMetadata()
 
         return metadata
 
@@ -169,10 +172,10 @@ class AddonUpdater(object):
         elif not addon.binding.path.exists() or addon.binding.is_updateable:
             ret_code = self.__update_addon_internal(addon)
         else:
+            ret_code = UpdateResult.NO_UPDATE
             logger().info(msg=f"Skipping {addon.base.name}({addon.binding.path.name}) update...")
 
         return ret_code
-
 
     def __update_addon_internal(self, addon: Addon) -> UpdateResult:
 
@@ -187,11 +190,10 @@ class AddonUpdater(object):
         logger().info(msg=f"Fetching {addon.base.name}({addon.binding.path.name}) metadata...")
 
         metadata = self.get_metadata(addon)
-        remote_metadata = self.get_remote_metadata(addon)
+        remote_metadata = self.get_remote_metadata(addon, timeout=10, allow_redirects=True, headers=default_headers)
 
-        if remote_metadata is None:
-            remote_metadata = AddonMetadata()
-
+        # ETAG is apparently inconsistent for latest release in github api
+        # so the check is currently only done by means of the <last-modified> HTTP header tag
         if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified:
 
             logger().info(msg="Local and remote metadata mismatch or empty.")
@@ -203,7 +205,9 @@ class AddonUpdater(object):
             if response is not None:
 
                 logger().info(msg=f"Downloaded {addon.base.name}.")
-
+                
+                # checking the hash signature as well as to not update needessly
+                # since remote metadata might be lacking in some cases
                 [ret_code, remote_metadata.hash_signature] = SignatureChecker.check_signatures(response.content, addon, metadata)
 
                 if ret_code == UpdateResult.TO_CREATE or ret_code == UpdateResult.TO_UPDATE:
@@ -215,15 +219,16 @@ class AddonUpdater(object):
                         else:
                             ret_code = DatastreamUpdater(ret_code).update_from_datastream(response, addon)
                 else:
-                    # if metadata are missing or last-modified don't match
-                    # update local addon metadata
                     ret_code = UpdateResult.UPDATE_METADATA
 
-                if ret_code in [UpdateResult.CREATED, UpdateResult.UPDATED, UpdateResult.UPDATE_METADATA]:
+                # local metadata must be updated if:
+                # - an addon has been created or updated
+                # - addon metadatas don't match but the addon signatures do
+                if ret_code in [UpdateResult.CREATED, UpdateResult.UPDATED, UpdateResult.UP_TO_DATE]:
                     self.__save_metadata(remote_metadata, Path(metadata.uri))
             else:
                 logger().error(msg="Received invalid response from addon update uri. Skipping...")
         else:
             logger().info(msg="Local and remote metadata match.")
-        
+
         return ret_code

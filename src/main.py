@@ -99,7 +99,7 @@ def run_main(app_context : AppContext):
 
                 for addon in addons_synthesis:
                     if addon.binding.is_enabled and addon.binding.is_exe():
-                        process.arun(addon.binding.path, addon.binding.path.parent)
+                        process.arun(addon.binding.path, addon.binding.path.parent, addon.binding.args)
 
             logger.info(msg="Stack complete. Closing...")
 
