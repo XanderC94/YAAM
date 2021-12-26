@@ -1,8 +1,7 @@
 ﻿beautifulsoup4==4.10.0
 dataclasses==0.8
-nuitka==0.6.17.1
+nuitka==0.6.17
 pipreqs==0.4.10
-pywin32==302
 requests==2.26.0
 tabulate==0.8.9
 urllib3==1.26.7
