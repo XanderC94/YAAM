@@ -52,22 +52,24 @@ class GW2Config(AbstractGameConfiguration):
 
         load_ok = False
 
-        logger().info(msg = f"Reading root path from {self.path}.", )
+        logger().info(msg = f"Reading game path from {self.path}.", )
 
-        with open(self.path, encoding="utf-8") as _:
+        if self.path.exists():
+            with open(self.path, encoding="utf-8") as _:
 
-            gw2_config_xml = BeautifulSoup(_, features="xml")
-            gw2_app_token = gw2_config_xml.find("GSA_SDK").find("APPLICATION")
+                gw2_config_xml = BeautifulSoup(_, features="xml")
+                gw2_app_token = gw2_config_xml.find("GSA_SDK").find("APPLICATION")
 
-            self._root = Path(gw2_app_token.find("INSTALLPATH")['Value'])
-            self._exe = gw2_app_token.find("EXECUTABLE")['Value']
+                self._root = Path(gw2_app_token.find("INSTALLPATH")['Value'])
+                self._exe = gw2_app_token.find("EXECUTABLE")['Value']
 
-            logger().info(msg=f"GW2 location is {self.path}.")
-
-            if not self.path.exists():
-                logger().info(msg=f"Location {self.path} doesn't exists!")
-            else:
-                load_ok = True
+                if self._root.exists():
+                    logger().info(msg=f"GW2 location is {self._root}.")
+                    load_ok = True
+                else:
+                    logger().info(msg=f"{self._root} doesn't exists!")
+        else:
+            logger().info(msg=f"{self.path} doesn't exists!")
 
         return load_ok
 

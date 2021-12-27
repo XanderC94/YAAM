@@ -1,53 +1,159 @@
 {
     "addons": [
         {
+            "name": "GW2 Addon Loader Core",
+            "uri": "https://api.github.com/repos/gw2-addon-loader/loader-core/releases/latest",
+            "description": "",
+            "contribs": ["Friendly0Fire", "megai2"],
+            "dependencies": [],
+            "is_shader": false
+        },
+        {
+            "name": "DLL Wrapper",
+            "uri": "https://api.github.com/repos/gw2-addon-loader/d3d9_wrapper/releases/latest",
+            "description": "",
+            "contribs": ["Friendly0Fire", "megai2"],
+            "dependencies": [],
+            "is_shader": false
+        },  
+        {
+            "name": "Select Render",
+            "uri": "https://api.github.com/repos/megai2/SelectRenderer/releases/latest",
+            "description": "GW2 renderer manager",
+            "contribs": [ "megai2" ],
+            "dependencies": [],
+            "is_shader": false
+        },
+        {
+            "name": "Lib Imgui",
+            "uri": "https://api.github.com/repos/gw2-addon-loader/lib_imgui/releases/latest",
+            "description": "Shared Lib IMGUI",
+            "contribs": [ "megai2" ],
+            "dependencies": [],
+            "is_shader": false
+        },        
+        {
             "name": "ArcDPS",
             "uri": "https://www.deltaconnected.com/arcdps/x64/d3d9.dll",
+            "description": "GW2 dps meter and more",
             "contribs": [],
-            "description": "",
-            "dependencies": []
+            "dependencies": [],
+            "is_shader": false
         },
         {
             "name": "ArcDPS BoonsTable",
-            "uri": "https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest/download/d3d9_arcdps_table.dll",
-            "contribs": ["deltaconnexted"],
+            "uri": "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest",
             "description": "",
-            "dependencies": [ "ArcDPS" ]
+            "contribs": [
+                "deltaconnexted"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
+            "is_shader": false
         },
         {
             "name": "ArcDPS BuildPad",
             "uri": "https://buildpad.gw2archive.eu/versions/latest",
-            "contribs": [ "xvwyh" ],
             "description": "",
-            "dependencies": [ "ArcDPS" ]
-        },
-        {
-            "name": "GW2 Radial Mounts",
-            "uri": "https://github.com/Friendly0Fire/GW2Radial/releases/download/v2.1.0-pre2/gw2radial.zip",
-            "contribs": [ "Friendly0Fire" ],
-            "description": "",
-            "dependencies": []
+            "contribs": [
+                "xvwyh"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
+            "is_shader": false
         },
         {
             "name": "ArcDPS KillProof Me",
-            "uri": "https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/latest/download/d3d9_arcdps_killproof_me.dll",
-            "contribs": [ "knoxfighter" ],
+            "uri": "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest",
             "description": "",
-            "dependencies": [ "ArcDPS" ]
+            "contribs": [
+                "knoxfighter"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
+            "is_shader": false
+        },
+        {
+            "name": "ArcDPS Mount Tool",
+            "uri": "https://api.github.com/jiangyi0923/GW2_arcdps_MountTool/releases/latest",
+            "description": "",
+            "contribs": [
+                "jiangyi0923"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
+            "is_shader": false
+        },
+        {
+            "name": "GW2 Radial Mounts",
+            "uri": "https://api.github.com/Friendly0Fire/GW2Radial/releases/latest",
+            "description": "",
+            "contribs": [
+                "Friendly0Fire"
+            ],
+            "dependencies": [],
+            "is_shader": false
         },
         {
             "name": "ReShade",
             "uri": "https://reshade.me/",
-            "contribs": [ "Crosire" ],
             "description": "",
-            "dependencies": [ ]
+            "contribs": [
+                "Crosire"
+            ],
+            "dependencies": [],
+            "is_shader": true
         },
         {
             "name": "GShade",
             "uri": "https://gposers.com/gshade/",
-            "contribs": [ "gposers" ],
             "description": "",
-            "dependencies": [ ]
+            "contribs": [
+                "gposers"
+            ],
+            "dependencies": [],
+            "is_shader": true
+        },
+        {
+            "name": "WinAuth",
+            "uri": "https://api.github.com/repos/winauth/winauth/releases/latest",
+            "description": "",
+            "contribs": [],
+            "dependencies": [],
+            "is_shader": false
+        },
+        {
+            "name": "BlishHUD",
+            "uri": "https://api.github.com/repos/blish-hud/Blish-HUD/releases/latest",
+            "description": "",
+            "contribs": [],
+            "dependencies": [],
+            "chainloads": [],
+            "is_shader": false
+        },
+        {
+            "name": "YoloMouse",
+            "uri": "https://dragonrisegames.com/bin/YoloMouse.msi",
+            "uri_info": {
+                "is_installer": true,
+                "is_offline": true
+            },
+            "description": "",
+            "contribs": [],
+            "dependencies": [],
+            "is_shader": false
+        },
+        {
+            "name": "ArcDps BHUD bridge",
+            "uri": "https://api.github.com/repos/blish-hud/arcdps-bhud/releases/latest",
+            "description": "",
+            "contribs": [],
+            "dependencies": [],
+            "is_shader": false
         }
     ]
 }
