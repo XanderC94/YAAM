@@ -20,17 +20,21 @@ class ZipUpdater(object):
 
     def __init__(self, code = UpdateResult.NONE) -> None:
         self.__code = code
+        self.namings = dict()
 
-    @staticmethod
-    def __unpack_zip(content: ZipFile, unpack_dir: Path, unpack_alias: str, addon: Addon) -> UpdateResult:
+    def __unpack_zip(self, content: ZipFile, unpack_dir: Path, addon: Addon) -> UpdateResult:
 
         ret_code = UpdateResult.UNPACKING_FAILED
 
         root_dirs = zip_helper.get_root_dirs(content)
-
         root_items = zip_helper.get_root_items(content)
-
         is_single_root_folder = len(root_dirs) == 1 and len(root_items) == 1
+
+        # renaming enabled only for dlls
+        rename_enabled = addon.binding.is_dll()
+        unpack_alias_stem : str = None
+        if rename_enabled and len(addon.binding.path.suffix) > 0:
+            unpack_alias_stem = addon.binding.path.stem
 
         logger().info(msg=f"Unpacking zipped {addon.base.name}...")
 
@@ -38,24 +42,47 @@ class ZipUpdater(object):
 
             extraction_target = Path(content.extract(item, unpack_dir))
 
-            curr_unpack_stem = extraction_target.stem if unpack_alias is None else unpack_alias
+            if not item.is_dir():
+                can_add_alias: bool = False
 
-            # in case of a single directory inside the zip,
-            # the folder will be unpacked to the parent directory
-            # all the non-folder sub-root item will be renamed to the target addon filename
-            if is_single_root_folder and item.filename not in root_dirs:
+                extraction_alias = extraction_target.name
+                # Default rename: use 'unpack_alias'
+                curr_unpack_alias = extraction_alias
+                if rename_enabled and unpack_alias_stem is not None:
+                    can_add_alias = rename_enabled
+                    curr_unpack_alias = f"{unpack_alias_stem}{extraction_target.suffix}"
 
-                target_file = extraction_target.parent.parent / f"{extraction_target.stem}{extraction_target.suffix}"
-                if root_dirs[0].rfind(extraction_target.parent.name) >= 0:
-                    target_file = extraction_target.parent.parent / f"{curr_unpack_stem}{extraction_target.suffix}"
+                # If a rename map is set and has a match
+                # use that that instead of default
+                if rename_enabled and item.filename in self.namings:
+                    can_add_alias = rename_enabled
+                    curr_unpack_alias = self.namings.get(item.filename, curr_unpack_alias)
 
-                extraction_target = extraction_target.replace(target_file)
+                # in case of a single directory inside the zip,
+                # the folder will be unpacked to the parent directory
+                # all the non-folder sub-root item will be renamed to the target addon filename
+                is_single_root_folder_item : bool = False
+                if is_single_root_folder:
+                    is_single_root_folder_item = root_dirs[0].rfind(extraction_target.parent.name) > -1
+                    # get relative path from single root dir
+                    relative_target = extraction_target.relative_to(unpack_dir / root_dirs[0])
+                    # apply to supposed unpack dir
+                    extraction_target = extraction_target.replace(unpack_dir / relative_target)
 
-            elif item.filename in root_items and not item.is_dir():
-                target_file = extraction_target.parent / f"{curr_unpack_stem}{extraction_target.suffix}"
-                extraction_target = extraction_target.replace(target_file)
+                # if the current non-dir item is in the root
+                # or is in the root of a single root zip
+                # that file can be renamed to the specified alias
+                target_file = extraction_target
+                if item.filename in root_items or is_single_root_folder_item:
+                    can_add_alias = rename_enabled
+                    tmp_file = unpack_dir / curr_unpack_alias
+                    target_file = extraction_target.replace(tmp_file)
 
-            logger().info(msg=f"Unpacked {extraction_target.name} installer to {unpack_dir}.")
+                logger().info(msg=f"Unpacked {target_file.relative_to(unpack_dir)} to {unpack_dir}")
+
+                # Add to or update the naming map (given or generated)
+                if can_add_alias and rename_enabled:
+                    self.namings[extraction_target.relative_to(unpack_dir)] = curr_unpack_alias
 
         if is_single_root_folder:
             shutil.rmtree(unpack_dir / root_dirs[0])
@@ -64,39 +91,45 @@ class ZipUpdater(object):
 
         return ret_code
 
-    @staticmethod
-    def __unpack_installer_zip(content: ZipFile, unpack_dir: Path, addon: Addon) -> UpdateResult:
-
-        ret_code = UpdateResult.UNPACKING_FAILED
-
-        if not unpack_dir.exists():
-            makedirs(unpack_dir)
-
-        root_dirs = zip_helper.get_root_dirs(content)
-
-        root_items = zip_helper.get_root_items(content)
-
-        is_single_root_folder = len(root_dirs) == 1 and len(root_items) == 1
-
-        logger().info(msg=f"Unpacking zipped {addon.base.name} installer...")
-
-        content.extractall(unpack_dir)
-
-        logger().info(msg=f"Unpacked {addon.base.name} installer to {unpack_dir}.")
-
-        content_lookup_dir = unpack_dir if not is_single_root_folder else unpack_dir / root_dirs[0]
-
+    def __find_installer(self, lookup_dir: Path) -> Path:
         installer_path = None
-        for _ in content_lookup_dir.iterdir():
+
+        for _ in lookup_dir.iterdir():
             if _.is_file() and "installer" in _.name:
                 installer_path = _
                 break
 
         if installer_path is None:
-            for _ in content_lookup_dir.iterdir():
+            for _ in lookup_dir.iterdir():
                 if _.is_file() and ("exe" in _.suffix or "msi" in _.suffix):
                     installer_path = _
                     break
+
+        return installer_path
+
+    def __unpack_installer_zip(self, content: ZipFile, unpack_dir: Path, addon: Addon) -> UpdateResult:
+
+        ret_code = UpdateResult.UNPACKING_FAILED
+
+        root_dirs = zip_helper.get_root_dirs(content)
+        root_items = zip_helper.get_root_items(content)
+        is_single_root_folder = len(root_dirs) == 1 and len(root_items) == 1
+
+        logger().info(msg=f"Unpacking zipped {addon.base.name} installer...")
+
+        if not unpack_dir.exists():
+            makedirs(unpack_dir)
+
+        content.extractall(unpack_dir)
+
+        logger().info(msg=f"Unpacked {addon.base.name} installer to {unpack_dir}.")
+
+        content_lookup_dir = unpack_dir
+
+        if is_single_root_folder:
+            content_lookup_dir = content_lookup_dir / root_dirs[0]
+
+        installer_path = self.__find_installer(content_lookup_dir)
 
         if "msi" in installer_path.suffix:
             process.run_command(f"msiexec.exe /i {installer_path}", slack=0)
@@ -127,25 +160,22 @@ class ZipUpdater(object):
             zip_content : ZipFile = responses.repack_to_zip(response.content)
 
             unpack_dir : Path = None
-            unpack_stem : str = None
-
-            if addon.binding.path.is_file():
+            if len(addon.binding.path.suffix) > 0:
                 unpack_dir : Path = addon.binding.path.parent
-                # renaming enabled only for dlls (for now)
-                unpack_stem = addon.binding.path.stem if addon.binding.is_dll() else None
             else:
                 # if an addon doesn't specify a name (points to a folder)
-                # item are unpacked as-is (no rename) but will normally
-                # repacked to the root directoy if the zip root is a single folder
+                # item are unpacked as-is (no rename) and will be repacked
+                # to the root directoy if the zip root is a single folder
+                # NOTE: Renaming is possible in this case only with a rename map
                 unpack_dir : Path = addon.binding.path
 
             if not unpack_dir.exists():
                 makedirs(unpack_dir)
 
             if addon.base.uri_info.is_installer:
-                ret_code = ZipUpdater.__unpack_installer_zip(zip_content, unpack_dir / "installer", addon)
+                self.__unpack_installer_zip(zip_content, unpack_dir / "installer", addon)
             else:
-                ret_code = ZipUpdater.__unpack_zip(zip_content, unpack_dir, unpack_stem, addon)
+                self.__unpack_zip(zip_content, unpack_dir, addon)
 
         except IOError as ex:
             logger().error(ex)

@@ -3,7 +3,7 @@ Abstract Game class module
 '''
 
 from pathlib import Path
-from typing import Dict, List, TypeVar, ValuesView, Union
+from typing import Dict, TypeVar, ValuesView
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.settings import IYaamGameSettings
 
@@ -25,16 +25,17 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         self._bases : Dict[str, D] = dict()
         self._bindings : Dict[BindingType, Dict[str, B]] = dict()
         self._binding_type : BindingType = binding
+        self._naming_map : Dict[str, str] = dict()
 
     @property
     def path(self) -> Path:
         return self._settings_path
 
     @property
-    def binding(self) -> BindingType:
+    def binding_type(self) -> BindingType:
         return self._binding_type
 
-    def set_binding(self, new_binding: BindingType):
+    def set_binding_type(self, new_binding: BindingType):
         self._binding_type = new_binding
 
     @property
@@ -88,7 +89,6 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         return ret
 
     def remove_binding(self, objname: str, btype: BindingType = None) -> bool:
-   
         ret = False
 
         if btype is None:
@@ -102,3 +102,8 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
             ret = True
 
         return ret
+
+    @property
+    def namings(self) -> Dict[str, str]:
+        return self._naming_map
+        

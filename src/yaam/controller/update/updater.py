@@ -34,6 +34,9 @@ class AddonUpdater(object):
     def __init__(self, config: AppConfig) -> None:
         self.__config = config
         self.__gh_session : Session = None
+        
+        self.namings = dict()
+
         super().__init__()
 
     def update_addons(self, addons: Iterable[Addon]):
@@ -45,11 +48,12 @@ class AddonUpdater(object):
 
         gh_user = self.__config.get_property(Option.GITHUB_USER)
         gh_api_token = self.__config.get_property(Option.GITHUB_API_TOKEN)
+        force_update = self.__config.get_property(Option.UPDATE_ADDONS) and self.__config.get_property(Option.FORCE_ACTION)
 
         self.__gh_session = github.api.open_session(gh_user, gh_api_token)
 
         for addon in addons:
-            self.update_addon(addon)
+            self.update_addon(addon, force_update)
 
         self.__gh_session.close()
 
@@ -61,7 +65,7 @@ class AddonUpdater(object):
 
         metadata_stem = addon.base.name.replace(' ', '_').lower()
 
-        if addon.binding.path.is_file():
+        if len(addon.binding.path.suffix) > 0:
             metadata_path = addon.binding.path.parent / f"metadata_{metadata_stem}.json"
         else:
             metadata_path = addon.binding.path / f"metadata_{metadata_stem}.json"
@@ -74,7 +78,7 @@ class AddonUpdater(object):
         '''
         metadata_path : Path = self.get_metadata_path(addon)
         metadata : AddonMetadata = AddonMetadata.from_json(read_json(metadata_path))
-        if len(metadata.hash_signature) == 0:
+        if len(metadata.hash_signature) == 0 and len(addon.binding.path.suffix) > 0:
             metadata.hash_signature = Hasher.SHA256.make_hash_from_file(addon.binding.path)
         metadata.uri = metadata_path
         return metadata
@@ -89,6 +93,8 @@ class AddonUpdater(object):
 
             def get(url, **kwargs):
                 if github.api.assert_github_api_url(url):
+                    # Get the metadata of the github release from api
+                    # since metadata of the download link might not be consistent
                     return self.__gh_session.head(url, **kwargs)
                 else:
                     return requests.head(url, **kwargs)
@@ -115,7 +121,7 @@ class AddonUpdater(object):
             logger().error(timeout_ex)
         except GitHubException as ex:
             logger().error(ex)
-        
+
         if metadata is None:
             metadata = AddonMetadata()
 
@@ -154,7 +160,7 @@ class AddonUpdater(object):
 
         return response
 
-    def update_addon(self, addon: Addon):
+    def update_addon(self, addon: Addon, force: bool = False):
         '''
         Update the provided addon if possible
 
@@ -170,14 +176,14 @@ class AddonUpdater(object):
             logger().info(msg=f"No valid update URL provided for {addon.base.name}({addon.binding.path.name}).")
             ret_code = UpdateResult.INVALID_URL
         elif not addon.binding.path.exists() or addon.binding.is_updateable:
-            ret_code = self.__update_addon_internal(addon)
+            ret_code = self.__update_addon_internal(addon, force)
         else:
             ret_code = UpdateResult.NO_UPDATE
             logger().info(msg=f"Skipping {addon.base.name}({addon.binding.path.name}) update...")
 
         return ret_code
 
-    def __update_addon_internal(self, addon: Addon) -> UpdateResult:
+    def __update_addon_internal(self, addon: Addon, force: bool = False) -> UpdateResult:
 
         ret_code = UpdateResult.NONE
 
@@ -194,7 +200,7 @@ class AddonUpdater(object):
 
         # ETAG is apparently inconsistent for latest release in github api
         # so the check is currently only done by means of the <last-modified> HTTP header tag
-        if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified:
+        if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified or force:
 
             logger().info(msg="Local and remote metadata mismatch or empty.")
 
@@ -205,21 +211,25 @@ class AddonUpdater(object):
             if response is not None:
 
                 logger().info(msg=f"Downloaded {addon.base.name}.")
-                
+
                 # checking the hash signature as well as to not update needessly
                 # since remote metadata might be lacking in some cases
                 [ret_code, remote_metadata.hash_signature] = SignatureChecker.check_signatures(response.content, addon, metadata)
 
-                if ret_code == UpdateResult.TO_CREATE or ret_code == UpdateResult.TO_UPDATE:
+                if ret_code == UpdateResult.TO_CREATE or ret_code == UpdateResult.TO_UPDATE or force:
                     if responses.is_zip_content(response):
-                        ret_code = ZipUpdater(ret_code).update_from_zip(response, addon)
+                        uploader = ZipUpdater(ret_code)
+                        uploader.namings = self.namings.get(addon.base.name, dict())
+                        ret_code = uploader.update_from_zip(response, addon)
+                        remote_metadata.namings = uploader.namings
                     else:
+                        uploader = DatastreamUpdater(ret_code)
+                        uploader.namings = self.namings.get(addon.base.name, dict())
                         if addon.base.uri_info.is_installer:
-                            ret_code = DatastreamUpdater(ret_code).update_from_installer(response, addon)
+                            ret_code = uploader.update_from_installer(response, addon)
                         else:
-                            ret_code = DatastreamUpdater(ret_code).update_from_datastream(response, addon)
-                else:
-                    ret_code = UpdateResult.UPDATE_METADATA
+                            ret_code = uploader.update_from_datastream(response, addon)
+                        remote_metadata.namings = uploader.namings
 
                 # local metadata must be updated if:
                 # - an addon has been created or updated

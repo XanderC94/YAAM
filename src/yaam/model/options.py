@@ -29,8 +29,16 @@ class Option(Enum):
         action="store_true"
     )
 
-    RUN_STACK = OptionEntry(
+    FORCE_ACTION = OptionEntry(
         index=1,
+        aliases=set(["force"]),
+        default=False,
+        descr="Force any specified action",
+        action="store_true"
+    )
+
+    RUN_STACK = OptionEntry(
+        index=2,
         aliases=set(["run", "run-stack", "run_stack", "r"]),
         default=False,
         descr="Only run the game without updating the addons",
@@ -38,7 +46,7 @@ class Option(Enum):
     )
 
     EDIT = OptionEntry(
-        index=2,
+        index=3,
         aliases=set(["edit", "e"]),
         default=False,
         descr="Run YAAM edit repl",
@@ -46,7 +54,7 @@ class Option(Enum):
     )
 
     EXPORT = OptionEntry(
-        index=3,
+        index=4,
         aliases=set(["export", "x"]),
         default=False,
         descr="Export YAAM settings",
@@ -54,7 +62,7 @@ class Option(Enum):
     )
 
     GITHUB_USER = OptionEntry(
-        index=4,
+        index=5,
         aliases=set(["github-user", "github_user"]),
         default="",
         descr="Set github user",
@@ -62,7 +70,7 @@ class Option(Enum):
     )
 
     GITHUB_API_TOKEN = OptionEntry(
-        index=5,
+        index=6,
         aliases=set(["github-api-token", "github_api_token"]),
         default="",
         descr="Set github API token",
@@ -143,7 +151,7 @@ class OptionGroup(Enum):
 
     GLOBAL=OptionGroupEntry(
         index=1,
-        options=[Option.EDIT, Option.GITHUB_USER, Option.GITHUB_API_TOKEN],
+        options=[Option.FORCE_ACTION, Option.EDIT, Option.GITHUB_USER, Option.GITHUB_API_TOKEN],
         mutually_exclusive=False
     )
 

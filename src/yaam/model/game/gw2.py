@@ -83,7 +83,7 @@ class YaamGW2Settings(YaamGameSettings):
 
     def __init__(self, context: GameContext, default_binding: BindingType = BindingType.AGNOSTIC):
 
-        super().__init__(context.settings_path, default_binding)
+        super().__init__(context.yaam_game_dir, default_binding)
 
         self._context = context
 
@@ -99,7 +99,7 @@ class YaamGW2Settings(YaamGameSettings):
         )
 
         # Load Argument enabled-disabled settings
-        settings_json_obj = read_json(self._settings_path)
+        settings_json_obj = read_json(self._context.settings_path)
 
         consume_json_entries(
             settings_json_obj, { "arguments": self.__incarnate_arguments }
@@ -114,6 +114,12 @@ class YaamGW2Settings(YaamGameSettings):
         # Load Addons bindings
         consume_json_entries(
             settings_json_obj, { "bindings": self.__load_bindings }
+        )
+
+        # read naming map
+        naming_map_obj = read_json(self._context.naming_map_path)
+        consume_json_entries(
+            naming_map_obj, { "namings": self.__load_namings }
         )
 
         logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
@@ -144,6 +150,10 @@ class YaamGW2Settings(YaamGameSettings):
     def __load_addon_bases(self, json_obj: list):
         for _ in json_obj:
             self.add_addon_base(AddonBase.from_json(_))
+
+    def __load_namings(self, json_obj: list):
+        for _ in json_obj:
+            self._naming_map[_["addon"]] = _["naming"]
 
     def __load_bindings(self, json_obj: dict):
         for (key, value) in json_obj.items():
@@ -183,7 +193,6 @@ class YaamGW2Settings(YaamGameSettings):
 
         return n_dangling_bases
 
-
     def save(self) -> bool:
         '''
         Save game settings to file
@@ -191,7 +200,7 @@ class YaamGW2Settings(YaamGameSettings):
 
         # first, back-up
         shutil.copyfile(self._context.addons_path, f"{self._context.addons_path}.bak")
-        shutil.copyfile(self._settings_path, f"{self._settings_path}.bak")
+        shutil.copyfile(self._context.settings_path, f"{self._context.settings_path}.bak")
 
         # save new data
         json_addons_obj = {
@@ -209,7 +218,7 @@ class YaamGW2Settings(YaamGameSettings):
         }
 
         write_json(json_addons_obj, self._context.addons_path)
-        write_json(json_bindings_obj, self._settings_path)
+        write_json(json_bindings_obj, self._context.settings_path)
 
         return True
 

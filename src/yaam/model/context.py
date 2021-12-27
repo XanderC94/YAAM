@@ -21,6 +21,7 @@ class GameContext(object):
     args_path      : Path = field(init=True)
     addons_path    : Path = field(init=True)
     settings_path  : Path = field(init=True)
+    naming_map_path : Path = field(init=True)
 
 class AppContext(object):
     '''
@@ -92,6 +93,7 @@ class AppContext(object):
             arguments_path = yaam_game_dir / "arguments.json"
             addons_path = yaam_game_dir / "addons.json"
             settings_path = yaam_game_dir / "settings.json"
+            naming_map_path = yaam_game_dir / "namings.json"
 
             tmp_yaam_game_dir = self._deployment_dir / "res/default" / game_name
 
@@ -106,10 +108,10 @@ class AppContext(object):
                     shutil.copyfile(tmp_yaam_game_dir / "settings.json", settings_path)
             else:
                 if not arguments_path.exists():
-                    write_json(dict({'arguments':[] }), arguments_path)
+                    write_json(dict({'arguments': [] }), arguments_path)
 
                 if not addons_path.exists():
-                    write_json(dict({'addons':[] }), addons_path)
+                    write_json(dict({'addons': [] }), addons_path)
 
                 if not settings_path.exists():
                     write_json(dict({'arguments': [], 'bindings': []}), settings_path)
@@ -119,7 +121,8 @@ class AppContext(object):
                 yaam_game_dir,
                 arguments_path,
                 addons_path,
-                settings_path
+                settings_path,
+                naming_map_path
             )
 
         return self._game_contexts[game_name]

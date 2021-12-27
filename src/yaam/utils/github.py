@@ -3,7 +3,6 @@ Github API helper module
 '''
 
 import re
-import platform
 import requests
 from requests.sessions import Session
 from yaam.utils.logger import static_logger as logger
@@ -47,7 +46,7 @@ class api(object):
     @staticmethod
     def fetch_latest_release_download_url(url: str, github: Session, **kwargs) -> str:
         '''
-        Assert if url is a github api request for a latest release metadata 
+        Assert if url is a github api request for a latest release metadata
         and return the 'browser_download_url' link
 
         If it's not a github api request, returns the provided url.
@@ -63,32 +62,37 @@ class api(object):
             logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
 
             if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
-                
+
                 json_data : dict = response.json()
 
                 if 'assets' in json_data.keys():
-                    
+
                     if len(json_data['assets']) == 1 and 'browser_download_url' in json_data['assets'][0]:
 
                         target_uri = json_data['assets'][0]['browser_download_url']
 
                     elif len(json_data['assets']) > 0:
 
-                        current_platform = platform.system().lower()
                         valid_assets = []
-                        real_match_found = False
-
                         for asset in json_data['assets']:
                             if 'browser_download_url' in asset:
                                 valid_assets.append(asset)
-                                if current_platform in asset['browser_download_url']:
-                                    real_match_found = True
-                                    target_uri = asset['browser_download_url']
-                                    break
 
-                        if not real_match_found:
-                            target_uri = valid_assets[0]['browser_download_url']
+                        # Since download are too much etherogeneous
+                        # I can only let the user choose the desired resource
+                        # to be downloaded
+                        print(f"Found {len(valid_assets)} resources:\n")
 
+                        i : int = 0
+                        for asset in valid_assets:
+                            print(f"{i}. {asset['name']}")
+                            i+=1
+
+                        index = input(f"\nWhich one should be downloaded? Choose between [0, ..., {i - 1}]: ")
+                        while not str(index).isnumeric() or int(index) < 0 or int(index) > i - 1:
+                            index = input(f"\nChoose between [0, ..., {i - 1}]: ")
+
+                        target_uri = valid_assets[int(index)]['browser_download_url']
                     else:
                         raise GitHubException("Github API pointing to invalid latest release!")
             else:

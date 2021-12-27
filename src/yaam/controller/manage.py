@@ -109,7 +109,7 @@ def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
                 else:
                     can_disable = False
 
-            if path.exists() and can_disable:
+            if path.exists() and path.is_file() and can_disable:
                 logger().info(msg=f"Addon {addon.base.name}({path.name}) will be suppressed...")
                 os.rename(str(path), str(path_disabled))
                 ret += 1

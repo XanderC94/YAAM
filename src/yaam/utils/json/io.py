@@ -15,8 +15,14 @@ def read_json(path: Path or str, encoding='utf8', decerealize : Mapper[dict, K]=
     _obj = dict()
 
     if path.exists():
-        with open(path, 'r', encoding=encoding) as _:
-            _obj = decerealize(json.load(_))
+        try:
+
+            with open(path, 'r', encoding=encoding) as _:
+                _obj = decerealize(json.load(_))
+        except IOError as _:
+            _obj = dict()
+        except json.decoder.JSONDecodeError as _:
+            _obj = dict()
 
     return _obj
 
@@ -24,8 +30,13 @@ def write_json(obj, path: Path or str, encoding='utf8', indent = 4, cerealize=js
     '''
     Write json obj to file
     '''
-    with open(path, 'w', encoding=encoding) as _:
-        json.dump(obj, _, indent=indent, default=cerealize)
+    try:
+        with open(path, 'w', encoding=encoding) as _:
+            json.dump(obj, _, indent=indent, default=cerealize)
+    except IOError as _:
+        pass
+    except json.decoder.JSONDecodeError as _:
+        pass
         
 def consume_json_entries(json_obj: dict, consumers: Dict[str, Consumer]):
     '''

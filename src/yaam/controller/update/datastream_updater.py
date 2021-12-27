@@ -4,12 +4,14 @@ Datastreamed addons updater module
 from os import makedirs
 from pathlib import Path
 import shutil
+from typing import Dict
 from urllib.parse import urlparse
 from requests.models import Response
 from yaam.controller.update.results import UpdateResult
 from yaam.utils.logger import static_logger as logger
 from yaam.model.mutable.addon import Addon
 from yaam.utils import process
+from yaam.utils import response as responses
 
 class DatastreamUpdater(object):
     '''
@@ -18,6 +20,27 @@ class DatastreamUpdater(object):
 
     def __init__(self, code = UpdateResult.NONE) -> None:
         self.__code = code
+        self.namings : Dict[str, str] = dict()
+
+    def __fallback_addon_name(self, response: Response, addon: Addon) -> str:
+        response_alias : str = None
+
+        addon_suffix = ".dll" if addon.binding.is_dll() else ".exe"
+        if len(addon.binding.path.suffix) > 0:
+            addon_suffix = addon.binding.path.suffix
+
+        if len(self.namings) > 0:
+            for key in self.namings:
+                if responses.find_filename(response, key):
+                    response_alias = key
+            if response_alias is None:
+                response_alias = list(self.namings.keys())[0]
+        elif len(addon.binding.path.suffix) > 0:
+            response_alias = addon.binding.path.name
+        else:
+            response_alias = f"{addon.base.name.replace(' ', '_').lower()}{addon_suffix}"
+
+        return response_alias
 
     def update_from_datastream(self, response: Response, addon: Addon) -> UpdateResult:
         '''
@@ -33,10 +56,43 @@ class DatastreamUpdater(object):
         if not addon.binding.path.parent.exists():
             makedirs(addon.binding.path.parent)
 
+        rename_enabled : bool = addon.binding.is_dll()
+
         # write file on disk
         try:
-            with open(addon.binding.path, 'wb') as _:
+            unpack_dir : Path = None
+            if len(addon.binding.path.suffix) > 0:
+                unpack_dir : Path = addon.binding.path.parent
+            else:
+                unpack_dir : Path = addon.binding.path
+
+            can_add_alias = False
+            # Compute original response filename
+            response_alias : str = responses.get_filename(response)
+            # If the name is not found by normal meanings of http-header / url parsing...
+            # hoping it never happens.
+            if response_alias is None:
+                response_alias = self.__fallback_addon_name(response, addon)
+            # default rename specified by addon path
+            unpack_alias = response_alias
+            if rename_enabled and len(addon.binding.path.suffix) > 0:
+                can_add_alias = True
+                unpack_alias = addon.binding.path.name
+
+            # If a rename map is set and has matches
+            # follow that instead of default
+            if rename_enabled:
+                can_add_alias = True
+                unpack_alias = self.namings.get(response_alias, unpack_alias)
+
+            # write the file at the given path
+            with open(unpack_dir / unpack_alias, 'wb') as _:
                 _.write(response.content)
+
+            # Add the rename map (given or generated) to addon metadata
+            if can_add_alias and rename_enabled:
+                self.namings[response_alias] = unpack_alias
+
         except IOError as ex:
             logger().error(ex)
             ret_code = ret_code.error()

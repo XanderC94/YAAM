@@ -9,7 +9,7 @@ from pathlib import Path
 from yaam.utils.logger import static_logger as logger
 from shutil import which
 
-def arun(target: Path or str, workspace: Path or str, args: Iterable[str] = None, slack = 3, **kwargs):
+def arun(target: Path or str, workspace: Path or str, args: Iterable[str] = None, slack = 3, **kwargs) -> subprocess.Popen[str]:
     '''
     Run async the target process in the specified workspace and the provided arguments.
 
@@ -23,11 +23,13 @@ def arun(target: Path or str, workspace: Path or str, args: Iterable[str] = None
 
     logger().info("Launching %s %s", target.name if isinstance(target, Path) else target, ' '.join(str_args))
 
-    subprocess.Popen(executable=str_target, cwd=str_working_dir, args=str_args, **kwargs)
+    proc = subprocess.Popen(executable=str_target, cwd=str_working_dir, args=str_args, **kwargs)
 
     time.sleep(slack)
 
-def run(target: Path or str, workspace: Path or str, args: Iterable[str] = None, slack = 3, **kwargs):
+    return proc
+
+def run(target: Path or str, workspace: Path or str, args: Iterable[str] = None, slack = 3, **kwargs) -> int:
     '''
     Run the target process in the specified workspac with the provided arguments.
 
@@ -43,16 +45,20 @@ def run(target: Path or str, workspace: Path or str, args: Iterable[str] = None,
 
     proc = subprocess.Popen(executable=str_target, cwd=str_working_dir, args=str_args, **kwargs)
 
-    proc.wait()
+    ret = proc.wait()
 
     time.sleep(slack)
 
-def run_command(command: str, check=False, slack = 3, **kwargs):
+    return ret
+
+def run_command(command: str, check=False, slack = 3, **kwargs) -> subprocess.CompletedProcess[str]:
     '''
     Run the given string command
     '''
     logger().info("Executing %s", command)
 
-    subprocess.run(command, check=check, **kwargs)
+    ret = subprocess.run(command, check=check, **kwargs)
 
     time.sleep(slack)
+
+    return ret

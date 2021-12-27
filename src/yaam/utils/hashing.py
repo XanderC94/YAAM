@@ -35,19 +35,23 @@ class Hasher(Enum):
 
         return strategy
 
-    def make_hash_from_file(self, fname : Path):
+    def make_hash_from_file(self, fname : Path) -> str:
         '''
         Return hashcode for the specified file with the specified algorithm
         @fname: Path -- path to the file for which computing the hash
         '''
         fshan = self.create()
 
-        with open(fname, "rb") as file_to_hash:
-            for chunk in iter(lambda: file_to_hash.read(4096), b""):
-                fshan.update(chunk)
+        if fname.is_file():
+            with open(fname, "rb") as file_to_hash:
+                for chunk in iter(lambda: file_to_hash.read(4096), b""):
+                    fshan.update(chunk)
+        else:
+            return ''
+
         return fshan.hexdigest()
 
-    def make_hash_from_bytes(self, data: bytes):
+    def make_hash_from_bytes(self, data: bytes) -> str:
         '''
         Return hashcode for the specified bytes
         @data: bytes -- data byte to hash
@@ -70,7 +74,7 @@ class Hasher(Enum):
                 break
 
         return result
-    
+
     @staticmethod
     def read_hash_from_url(url: str):
         '''

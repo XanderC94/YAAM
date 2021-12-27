@@ -28,25 +28,25 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
     @abstractmethod
     def path(self) -> Path:
         '''
-        Returns the current settings path for the game.
-        That is the addons, arguments and chainloads settings.
+        Returns the current settings dir path for the game.
         '''
         return None
 
     @property
     @abstractmethod
-    def binding(self) -> BindingType:
+    def binding_type(self) -> BindingType:
         '''
         Returns the game selected binding type
         '''
         return None
 
     @abstractmethod
-    def set_binding(self, new_binding: BindingType):
+    def set_binding_type(self, new_binding: BindingType):
         '''
         Set a new binding type for the game
         '''
-
+        pass
+    
     @property
     @abstractmethod
     def bindings(self) -> Dict[BindingType, Dict[str, B]]:
@@ -147,6 +147,14 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
         Remove a game addon binding
         '''
         return False
+
+    @property
+    @abstractmethod
+    def namings(self) -> Dict[str, str]:
+        '''
+        Return addons naming mapping
+        '''
+        return dict()
 
     @abstractmethod
     def load(self) -> bool:

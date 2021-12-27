@@ -43,7 +43,7 @@ def run_main(app_context : AppContext):
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
             is_export_only = app_context.config.get_property(Option.EXPORT)
 
-            prev_game_binding = game_stasis.settings.binding
+            prev_game_binding = game_stasis.settings.binding_type
             prev_addons_synthesis = game_stasis.synthetize()
 
             print_addon_tableau(prev_addons_synthesis, lambda x: logger.info(msg=x))
@@ -67,7 +67,7 @@ def run_main(app_context : AppContext):
             # in order to know HOW to correctly disable previous shaders and
             # enable the new ones, if any, it is necessary to know the previous
             # addon configuration incarnation
-            curr_game_binding = game.settings.binding
+            curr_game_binding = game.settings.binding_type
 
             timer = Timer()
             timer.tick()
@@ -83,6 +83,7 @@ def run_main(app_context : AppContext):
                 restore_dll_addons(addons_synthesis)
 
                 updater = AddonUpdater(app_context.config)
+                updater.namings = deepcopy(game.settings.namings)
                 updater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:
