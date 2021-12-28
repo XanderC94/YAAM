@@ -32,57 +32,63 @@ class ZipUpdater(object):
 
         # renaming enabled only for dlls
         rename_enabled = addon.binding.is_dll()
-        unpack_alias_stem : str = None
-        if rename_enabled and len(addon.binding.path.suffix) > 0:
-            unpack_alias_stem = addon.binding.path.stem
 
         logger().info(msg=f"Unpacking zipped {addon.base.name}...")
 
         for item in content.filelist:
 
-            extraction_target = Path(content.extract(item, unpack_dir))
+            extraction_path = Path(content.extract(item, unpack_dir))
+
+            is_single_root_folder_item = is_single_root_folder and root_dirs[0].rfind(extraction_path.parent.name) > -1
+            is_root_item = item.filename in root_items or is_single_root_folder_item
 
             if not item.is_dir():
                 can_add_alias: bool = False
-
-                extraction_alias = extraction_target.name
-                # Default rename: use 'unpack_alias'
+                # Original unpack name
+                extraction_alias = extraction_path.name
+                # Default unpack rename
                 curr_unpack_alias = extraction_alias
-                if rename_enabled and unpack_alias_stem is not None:
+                # NOTE: In order to avoid renaming every single item in a zip file
+                # single-alias renaming is restricted to root items of zips containing addons
+                # Can be disabled by simply making the addon path *headless*
+                if rename_enabled and not addon.binding.is_headless and is_root_item:
                     can_add_alias = rename_enabled
-                    curr_unpack_alias = f"{unpack_alias_stem}{extraction_target.suffix}"
+                    curr_unpack_alias = f"{addon.binding.path.stem}{extraction_path.suffix}"
 
                 # If a rename map is set and has a match
                 # use that that instead of default
+                # NOTE: In order to not add the items in a zip file
+                # to the metadata naming map, check that the map
+                # effectively contains the current item filename
                 if rename_enabled and item.filename in self.namings:
                     can_add_alias = rename_enabled
                     curr_unpack_alias = self.namings.get(item.filename, curr_unpack_alias)
 
-                # in case of a single directory inside the zip,
-                # the folder will be unpacked to the parent directory
-                # all the non-folder sub-root item will be renamed to the target addon filename
-                is_single_root_folder_item : bool = False
-                if is_single_root_folder:
-                    is_single_root_folder_item = root_dirs[0].rfind(extraction_target.parent.name) > -1
-                    # get relative path from single root dir
-                    relative_target = extraction_target.relative_to(unpack_dir / root_dirs[0])
-                    # apply to supposed unpack dir
-                    extraction_target = extraction_target.replace(unpack_dir / relative_target)
+                # NOTE: Disabled automatic single-root-folder unpacking (for now)
+                # # in case of a single directory inside the zip,
+                # # the folder will be unpacked to the parent directory
+                # # all the non-folder sub-root item will be renamed to the target addon filename
+                # is_single_root_folder_item : bool = False
+                # if is_single_root_folder:
+                #     is_single_root_folder_item = root_dirs[0].rfind(extraction_target.parent.name) > -1
+                #     # get relative path from single root dir
+                #     relative_target = extraction_target.relative_to(unpack_dir / root_dirs[0])
+                #     # apply to supposed unpack dir
+                #     extraction_target = extraction_target.replace(unpack_dir / relative_target)
 
                 # if the current non-dir item is in the root
                 # or is in the root of a single root zip
                 # that file can be renamed to the specified alias
-                target_file = extraction_target
-                if item.filename in root_items or is_single_root_folder_item:
-                    can_add_alias = rename_enabled
-                    tmp_file = unpack_dir / curr_unpack_alias
-                    target_file = extraction_target.replace(tmp_file)
+                target_path = extraction_path
+                # if item.filename in root_items or is_single_root_folder_item:
+                if rename_enabled and can_add_alias and extraction_path != (unpack_dir / curr_unpack_alias):
+                    target_path = extraction_path.replace(unpack_dir / curr_unpack_alias)
 
-                logger().info(msg=f"Unpacked {target_file.relative_to(unpack_dir)} to {unpack_dir}")
+                logger().info(msg=f"Unpacked {target_path.relative_to(unpack_dir)} to {unpack_dir}")
 
                 # Add to or update the naming map (given or generated)
                 if can_add_alias and rename_enabled:
-                    self.namings[extraction_target.relative_to(unpack_dir)] = curr_unpack_alias
+                    self.namings[extraction_path.relative_to(unpack_dir)] = target_path.relative_to(unpack_dir)
 
         if is_single_root_folder:
             shutil.rmtree(unpack_dir / root_dirs[0])
@@ -125,7 +131,6 @@ class ZipUpdater(object):
         logger().info(msg=f"Unpacked {addon.base.name} installer to {unpack_dir}.")
 
         content_lookup_dir = unpack_dir
-
         if is_single_root_folder:
             content_lookup_dir = content_lookup_dir / root_dirs[0]
 
@@ -148,26 +153,16 @@ class ZipUpdater(object):
         '''
         ret_code = self.__code
 
-        if ret_code == UpdateResult.TO_CREATE:
-            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
-        else:
-            logger().info(msg=f"Updating {addon.base.name}({addon.binding.path.name})...")
-
         try:
             # if the content is a zip,
             # unpack all the content in the parent directory
             # of file pointed by the addon path
             zip_content : ZipFile = responses.repack_to_zip(response.content)
-
-            unpack_dir : Path = None
-            if len(addon.binding.path.suffix) > 0:
-                unpack_dir : Path = addon.binding.path.parent
-            else:
-                # if an addon doesn't specify a name (points to a folder)
-                # item are unpacked as-is (no rename) and will be repacked
-                # to the root directoy if the zip root is a single folder
-                # NOTE: Renaming is possible in this case only with a rename map
-                unpack_dir : Path = addon.binding.path
+            # if an addon doesn't specify a name (points to a folder)
+            # item are unpacked as-is (no rename) and will be repacked
+            # to the root directoy if the zip root is a single folder
+            # NOTE: Renaming is possible in this case only with a rename map
+            unpack_dir : Path = addon.binding.workspace
 
             if not unpack_dir.exists():
                 makedirs(unpack_dir)
@@ -185,10 +180,5 @@ class ZipUpdater(object):
             ret_code = UpdateResult.INVALID_ZIP
         else:
             ret_code = ret_code.complete()
-
-            if ret_code == UpdateResult.CREATED:
-                logger().info(msg=f"Created {addon.base.name}({addon.binding.path.name}).")
-            else:
-                logger().info(msg=f"Updated {addon.base.name}({addon.binding.path.name}).")
 
         return ret_code

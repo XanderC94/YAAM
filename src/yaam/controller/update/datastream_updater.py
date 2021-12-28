@@ -26,7 +26,7 @@ class DatastreamUpdater(object):
         response_alias : str = None
 
         addon_suffix = ".dll" if addon.binding.is_dll() else ".exe"
-        if len(addon.binding.path.suffix) > 0:
+        if not addon.binding.is_headless:
             addon_suffix = addon.binding.path.suffix
 
         if len(self.namings) > 0:
@@ -35,7 +35,7 @@ class DatastreamUpdater(object):
                     response_alias = key
             if response_alias is None:
                 response_alias = list(self.namings.keys())[0]
-        elif len(addon.binding.path.suffix) > 0:
+        elif not addon.binding.is_headless:
             response_alias = addon.binding.path.name
         else:
             response_alias = f"{addon.base.name.replace(' ', '_').lower()}{addon_suffix}"
@@ -48,24 +48,14 @@ class DatastreamUpdater(object):
         '''
         ret_code = self.__code
 
-        if ret_code == UpdateResult.TO_CREATE:
-            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
-        else:
-            logger().info(msg=f"Updating {addon.base.name}({addon.binding.path.name})...")
-
-        if not addon.binding.path.parent.exists():
-            makedirs(addon.binding.path.parent)
+        unpack_dir : Path = addon.binding.workspace
+        if not unpack_dir.exists():
+            makedirs(unpack_dir)
 
         rename_enabled : bool = addon.binding.is_dll()
 
         # write file on disk
         try:
-            unpack_dir : Path = None
-            if len(addon.binding.path.suffix) > 0:
-                unpack_dir : Path = addon.binding.path.parent
-            else:
-                unpack_dir : Path = addon.binding.path
-
             can_add_alias = False
             # Compute original response filename
             response_alias : str = responses.get_filename(response)
@@ -73,12 +63,12 @@ class DatastreamUpdater(object):
             # hoping it never happens.
             if response_alias is None:
                 response_alias = self.__fallback_addon_name(response, addon)
+
             # default rename specified by addon path
             unpack_alias = response_alias
-            if rename_enabled and len(addon.binding.path.suffix) > 0:
+            if rename_enabled and not addon.binding.is_headless:
                 can_add_alias = True
                 unpack_alias = addon.binding.path.name
-
             # If a rename map is set and has matches
             # follow that instead of default
             if rename_enabled:
@@ -98,10 +88,6 @@ class DatastreamUpdater(object):
             ret_code = ret_code.error()
         else:
             ret_code = ret_code.complete()
-            if ret_code == UpdateResult.CREATED:
-                logger().info(msg=f"Created {addon.base.name}({addon.binding.path.name}).")
-            else:
-                logger().info(msg=f"Updated {addon.base.name}({addon.binding.path.name}).")
 
         return ret_code
 
@@ -113,11 +99,6 @@ class DatastreamUpdater(object):
         '''
 
         ret_code = self.__code
-
-        if ret_code == UpdateResult.TO_CREATE:
-            logger().info(msg=f"Creating {addon.base.name}({addon.binding.path.name})...")
-        else:
-            logger().info(msg=f"Updating {addon.base.name}({addon.binding.path.name})...")
 
         try:
             installer_dir = addon.binding.path.parent / "installer"
@@ -143,9 +124,5 @@ class DatastreamUpdater(object):
             ret_code = ret_code.error()
         else:
             ret_code = ret_code.complete()
-            if ret_code == UpdateResult.CREATED:
-                logger().info(msg=f"Created {addon.base.name}({addon.binding.path.name}).")
-            else:
-                logger().info(msg=f"Updated {addon.base.name}({addon.binding.path.name}).")
 
         return ret_code

@@ -44,6 +44,23 @@ class Binding(Jsonkin):
         return self._path
 
     @property
+    def is_headless(self) -> bool:
+        '''
+        Return if its a headless addon (path is a folder)
+        '''
+        return len(self.path.suffix) == 0
+
+    @property
+    def workspace(self) -> Path:
+        '''
+        Return the addon workspace / parent folder
+        '''
+        if self.is_headless:
+            return self.path
+        else:
+            return self.path.parent
+
+    @property
     def args(self) -> List[str]:
         '''
         Returns the addon args

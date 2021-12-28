@@ -65,7 +65,7 @@ class AddonUpdater(object):
 
         metadata_stem = addon.base.name.replace(' ', '_').lower()
 
-        if len(addon.binding.path.suffix) > 0:
+        if not addon.binding.is_headless:
             metadata_path = addon.binding.path.parent / f"metadata_{metadata_stem}.json"
         else:
             metadata_path = addon.binding.path / f"metadata_{metadata_stem}.json"
@@ -78,7 +78,7 @@ class AddonUpdater(object):
         '''
         metadata_path : Path = self.get_metadata_path(addon)
         metadata : AddonMetadata = AddonMetadata.from_json(read_json(metadata_path))
-        if len(metadata.hash_signature) == 0 and len(addon.binding.path.suffix) > 0:
+        if len(metadata.hash_signature) == 0 and not addon.binding.is_headless:
             metadata.hash_signature = Hasher.SHA256.make_hash_from_file(addon.binding.path)
         metadata.uri = metadata_path
         return metadata
@@ -217,6 +217,9 @@ class AddonUpdater(object):
                 [ret_code, remote_metadata.hash_signature] = SignatureChecker.check_signatures(response.content, addon, metadata)
 
                 if ret_code == UpdateResult.TO_CREATE or ret_code == UpdateResult.TO_UPDATE or force:
+
+                    logger().info(msg=ret_code.message(addon))
+
                     if responses.is_zip_content(response):
                         uploader = ZipUpdater(ret_code)
                         uploader.namings = self.namings.get(addon.base.name, dict())
@@ -231,6 +234,8 @@ class AddonUpdater(object):
                             ret_code = uploader.update_from_datastream(response, addon)
                         remote_metadata.namings = uploader.namings
 
+                    logger().info(msg=ret_code.message(addon))
+
                 # local metadata must be updated if:
                 # - an addon has been created or updated
                 # - addon metadatas don't match but the addon signatures do
@@ -238,7 +243,9 @@ class AddonUpdater(object):
                     self.__save_metadata(remote_metadata, Path(metadata.uri))
             else:
                 logger().error(msg="Received invalid response from addon update uri. Skipping...")
+                ret_code = UpdateResult.DOWNLOAD_FAILED
         else:
             logger().info(msg="Local and remote metadata match.")
+            ret_code = UpdateResult.UP_TO_DATE
 
         return ret_code
