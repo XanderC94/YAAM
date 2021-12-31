@@ -61,6 +61,30 @@ class Binding(Jsonkin):
             return self.path.parent
 
     @property
+    def default_naming(self) -> str:
+        '''
+        Return the default naming (stem + suffix) of the binding.
+
+        NOTE: this is not the download name.
+        '''
+        if self.is_headless:
+            return ''
+        else:
+            return self.path.name
+
+    @property
+    def default_stem(self) -> str:
+        '''
+        Return the default naming stem of the binding.
+
+        NOTE: this is not the download name.
+        '''
+        if self.is_headless:
+            return ''
+        else:
+            return self.path.stem
+
+    @property
     def args(self) -> List[str]:
         '''
         Returns the addon args

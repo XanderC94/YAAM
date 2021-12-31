@@ -4,7 +4,8 @@ Addon enable-disable management module
 import os
 
 from pathlib import Path
-from typing import Iterable
+from typing import Dict, Iterable
+from yaam.model.mutable.metadata import AddonMetadata
 import yaam.utils.metadata as meta
 from yaam.model.mutable.addon import Addon
 from yaam.utils.logger import static_logger as logger
@@ -69,7 +70,7 @@ def disable_bin_dir(bin_dir: Path) -> bool:
 
     return ret
 
-def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None, metadata: Dict[str, AddonMetadata] = None) -> int:
     '''
     Overrides the typing of installed addons (.dll -> .dll.disabled)
     @addons : Iterable[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
@@ -116,7 +117,7 @@ def disable_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) ->
 
     return ret
 
-def restore_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+def restore_dll_addons(addons: Iterable[Addon], prev: Iterable[Addon] = None, metadata: Dict[str, AddonMetadata] = None) -> int:
     '''
     Restore disabled addons.
     @addons : Iterable[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)

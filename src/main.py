@@ -5,6 +5,8 @@ YAAM main module
 import sys
 from copy import deepcopy
 from yaam.controller.cmd.repl import repl
+from yaam.controller.http import HttpRequestManager
+from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
 from yaam.controller.manage import restore_dll_addons, disable_dll_addons
 from yaam.model.game.base import Game
@@ -79,12 +81,16 @@ def run_main(app_context : AppContext):
                 print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 
             if not is_run_only:
-                disable_dll_addons(addons_synthesis)
-                restore_dll_addons(addons_synthesis)
+                with HttpRequestManager(app_context.config) as http:
+                    meta_collector = MetadataCollector(http)
+                    meta_collector.load_local_metadata(addons_synthesis)
 
-                updater = AddonUpdater(app_context.config)
-                updater.namings = deepcopy(game.settings.namings)
-                updater.update_addons(addons_synthesis)
+                    disable_dll_addons(addons_synthesis)
+                    restore_dll_addons(addons_synthesis)
+
+                    updater = AddonUpdater(app_context.config, meta_collector, http)
+                    updater.namings = deepcopy(game.settings.namings)
+                    updater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:
                 args = []
