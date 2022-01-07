@@ -82,7 +82,10 @@ class ZipUpdater(object):
                 target_path = extraction_path
                 # if item.filename in root_items or is_single_root_folder_item:
                 if rename_enabled and can_add_alias and extraction_path != (unpack_dir / curr_unpack_alias):
-                    target_path = extraction_path.replace(unpack_dir / curr_unpack_alias)
+                    target_path = unpack_dir / curr_unpack_alias
+                    if not target_path.parent.exists():
+                        makedirs(target_path.parent)
+                    target_path = extraction_path.replace(target_path)
 
                 logger().info(msg=f"Unpacked {target_path.relative_to(unpack_dir)} to {unpack_dir}")
 
