@@ -45,7 +45,7 @@ $product_version=$version.Replace('a', '.2').Replace('b', '.1')
 
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$version-$revision"
-$icon_path="res/icon/yaam.ico"
+$icon_path="res/icon/yaam-flat.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
 $output_dir="bin/$mode/$compiler"
