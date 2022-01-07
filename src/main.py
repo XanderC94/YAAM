@@ -8,7 +8,7 @@ from yaam.controller.cmd.repl import repl
 from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
-from yaam.controller.manage import restore_dll_addons, disable_dll_addons
+from yaam.controller.manage import AddonManager
 from yaam.model.game.base import Game
 from yaam.utils import process
 from yaam.model.options import Option
@@ -85,8 +85,9 @@ def run_main(app_context : AppContext):
                     meta_collector = MetadataCollector(http)
                     meta_collector.load_local_metadata(addons_synthesis)
 
-                    disable_dll_addons(addons_synthesis)
-                    restore_dll_addons(addons_synthesis)
+                    manager = AddonManager(meta_collector)
+                    manager.disable_dll_addons(addons_synthesis)
+                    manager.restore_dll_addons(addons_synthesis)
 
                     updater = AddonUpdater(app_context.config, meta_collector, http)
                     updater.namings = deepcopy(game.settings.namings)
