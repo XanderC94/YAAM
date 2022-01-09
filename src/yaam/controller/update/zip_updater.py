@@ -1,7 +1,7 @@
 '''
 Zipped addons updater module
 '''
-from os import makedirs
+from os import makedirs, walk
 from pathlib import Path
 import shutil
 from zipfile import BadZipfile, ZipFile
@@ -94,7 +94,9 @@ class ZipUpdater(object):
                     self.namings[extraction_path.relative_to(unpack_dir)] = target_path.relative_to(unpack_dir)
 
         if is_single_root_folder:
-            shutil.rmtree(unpack_dir / root_dirs[0])
+            n_files = sum([len(fl) for rt, dr, fl in walk(unpack_dir / root_dirs[0])])
+            if n_files == 0:
+                shutil.rmtree(unpack_dir / root_dirs[0])
 
         ret_code = UpdateResult.UNPACKING_OK
 
