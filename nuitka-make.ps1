@@ -34,14 +34,14 @@ $revision=[System.String](@(git rev-parse --short=8  head))
 
 $product_name="Yet Another Addon Manager"
 
-if (-not ($version -match "[0-9]*\.[0-9]*\.[0-9]*\.?[0-9]*[ab]?"))
+if (-not ($version -match "v(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)(?>-(alpha|beta))?"))
 {
     $version="0.0.0.0"
 }
 
 Write-Output "YAAM version $version-$revision"
 
-$product_version=$version.Replace('a', '.2').Replace('b', '.1')
+$product_version=$version.Replace('v', '').Replace('-alpha', '.2').Replace('-beta', '.1')
 
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$version-$revision"
