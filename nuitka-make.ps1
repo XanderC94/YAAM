@@ -28,18 +28,20 @@ $requirements | Sort-Object | Set-Content "$root/requirements.txt" -encoding utf
 
 Write-Output "Updated required project modules file."
 
-$version=[System.String](@(git describe --tags --always))
+$version=[System.String](@(git describe --tags --abbrev=0 --always))
 $revision=[System.String](@(git rev-parse --short=8  head))
-
 
 $product_name="Yet Another Addon Manager"
 
-if (-not ($version -match "v(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)(?>-(alpha|beta))?"))
+$version_pattern = "v(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)(?>-(?<type>alpha|beta))?(?>-(?<revision>.*))?"
+$match_result = [regex]::Matches($version, $version_pattern)
+
+if (-not $match_result[0].Success)
 {
     $version="0.0.0.0"
 }
 
-Write-Output "YAAM version $version-$revision"
+Write-Output "YAAM $version-$revision"
 
 $product_version=$version.Replace('v', '').Replace('-alpha', '.2').Replace('-beta', '.1')
 
