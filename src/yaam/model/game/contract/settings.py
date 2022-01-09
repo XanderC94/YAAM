@@ -150,7 +150,7 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
 
     @property
     @abstractmethod
-    def namings(self) -> Dict[str, str]:
+    def namings(self) -> Dict[BindingType, Dict[str, Dict[str, str]]]:
         '''
         Return addons naming mapping
         '''

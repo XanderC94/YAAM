@@ -25,7 +25,7 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         self._bases : Dict[str, D] = dict()
         self._bindings : Dict[BindingType, Dict[str, B]] = dict()
         self._binding_type : BindingType = binding
-        self._naming_map : Dict[str, str] = dict()
+        self._naming_map : Dict[BindingType, Dict[str, Dict[str, str]]] = dict()
 
     @property
     def path(self) -> Path:
@@ -104,6 +104,6 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         return ret
 
     @property
-    def namings(self) -> Dict[str, str]:
+    def namings(self) -> Dict[BindingType, Dict[str, Dict[str, str]]]:
         return self._naming_map
         

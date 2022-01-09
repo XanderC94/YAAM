@@ -3,7 +3,7 @@ GW2SL update utility module
 '''
 
 from pathlib import Path
-from typing import Iterable
+from typing import Dict, Iterable
 from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.datastream_updater import DatastreamUpdater
@@ -14,6 +14,7 @@ from yaam.model.config import AppConfig
 from yaam.model.mutable.metadata import AddonMetadata
 from yaam.model.options import Option
 from yaam.model.mutable.addon import Addon
+from yaam.model.type.binding import BindingType
 import yaam.utils.validators.url as validator
 from yaam.utils.logger import static_logger as logger
 import yaam.utils.response as responses
@@ -27,7 +28,6 @@ class AddonUpdater(object):
         self.__config = config
         self.__http = http
         self.__meta_collector = metadata
-        self.namings = dict()
 
         super().__init__()
 
@@ -38,7 +38,7 @@ class AddonUpdater(object):
         @addons: list -- list of addons to updated
         '''
 
-        force_update = (self.__config.get_property(Option.UPDATE_ADDONS) 
+        force_update = (self.__config.get_property(Option.UPDATE_ADDONS)
             and self.__config.get_property(Option.FORCE_ACTION))
 
         for addon in addons:
@@ -67,7 +67,7 @@ class AddonUpdater(object):
 
         return ret_code
 
-    def __update_addon_internal(self, addon: Addon, metadata: AddonMetadata, force: bool = False) -> UpdateResult:
+    def __update_addon_internal(self, addon: Addon, force: bool = False) -> UpdateResult:
 
         ret_code = UpdateResult.NONE
 
@@ -84,13 +84,13 @@ class AddonUpdater(object):
         logger().info(msg=f"Fetching {addon.base.name} metadata...")
 
         metadata = self.__meta_collector.get_local_metadata(addon)
-
         remote_metadata = self.__meta_collector.get_remote_metadata(addon, **default_request_args)
+        remote_metadata.namings = metadata.namings
 
         # ETAG is apparently inconsistent for latest release in github api
         # so the check is currently only done by means of the <last-modified> HTTP header tag
         if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified or force:
-
+            
             logger().info(msg="Local and remote metadata mismatch or empty.")
 
             logger().info(msg=f"Downloading {addon.base.name}...")
@@ -111,24 +111,22 @@ class AddonUpdater(object):
 
                     if responses.is_zip_content(response):
                         uploader = ZipUpdater(ret_code)
-                        uploader.namings = self.namings.get(addon.base.name, dict())
                         ret_code = uploader.update_from_zip(response, addon)
-                        remote_metadata.namings = uploader.namings
+                        remote_metadata.namings[addon.binding.typing] = uploader.naming
                     else:
                         uploader = DatastreamUpdater(ret_code)
-                        uploader.namings = self.namings.get(addon.base.name, dict())
                         if addon.base.uri_info.is_installer:
                             ret_code = uploader.update_from_installer(response, addon)
                         else:
                             ret_code = uploader.update_from_datastream(response, addon)
-                        remote_metadata.namings = uploader.namings
+                        remote_metadata.namings[addon.binding.typing] = uploader.naming
 
                     logger().info(msg=ret_code.message(addon))
 
                 # local metadata must be updated if:
                 # - an addon has been created or updated
                 # - addon metadatas don't match but the addon signatures do
-                if ret_code in [UpdateResult.CREATED, UpdateResult.UPDATED, UpdateResult.UP_TO_DATE]:
+                if ret_code in [UpdateResult.CREATED, UpdateResult.UPDATED, UpdateResult.UP_TO_DATE] or force:
                     self.__meta_collector.save_metadata(remote_metadata, Path(metadata.uri))
             else:
                 logger().error(msg="Received invalid response from addon update uri. Skipping...")

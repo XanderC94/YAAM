@@ -152,8 +152,13 @@ class YaamGW2Settings(YaamGameSettings):
             self.add_addon_base(AddonBase.from_json(_))
 
     def __load_namings(self, json_obj: list):
-        for _ in json_obj:
-            self._naming_map[_["addon"]] = _["naming"]
+        for (key, namings) in json_obj.items():
+            binding_type = BindingType.from_string(key)
+            if binding_type not in self._naming_map:
+                self._naming_map[binding_type] = dict()
+
+            for _ in namings:
+                self._naming_map[binding_type][_["addon"]] = _["naming"]
 
     def __load_bindings(self, json_obj: dict):
         for (key, value) in json_obj.items():

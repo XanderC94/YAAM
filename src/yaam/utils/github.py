@@ -23,8 +23,6 @@ class api(object):
         if len(user) > 0 and len(token) > 0:
             github.auth = (user, token)
 
-        print(user, token)
-
         return github
 
     @staticmethod

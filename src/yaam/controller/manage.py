@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 from yaam.controller.metadata import MetadataCollector
+from yaam.model.type.binding import BindingType
 import yaam.utils.metadata as meta
 from yaam.model.mutable.addon import Addon
 from yaam.utils.logger import static_logger as logger
@@ -36,20 +37,23 @@ class AddonManager(object):
         ret = 0
         for addon in addons:
             if addon.binding.is_dll() and not addon.binding.is_enabled:
-
+                
                 metadata = self.__metadata.get_local_metadata(addon)
+                
+                type_naming_rules = dict()
+                if metadata is not None:
+                    type_naming_rules = metadata.namings.get(addon.binding.typing, dict())
 
-                namings = []
-
-                if metadata is None or len(metadata.namings) == 0:
+                naming = []
+                if len(type_naming_rules) == 0:
                     if not addon.binding.is_headless:
-                        namings.append(addon.binding.default_naming)
+                        naming.append(addon.binding.default_naming)
                 else:
-                    namings = list([ _ for _ in metadata.namings if _.endswith('.dll') ])
+                    naming = list([ _ for _ in type_naming_rules.values() if _.endswith('.dll') ])
 
                 workspace = addon.binding.workspace
 
-                for _ in namings:
+                for _ in naming:
                     path = workspace / _
 
                     can_disable = True
@@ -71,7 +75,7 @@ class AddonManager(object):
                             path_disabled = Path(f"{path}.{name_ext}")
                         else:
                             can_disable = False
-
+                    
                     if path.exists() and path.is_file() and can_disable:
                         logger().info(msg=f"Addon {addon.base.name}({path.name}) will be suppressed...")
                         os.rename(str(path), str(path_disabled))
@@ -90,13 +94,17 @@ class AddonManager(object):
 
                 metadata = self.__metadata.get_local_metadata(addon)
 
+                type_naming_rules = dict()
+                if metadata is not None:
+                    type_naming_rules = metadata.namings.get(addon.binding.typing, dict())
+
                 namings = []
 
-                if metadata is None or len(metadata.namings) == 0:
+                if len(type_naming_rules) == 0:
                     if not addon.binding.is_headless:
                         namings.append(addon.binding.default_naming)
                 else:
-                    namings = list([ _ for _ in metadata.namings if _.endswith('.dll')])
+                    namings = list([ _ for _ in type_naming_rules.values() if _.endswith('.dll')])
 
                 workspace = addon.binding.workspace
 

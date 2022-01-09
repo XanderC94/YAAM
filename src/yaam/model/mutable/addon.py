@@ -1,6 +1,7 @@
 '''
 Mutable Addon module
 '''
+from typing import Dict
 from yaam.model.mutable.binding import Binding
 from yaam.model.mutable.addon_base import AddonBase
 
@@ -9,10 +10,11 @@ class Addon(object):
     Mutable Addon incarnation class
     '''
 
-    def __init__(self, base: AddonBase, binding: Binding):
+    def __init__(self, base: AddonBase, binding: Binding, naming: Dict[str, str]):
 
         self._base = base
         self._binding = binding
+        self._naming = naming
 
     def __hash__(self) -> int:
         return hash((self._binding.name, self._binding.typing))
@@ -41,6 +43,13 @@ class Addon(object):
     def binding(self) -> Binding:
         '''
         Return the Addon Binding object
+        '''
+        return self._binding
+
+    @property
+    def naming(self) -> Dict[str, str]:
+        '''
+        Return the Addon naming rules
         '''
         return self._binding
 

@@ -59,9 +59,9 @@ class HttpRequestManager(object):
         def __get_internal() -> requests.Response:
             response = None
             if github.api.assert_latest_release_url(url):
-                response = self.__gh_session.head(url, **kwargs)
+                response = self.__gh_session.get(url, **kwargs)
             else:
-                response = requests.head(url, **kwargs)
+                response = requests.get(url, **kwargs)
             return response
 
         return self.__request_wrapper(__get_internal)

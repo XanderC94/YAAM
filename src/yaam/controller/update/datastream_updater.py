@@ -20,7 +20,7 @@ class DatastreamUpdater(object):
 
     def __init__(self, code = UpdateResult.NONE) -> None:
         self.__code = code
-        self.namings : Dict[str, str] = dict()
+        self.naming: Dict[str, str] = dict()
 
     def __fallback_addon_name(self, response: Response, addon: Addon) -> str:
         response_alias : str = None
@@ -29,12 +29,12 @@ class DatastreamUpdater(object):
         if not addon.binding.is_headless:
             addon_suffix = addon.binding.path.suffix
 
-        if len(self.namings) > 0:
-            for key in self.namings:
+        if len(addon.naming) > 0:
+            for key in addon.naming:
                 if responses.find_filename(response, key):
                     response_alias = key
             if response_alias is None:
-                response_alias = list(self.namings.keys())[0]
+                response_alias = list(addon.naming.keys())[0]
         elif not addon.binding.is_headless:
             response_alias = addon.binding.path.name
         else:
@@ -73,7 +73,7 @@ class DatastreamUpdater(object):
             # follow that instead of default
             if rename_enabled:
                 can_add_alias = True
-                unpack_alias = self.namings.get(response_alias, unpack_alias)
+                unpack_alias = addon.naming.get(response_alias, unpack_alias)
 
             # write the file at the given path
             with open(unpack_dir / unpack_alias, 'wb') as _:
@@ -81,7 +81,7 @@ class DatastreamUpdater(object):
 
             # Add the rename map (given or generated) to addon metadata
             if can_add_alias and rename_enabled:
-                self.namings[response_alias] = unpack_alias
+                self.naming[response_alias] = unpack_alias
 
         except IOError as ex:
             logger().error(ex)

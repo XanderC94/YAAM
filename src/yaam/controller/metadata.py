@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Dict, List
 from yaam.controller.http import HttpRequestManager
 from yaam.model.mutable.addon import Addon
-from yaam.model.type.binding import BindingType
 from yaam.model.mutable.metadata import AddonMetadata
 from yaam.utils.json.io import read_json, write_json
 from yaam.utils.logger import static_logger as logger
@@ -20,7 +19,7 @@ class MetadataCollector(object):
 
     def __init__(self, http: HttpRequestManager) -> None:
         self.__http = http
-        self.__local_metadata: Dict[str, Dict[BindingType,AddonMetadata]] = dict()
+        self.__local_metadata: Dict[str, AddonMetadata] = dict()
 
     def load_local_metadata(self, addons: List[Addon]):
         '''
@@ -30,13 +29,14 @@ class MetadataCollector(object):
         for _ in addons:
             if _.base.name not in self.__local_metadata:
                 self.__local_metadata[_.base.name] = dict()
-            self.__local_metadata[_.base.name][_.binding.typing] = self.__get_local_metadata(_)
 
+            self.__local_metadata[_.base.name] = self.__get_local_metadata(_)
+        
     def get_local_metadata(self, addon: Addon) ->  AddonMetadata:
         '''
         Get the local addon metadata if exists
         '''
-        return self.__local_metadata.get(addon.base.name, dict).get(addon.binding.typing, None)
+        return self.__local_metadata.get(addon.base.name, None)
 
     def __get_metadata_path(self, addon: Addon) -> str:
         '''
@@ -76,7 +76,6 @@ class MetadataCollector(object):
             # detect redirect
             if 'location' in response.headers and follow:
                 response = self.__http.head(response.headers['location'], **kwargs)
-
 
             metadata = AddonMetadata(
                 uri=addon.base.uri,

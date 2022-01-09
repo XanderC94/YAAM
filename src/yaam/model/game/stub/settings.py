@@ -47,9 +47,10 @@ class YaamGameSettings(AbstractYaamGameSettings[
                 for (addon_name, binding) in self._bindings[binding_type].items():
 
                     addon_base = self._bases.get(addon_name, None)
+                    naming_rules = self._naming_map.get(binding_type, dict()).get(addon_name, dict())
 
                     if addon_base is not None:
-                        addon = Addon(addon_base, binding)
+                        addon = Addon(addon_base, binding, naming_rules)
                         addons.append(addon)
 
         logger().info(msg=f"Incarnated {len(addons)} addons...")

@@ -90,7 +90,6 @@ def run_main(app_context : AppContext):
                     manager.restore_dll_addons(addons_synthesis)
 
                     updater = AddonUpdater(app_context.config, meta_collector, http)
-                    updater.namings = deepcopy(game.settings.namings)
                     updater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:

@@ -4,6 +4,7 @@ Zipped addons updater module
 from os import makedirs, walk
 from pathlib import Path
 import shutil
+from typing import Dict
 from zipfile import BadZipfile, ZipFile
 from requests.models import Response
 from yaam.controller.update.results import UpdateResult
@@ -20,7 +21,7 @@ class ZipUpdater(object):
 
     def __init__(self, code = UpdateResult.NONE) -> None:
         self.__code = code
-        self.namings = dict()
+        self.naming: Dict[str, str] = dict()
 
     def __unpack_zip(self, content: ZipFile, unpack_dir: Path, addon: Addon) -> UpdateResult:
 
@@ -60,9 +61,9 @@ class ZipUpdater(object):
                 # NOTE: In order to not add the items in a zip file
                 # to the metadata naming map, check that the map
                 # effectively contains the current item filename
-                if rename_enabled and item.filename in self.namings:
+                if rename_enabled and item.filename in self.naming:
                     can_add_alias = rename_enabled
-                    curr_unpack_alias = self.namings.get(item.filename, curr_unpack_alias)
+                    curr_unpack_alias = addon.naming.get(item.filename, curr_unpack_alias)
 
                 # NOTE: Disabled automatic single-root-folder unpacking (for now)
                 # # in case of a single directory inside the zip,
@@ -91,7 +92,7 @@ class ZipUpdater(object):
 
                 # Add to or update the naming map (given or generated)
                 if can_add_alias and rename_enabled:
-                    self.namings[extraction_path.relative_to(unpack_dir)] = target_path.relative_to(unpack_dir)
+                    self.naming[extraction_path.relative_to(unpack_dir)] = target_path.relative_to(unpack_dir)
 
         if is_single_root_folder:
             n_files = sum([len(fl) for rt, dr, fl in walk(unpack_dir / root_dirs[0])])
