@@ -45,7 +45,7 @@ $product_version=$version.Replace('a', '.2').Replace('b', '.1')
 
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$version-$revision"
-$icon_path="res/icon/yaam-flat.ico"
+$icon_path="res/icon/yaam.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
 $output_dir="bin/$mode/$compiler"
@@ -115,6 +115,7 @@ if ($mode -eq "standalone")
 {
     Move-Item -path "$root/$output_dir/$target_name.dist" -destination "$root/$output_dir/$target_name" -force
     Remove-Item -path "$root/$output_dir/MANIFEST" -force
+    Remove-Item -path "$root/$output_dir/$target_name.build" -force -recurse
 }
 
 exit 1

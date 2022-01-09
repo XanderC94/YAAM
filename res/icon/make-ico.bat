@@ -1,0 +1,1 @@
+magick convert -background none yaam.svg -define icon:auto-resize yaam.ico
