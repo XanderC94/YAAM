@@ -163,4 +163,4 @@ Squashing is used to trim the directory tree of the unzipped file and move it in
 
 ### Why explicitly specify the graphics API bindings for each addon?
 
-Good question, it is both a fail safe and also permits to store and keep multiple DirectX configurations while loading only the chosen one (the other will be disabled). It became necessary when GW2 added support to DX11. The "agnostic"  
+Good question, it is both a fail safe and also permits to store and keep multiple DirectX configurations while loading only the chosen one (the other will be disabled). It became necessary when GW2 added support to DX11. The "agnostic" is for all those addons that don't care about such distinction.
