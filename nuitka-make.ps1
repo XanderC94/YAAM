@@ -117,11 +117,13 @@ if ($mode -eq "standalone")
     if (Test-Path -path "$root/$output_dir/$target_name.bak")
     {
         Remove-Item -path "$root/$output_dir/$target_name.bak" -force -recurse
+        Write-Output "Cleared previous backup $root/$output_dir/$target_name.bak"
     }
     
     if (Test-Path -path "$root/$output_dir/$target_name")
     {
         Move-Item -path "$root/$output_dir/$target_name" -destination "$root/$output_dir/$target_name.bak" -force
+        Write-Output "Created new backup of $root/$output_dir/$target_name -> $root/$output_dir/$target_name.bak"
     } 
 }
 else 
@@ -138,8 +140,12 @@ if ($mode -eq "standalone")
 {
     Move-Item -path "$root/$output_dir/$entrypoint_name.dist" -destination "$root/$output_dir/$target_name" -force
     Move-Item -path "$root/$output_dir/$target_name/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name/$target_name.exe" -force
+    Write-Output "Renamed $root/$output_dir/$entrypoint_name.dist/$entrypoint_name.exe to $root/$output_dir/$target_name/$target_name.exe"
+    
     Remove-Item -path "$root/$output_dir/MANIFEST" -force
+    Write-Output "Cleared $root/$output_dir/MANIFEST"
     Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
+    Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
 }
 else 
 {
