@@ -1,0 +1,35 @@
+{
+    "namings": {
+        "any": [
+            {
+                "addon": "GW2 Addon Loader Core",
+                "naming": {
+                    "bin64\\d3d9.dll": "bin64\\d3d9.dll",
+                    "addonLoader.dll": "addonLoader.dll",
+                    "d3d11.dll": "d3d11.dll",
+                    "dxgi.dll": "dxgi.dll"
+                }
+            },        
+            {
+                "addon": "Select Render",
+                "naming": {
+                    "SelectRender\\gw2addon_SelectRender.dll": "gw2addon_selectrender.dll",
+                    "SelectRender\\gw2addon_SelectRender.lib": "gw2addon_selectrender.lib",
+                    "SelectRender\\gw2addon_SelectRender.pdb": "gw2addon_selectrender.pdb",
+                    "SelectRender\\gw2addon_SelectRender.exp": "gw2addon_selectrender.exp"
+                }
+            }
+        ],
+        "dx9": [
+            {
+                "addon": "D912PXY",
+                "naming": {
+                    "d912pxy\\gw2addon_d912pxy.dll": "gw2addon_d912pxy.dll",
+                    "d912pxy\\gw2addon_d912pxy.exp": "gw2addon_d912pxy.exp",
+                    "d912pxy\\gw2addon_d912pxy.lib": "gw2addon_d912pxy.lib",
+                    "d912pxy\\gw2addon_d912pxy.pdb": "gw2addon_d912pxy.pdb"
+                }
+            }
+        ]
+    }
+}

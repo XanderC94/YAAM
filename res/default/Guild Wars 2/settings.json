@@ -1,92 +1,104 @@
 {
-    "arguments": [],
+    "arguments": [
+        {
+            "name": "autologin"
+        },
+        {
+            "name": "bmp"
+        },
+        {
+            "name": "dx11"
+        }
+    ],
     "bindings": {
         "exe": [
             {
-                "name": "WinAuth",
-                "path": "WinAuth\\WinAuth.exe"
-            },
-            {
                 "name": "BlishHUD",
-                "path": "BlishHUD\\Blish HUD.exe"
-            },
-            {
-                "name": "YoloMouse",
-                "path": "YoloMouse\\YoloLauncher.exe"
-            }
-         ],
-        "d3d9": [
-            {
-                "name": "ArcDPS BoonsTable",
-                "path": "addons\\arcdps\\d3d9_arcdps_boontable.dll"
-            },
-            {
-                "name": "ArcDPS BuildPad",
-                "path": "addons\\arcdps\\d3d9_arcdps_buildpad.dll"
-            },
-            {
-                "name": "ArcDPS KillProof Me",
-                "path": "addons\\arcdps\\d3d9_arcdps_killproof_me.dll"
-            },
-            {
-                "name": "ArcDPS Mount Tool",
-                "path": "addons\\arcdps\\d3d9_arcdps_mount_tool.dll"
-            },
-            {
-                "name": "ArcDps BHUD bridge",
-                "path": "addons\\arcdps\\d3d9_arcdps_bhud.dll"
+                "path": "C:\\Program Files\\BlishHUD\\Blish HUD.exe",
+                "enabled": true,
+                "update": true
             }
         ],
-        "d3d11": [
+        "dx9": [
             {
-                "name": "ArcDPS BoonsTable",
-                "path": "addons\\arcdps\\d3d11_arcdps_boontable.dll"
-            },
-            {
-                "name": "ArcDPS BuildPad",
-                "path": "addons\\arcdps\\d3d11_arcdps_buildpad.dll"
-            },
-            {
-                "name": "ArcDPS KillProof Me",
-                "path": "addons\\arcdps\\d3d11_arcdps_killproof_me.dll"
-            },
-            {
-                "name": "ArcDPS Mount Tool",
-                "path": "addons\\arcdps\\d3d11_arcdps_mount_tool.dll"
-            },
-            {
-                "name": "ArcDps BHUD bridge",
-                "path": "addons\\arcdps\\d3d11_arcdps_bhud.dll"
-            }
-        ],
-        "agnostic": [
-            {
-                "name": "GW2 Addon Loader Core",
-                "path": ""
-            },
-            {
-                "name": "DLL Wrapper",
-                "path": "addons\\d3d9_wrapper\\gw2addon_d3d9_wrapper.dll"
-            },
-            {
-                "name": "Select Render",
-                "path": "addons\\selectrender\\gw2addon_selectrender.dll"
-            },
-            {
-                "name": "Lib Imgui",
-                "path": "addons\\lib_imgui\\gw2addon_lib_imgui.dll"
-            },
-            {
-                "name": "ArcDPS",
-                "path": "addons\\arcdps\\gw2addon_arcdps.dll"
+                "name": "D912PXY",
+                "path": "addons\\d912pxy",
+                "enabled": true,
+                "update": true
             },
             {
                 "name": "GW2 Radial Mounts",
-                "path": "addons\\gw2radial\\gw2addon_gw2radial.dll"
+                "path": "addons\\gw2radial\\gw2addon_gw2radial.dll",
+                "enabled": true,
+                "update": true
+            }
+        ],
+        "any": [
+            {
+                "name": "GW2 Addon Loader Core",
+                "path": "",
+                "enabled": true,
+                "update": true
             },
             {
-                "name": "ReShade",
-                "path": "addons\\reshade\\dxgi.dll"
+                "name": "DLL Wrapper",
+                "path": "addons\\d3d9_wrapper\\gw2addon_d3d9_wrapper.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "Select Render",
+                "path": "addons\\selectrender\\gw2addon_selectrender.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "Lib Imgui",
+                "path": "addons\\lib_imgui\\gw2addon_lib_imgui.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "ArcDPS",
+                "path": "addons\\arcdps\\gw2addon_arcdps.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "ArcDPS unofficial extras",
+                "path": "addons\\arcdps\\arcdps_unofficial_extras.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "ArcDPS BoonsTable",
+                "path": "addons\\arcdps\\arcdps_boontable.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "ArcDPS BuildPad",
+                "path": "addons\\arcdps\\arcdps_buildpad.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "ArcDPS KillProof Me",
+                "path": "addons\\arcdps\\arcdps_killproof_me.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "ArcDPS Mount Tool",
+                "path": "addons\\arcdps\\arcdps_mount_tool.dll",
+                "enabled": false,
+                "update": true
+            },
+            {
+                "name": "ArcDps BHUD bridge",
+                "path": "addons\\arcdps\\arcdps_bhud.dll",
+                "enabled": true,
+                "update": true
             }
         ]
     }
