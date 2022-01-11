@@ -71,8 +71,9 @@ $icon_path="res/icon/yaam.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
 $output_dir="bin/$mode/$compiler"
-$target_name="yaam-release"
-$target="src/$target_name.py"
+$target_name="yaam"
+$entrypoint_name="main"
+$entrypoint="src/$entrypoint_name.py"
 
 # create output dir if doesn't exist
 if (-not(Test-Path -path "$root/$output_dir"))
@@ -131,13 +132,18 @@ else
     }    
 }
 
-@(python -m nuitka $params $target)
+@(python -m nuitka $params $entrypoint)
 
 if ($mode -eq "standalone")
 {
-    Move-Item -path "$root/$output_dir/$target_name.dist" -destination "$root/$output_dir/$target_name" -force
+    Move-Item -path "$root/$output_dir/$entrypoint_name.dist" -destination "$root/$output_dir/$target_name" -force
+    Move-Item -path "$root/$output_dir/$target_name/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name/$target_name.exe" -force
     Remove-Item -path "$root/$output_dir/MANIFEST" -force
-    Remove-Item -path "$root/$output_dir/$target_name.build" -force -recurse
+    Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
+}
+else 
+{
+    Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
 }
 
 exit 1

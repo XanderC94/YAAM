@@ -12,12 +12,13 @@ from yaam.controller.manage import AddonManager
 from yaam.model.game.base import Game
 from yaam.utils import process
 from yaam.model.options import Option
-from yaam.utils.logger import static_logger
+from yaam.utils.logger import init_static_logger, logging, static_logger
 from yaam.utils.print import print_addon_tableau
 from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
 from yaam.model.context import AppContext
 from yaam.utils.timer import Timer
+from yaam.utils.exceptions import exception_handler
 
 #####################################################################
 
@@ -114,10 +115,20 @@ def run_main(app_context : AppContext):
 
 if __name__ == "__main__":
 
-    app = AppContext()
+    sys.excepthook = exception_handler
 
-    app.create_app_environment()
+    app_context = AppContext()
+    app_context.create_app_environment()
 
-    execution_result = run_main(app)
+    logger = init_static_logger(
+        # logger_name='YAAM',
+        log_level=logging.DEBUG if app_context.debug else logging.INFO,
+        log_file=app_context.temp_dir/"yaam.log"
+    )
+
+    logger.debug(msg=app_context.working_dir)
+    logger.debug(msg=str(app_context.config))
+
+    execution_result = run_main(app_context)
 
     sys.exit(execution_result)

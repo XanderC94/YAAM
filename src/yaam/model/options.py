@@ -21,6 +21,14 @@ class Option(Enum):
     '''
     Yaam command line options
     '''
+    DEBUG = OptionEntry(
+        index=-1,
+        aliases=set(["debug", "d"]),
+        default=False,
+        descr="Activate debug code",
+        action="store_true"
+    )
+
     UPDATE_ADDONS = OptionEntry(
         index=0,
         aliases=set(["update", "update-addons", "update_addons", "u"]),
@@ -31,7 +39,7 @@ class Option(Enum):
 
     FORCE_ACTION = OptionEntry(
         index=1,
-        aliases=set(["force"]),
+        aliases=set(["force", "f"]),
         default=False,
         descr="Force any specified action",
         action="store_true"
@@ -151,7 +159,7 @@ class OptionGroup(Enum):
 
     GLOBAL=OptionGroupEntry(
         index=1,
-        options=[Option.FORCE_ACTION, Option.EDIT, Option.GITHUB_USER, Option.GITHUB_API_TOKEN],
+        options=[Option.DEBUG, Option.FORCE_ACTION, Option.EDIT, Option.GITHUB_USER, Option.GITHUB_API_TOKEN],
         mutually_exclusive=False
     )
 

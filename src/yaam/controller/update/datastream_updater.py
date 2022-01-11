@@ -49,8 +49,7 @@ class DatastreamUpdater(object):
         ret_code = self.__code
 
         unpack_dir : Path = addon.binding.workspace
-        if not unpack_dir.exists():
-            makedirs(unpack_dir)
+        makedirs(unpack_dir, exist_ok=True)
 
         rename_enabled : bool = addon.binding.is_dll()
 
@@ -106,8 +105,7 @@ class DatastreamUpdater(object):
             installer_name : str = Path(urlparse(response.url).path).name
             installer_path = installer_dir / installer_name
 
-            if not installer_dir.exists():
-                makedirs(installer_dir)
+            makedirs(installer_dir, exist_ok=True)
 
             with open(installer_path, 'wb') as _:
                 _.write(response.content)

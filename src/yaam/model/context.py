@@ -2,14 +2,14 @@
 Contexts module
 '''
 import os
-from pathlib import Path
 import sys
-from typing import Dict
-from dataclasses import dataclass, field
-from yaam.utils.json.io import write_json, read_json
 import shutil
-
+from typing import Dict, List
+from pathlib import Path
+from dataclasses import dataclass, field
+from yaam.model.options import Option
 from yaam.model.config import AppConfig
+from yaam.utils.json.io import write_json, read_json
 
 @dataclass(frozen=True)
 class GameContext(object):
@@ -28,8 +28,7 @@ class AppContext(object):
     Application context class
     '''
 
-    def __init__(self, debug = False):
-        self._debug = debug
+    def __init__(self):
         self._appdata_dir = Path(os.getenv("APPDATA"))
         self._temp_dir = Path(os.getenv("TEMP"))
         self._work_dir = Path(os.getcwd())
@@ -41,17 +40,18 @@ class AppContext(object):
         self._deployment_dir = Path()
 
         self._game_contexts: Dict[str, GameContext] = dict()
+
         self._app_config = AppConfig()
 
     @property
-    def debug(self):
+    def debug(self) -> bool:
         '''
         Return if the application is running in debug mode
         '''
-        return self._debug
+        return self._app_config.get_property(Option.DEBUG)
 
     @property
-    def config(self):
+    def config(self) -> AppConfig:
         '''
         Return the application configuration
         '''
@@ -60,26 +60,54 @@ class AppContext(object):
     @property
     def appdata_dir(self) -> Path:
         '''
-        Returns the APPDATA directory of the current system
+        Returns the %APPDATA% directory of the current system
         '''
         return self._appdata_dir
+
+    @property
+    def temp_dir(self) -> Path:
+        '''
+        Returns the %TEMP% directory of the current system
+        '''
+        return self._temp_dir
+
+    @property
+    def working_dir(self) -> Path:
+        '''
+        Returns the current working directory
+        '''
+        return self._temp_dir
+
+    @property
+    def deployment_dir(self) -> Path:
+        '''
+        Returns the deployment directory
+        '''
+        return self._temp_dir
+
+    @property
+    def yaam_dir(self) -> Path:
+        '''
+        Returns the yaam data directory
+        '''
+        return self._yaam_dir
 
     def create_app_environment(self):
         '''
         Deploy application environment if it doesn't exist
         '''
+
         os.makedirs(self._yaam_dir, exist_ok=True)
         os.makedirs(self._res_dir, exist_ok=True)
 
-        vargs = sys.argv
+        vargs: List[str] = sys.argv
+        self._app_config.load(self._yaam_dir / "yaam.ini", vargs[1:])
 
         self._execution_path = Path(vargs[0])
         self._deployment_dir = self._work_dir if self.debug else self._execution_path.parent
 
         manifest : dict = read_json(self._deployment_dir / "MANIFEST")
-        self._version = manifest.get('version', '0.0.0.0').join('d' if self._debug else '')
-
-        self._app_config.load(self._yaam_dir / "yaam.ini", vargs[1:])
+        self._version = manifest.get('version', '0.0.0.0').join('-debug' if self.debug else '-release')
 
     def create_game_environment(self, game_name: str, game_root: Path) -> GameContext:
         '''
@@ -106,6 +134,9 @@ class AppContext(object):
 
                 if not settings_path.exists():
                     shutil.copyfile(tmp_yaam_game_dir / "settings.json", settings_path)
+
+                if not naming_map_path.exists():
+                    shutil.copyfile(tmp_yaam_game_dir / "namings.json", naming_map_path)
             else:
                 if not arguments_path.exists():
                     write_json(dict({'arguments': [] }), arguments_path)
@@ -115,6 +146,9 @@ class AppContext(object):
 
                 if not settings_path.exists():
                     write_json(dict({'arguments': [], 'bindings': []}), settings_path)
+
+                if not naming_map_path.exists():
+                    write_json(dict({'namings': {}}), naming_map_path)
 
             self._game_contexts[game_name] = GameContext(
                 game_root,

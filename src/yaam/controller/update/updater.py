@@ -3,7 +3,7 @@ GW2SL update utility module
 '''
 
 from pathlib import Path
-from typing import Dict, Iterable
+from typing import Iterable
 from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.datastream_updater import DatastreamUpdater
@@ -11,10 +11,8 @@ from yaam.controller.update.results import UpdateResult
 from yaam.controller.update.signature_checker import SignatureChecker
 from yaam.controller.update.zip_updater import ZipUpdater
 from yaam.model.config import AppConfig
-from yaam.model.mutable.metadata import AddonMetadata
 from yaam.model.options import Option
 from yaam.model.mutable.addon import Addon
-from yaam.model.type.binding import BindingType
 import yaam.utils.validators.url as validator
 from yaam.utils.logger import static_logger as logger
 import yaam.utils.response as responses

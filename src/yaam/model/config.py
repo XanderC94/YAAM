@@ -7,7 +7,7 @@ from pathlib import Path
 from configparser import ConfigParser
 from yaam.model.options import Option
 from yaam.utils.argparse import Parser
-from yaam.utils.logger import static_logger as logger
+# from yaam.utils.logger import static_logger as logger
 
 class AppProperty(object):
     '''
@@ -34,6 +34,13 @@ class AppConfig(object):
         super().__init__()
         self.__property_map: Dict[Option, AppProperty] = dict()
         self.__overridden: Dict[Option, AppProperty] = dict()
+
+    def __str__(self) -> str:
+        prop_list = ','.join([
+            f"{prop.option.name}:{prop.value}" 
+            for prop in self.__property_map.values()
+        ])
+        return f"Config: ({prop_list})"
 
     def set_property(self, option: Option, value: Any, volatile: bool = False):
         '''
@@ -62,7 +69,6 @@ class AppConfig(object):
         self.__load_configuration(path)
         self.__parse_commandline(args)
 
-
     def __load_configuration(self, path: Path):
 
         if path.exists():
@@ -81,7 +87,7 @@ class AppConfig(object):
         '''
         parser = Parser()
         namespace = parser.parse(args)
-        logger().debug(msg=namespace)
+        # logger().debug(msg=namespace)
 
         loaded_options = set([
             Option.from_string(

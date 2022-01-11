@@ -93,6 +93,5 @@ class MetadataCollector(object):
         Save metadata locally
         '''
         logger().info(msg=f"Saving addon metadata to {path}")
-        if not path.parent.exists():
-            makedirs(path.parent)
+        makedirs(path.parent, exist_ok=True)
         write_json(metadata.to_json(), path)

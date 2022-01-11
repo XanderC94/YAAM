@@ -84,8 +84,7 @@ class ZipUpdater(object):
                 # if item.filename in root_items or is_single_root_folder_item:
                 if rename_enabled and can_add_alias and extraction_path != (unpack_dir / curr_unpack_alias):
                     target_path = unpack_dir / curr_unpack_alias
-                    if not target_path.parent.exists():
-                        makedirs(target_path.parent)
+                    makedirs(target_path.parent, exist_ok=True)
                     target_path = extraction_path.replace(target_path)
 
                 logger().info(msg=f"Unpacked {target_path.relative_to(unpack_dir)} to {unpack_dir}")
@@ -129,8 +128,7 @@ class ZipUpdater(object):
 
         logger().info(msg=f"Unpacking zipped {addon.base.name} installer...")
 
-        if not unpack_dir.exists():
-            makedirs(unpack_dir)
+        makedirs(unpack_dir, exist_ok=True)
 
         content.extractall(unpack_dir)
 
@@ -170,8 +168,7 @@ class ZipUpdater(object):
             # NOTE: Renaming is possible in this case only with a rename map
             unpack_dir : Path = addon.binding.workspace
 
-            if not unpack_dir.exists():
-                makedirs(unpack_dir)
+            makedirs(unpack_dir, exist_ok=True)
 
             if addon.base.uri_info.is_installer:
                 self.__unpack_installer_zip(zip_content, unpack_dir / "installer", addon)
