@@ -69,7 +69,7 @@ def run_main(app_context : AppContext, logger: logging.Logger):
             # in order to know HOW to correctly disable previous shaders and
             # enable the new ones, if any, it is necessary to know the previous
             # addon configuration incarnation
-            # curr_game_binding = game.settings.binding_type
+            curr_game_binding = game.settings.binding_type
 
             timer = Timer()
             timer.tick()
@@ -85,7 +85,7 @@ def run_main(app_context : AppContext, logger: logging.Logger):
                     meta_collector = MetadataCollector(http)
                     meta_collector.load_local_metadata(addons_synthesis)
 
-                    manager = AddonManager(meta_collector)
+                    manager = AddonManager(meta_collector, curr_game_binding)
                     manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
                     manager.disable_dll_addons(addons_synthesis, prev_addons_synthesis)
                     manager.restore_dll_addons(addons_synthesis, prev_addons_synthesis)

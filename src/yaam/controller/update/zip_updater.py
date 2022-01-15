@@ -61,9 +61,13 @@ class ZipUpdater(object):
                 # NOTE: In order to not add the items in a zip file
                 # to the metadata naming map, check that the map
                 # effectively contains the current item filename
-                if rename_enabled and item.filename in addon.naming:
-                    can_add_alias = rename_enabled
-                    curr_unpack_alias = addon.naming.get(item.filename, curr_unpack_alias)
+                if rename_enabled:
+                    if item.filename in addon.naming:
+                        can_add_alias = rename_enabled
+                        curr_unpack_alias = addon.naming.get(item.filename, curr_unpack_alias)
+                    elif item.filename.replace("/", "\\") in addon.naming:
+                        can_add_alias = rename_enabled
+                        curr_unpack_alias = addon.naming.get(item.filename.replace("/", "\\"), curr_unpack_alias)
 
                 # NOTE: Disabled automatic single-root-folder unpacking (for now)
                 # # in case of a single directory inside the zip,
@@ -82,8 +86,8 @@ class ZipUpdater(object):
                 # that file can be renamed to the specified alias
                 target_path = extraction_path
                 # if item.filename in root_items or is_single_root_folder_item:
-                if rename_enabled and can_add_alias and extraction_path != (unpack_dir / curr_unpack_alias):
-                    target_path = unpack_dir / curr_unpack_alias
+                if rename_enabled and can_add_alias and extraction_path != (unpack_dir / curr_unpack_alias).resolve():
+                    target_path = (unpack_dir / curr_unpack_alias).resolve()
                     makedirs(target_path.parent, exist_ok=True)
                     target_path = extraction_path.replace(target_path)
 

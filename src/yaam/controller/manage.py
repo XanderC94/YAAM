@@ -17,8 +17,9 @@ class AddonManager(object):
     Addon management class
     '''
 
-    def __init__(self, metadata: MetadataCollector) -> None:
+    def __init__(self, metadata: MetadataCollector, binding_type: BindingType) -> None:
         self.__metadata = metadata
+        self.__binding_type = binding_type
 
     def resolve_renames(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''
