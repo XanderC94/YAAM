@@ -1,6 +1,7 @@
 '''
 Addon enable-disable management module
 '''
+
 import os
 
 from pathlib import Path
@@ -18,6 +19,47 @@ class AddonManager(object):
 
     def __init__(self, metadata: MetadataCollector) -> None:
         self.__metadata = metadata
+
+    def resolve_renames(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+        '''
+        Detect and resolve renamed addons by aligning physical names to pointed ones
+        '''
+
+        def check_and_rename(addon : Addon, prev_rule: str, new_rule : str) -> None:
+            ret : bool = False
+            if prev_rule is not None and new_rule is not None and prev_rule != new_rule:
+                logger().info(msg=f"Detected a name change in {addon.base.name}: {prev_rule} is now {new_rule}")
+                prev_target = addon.binding.workspace / prev_rule
+                new_target = addon.binding.workspace / new_rule
+                if prev_target.exists():
+                    prev_target.rename(new_target)
+                ret = True
+            return ret
+
+        for addon in addons:
+            metadata = self.__metadata.get_local_metadata(addon)
+            binding_namings = metadata.namings.get(addon.binding.typing, dict())
+
+            modified: bool = False
+            if len(binding_namings) > 0:
+                if len(addon.naming) > 0:
+                    for (key, new_rule) in addon.naming.items():
+                        prev_rule = binding_namings.get(key, None)
+                        if check_and_rename(addon, prev_rule, new_rule):
+                            binding_namings[key] = new_rule
+                            modified = True
+
+                elif not addon.binding.is_headless:
+                    new_rule = addon.binding.default_naming
+                    for (key, prev_rule) in binding_namings.items():
+                        if new_rule.endswith(Path(prev_rule).suffix):
+                            if check_and_rename(addon, prev_rule, new_rule):
+                                binding_namings[key] = new_rule
+                                modified = True
+                                break
+
+            if modified:
+                self.__metadata.save_metadata(metadata, metadata.uri)
 
     def disable_dll_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''

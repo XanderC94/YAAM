@@ -7,7 +7,6 @@ from typing import List
 from tabulate import tabulate
 from yaam.model.mutable.addon import Addon
 
-
 def print_addon_tableau(addons: List[Addon], printer = print):
     '''
     Print addon list as table to the specified printer stream

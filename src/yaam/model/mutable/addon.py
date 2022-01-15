@@ -51,7 +51,7 @@ class Addon(object):
         '''
         Return the Addon naming rules
         '''
-        return self._binding
+        return self._naming
 
     @property
     def is_valid(self) -> bool:

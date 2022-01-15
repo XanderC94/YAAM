@@ -3,7 +3,7 @@ JSON I/O utilities functions
 '''
 
 import json
-from typing import Dict, TypeVar
+from typing import Dict
 from pathlib import Path
 from yaam.utils.functional import identity, Consumer, Mapper, K
 from yaam.utils.json.repr import jsonrepr
@@ -37,7 +37,7 @@ def write_json(obj, path: Path or str, encoding='utf8', indent = 4, cerealize=js
         pass
     except json.decoder.JSONDecodeError as _:
         pass
-        
+
 def consume_json_entries(json_obj: dict, consumers: Dict[str, Consumer]):
     '''
     Read json and map-consume by entries

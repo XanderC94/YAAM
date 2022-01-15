@@ -61,7 +61,7 @@ class ZipUpdater(object):
                 # NOTE: In order to not add the items in a zip file
                 # to the metadata naming map, check that the map
                 # effectively contains the current item filename
-                if rename_enabled and item.filename in self.naming:
+                if rename_enabled and item.filename in addon.naming:
                     can_add_alias = rename_enabled
                     curr_unpack_alias = addon.naming.get(item.filename, curr_unpack_alias)
 

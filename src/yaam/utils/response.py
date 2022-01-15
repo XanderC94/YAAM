@@ -13,7 +13,7 @@ from yaam.model.type.binding import BindingType
 
 def is_zip_content(response : Response) -> bool:
     '''
-    Check if the response is referring to a compressed archive (.zip) 
+    Check if the response is referring to a compressed archive (.zip)
     '''
 
     return (
@@ -23,7 +23,7 @@ def is_zip_content(response : Response) -> bool:
 
 def is_json_content(response : Response) -> bool:
     '''
-    Check if the response is referring to a JSON object file (.json) 
+    Check if the response is referring to a JSON object file (.json)
     '''
 
     return (
@@ -73,7 +73,7 @@ def find_filename(response: Response, target : str) -> bool:
         parsed_url = urlparse(decoded_url)
         url_path = Path(parsed_url.path)
         found = url_path.name == target
-        
+
     return found
 
 def unpack_content(response : Response, addon: Addon) -> bytes:

@@ -1,3 +1,8 @@
+'''
+URL validator module
+
+taken from pipy validators and made Nuitka-compliant
+'''
 import re
 
 ip_middle_octet = r"(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5]))"

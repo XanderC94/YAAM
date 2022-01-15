@@ -7,7 +7,7 @@ from copy import deepcopy
 from yaam.model.context import GameContext
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
-from yaam.model.game.contract.settings import IYaamGameSettings, ABCD
+from yaam.model.game.contract.settings import IYaamGameSettings
 from yaam.model.mutable.addon import Addon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.argument import Argument

@@ -6,8 +6,6 @@ import hashlib
 from enum import Enum
 from pathlib import Path
 
-import requests
-
 class Hasher(Enum):
     '''
     Available hashing algorithms
@@ -74,37 +72,3 @@ class Hasher(Enum):
                 break
 
         return result
-
-    @staticmethod
-    def read_hash_from_url(url: str):
-        '''
-        Read a remote hash from the provided url
-
-        @url: str -- address of the hash
-        '''
-        hash_code = str()
-        hash_type = Hasher.NONE
-
-        tokens = url.split('.')
-
-        if tokens:
-            hash_type = Hasher.from_string(tokens[-1])
-
-        res = requests.get(url)
-        hash_code = res.content.decode(encoding='utf-8', errors='ignore')
-
-        split = ['\n', '\r', ' ']
-
-        for element in split:
-            tokens = hash_code.split(sep=element)
-            for token in tokens:
-                if token:
-                    hash_code = token
-                    break
-
-        purge = ["\x00"]
-
-        for element in purge:
-            hash_code = hash_code.replace(element, "")
-
-        return (hash_code.upper(), hash_type)

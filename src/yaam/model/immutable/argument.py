@@ -90,7 +90,7 @@ class ArgumentInfo(Jsonkin):
     _name          : str            = field(init=True)
     _values        : list           = field(init=True)
     _value_type    : ArgumentType   = field(init=True)
-    _description         : str            = field(init=True)
+    _description   : str            = field(init=True)
     _deprecated    : bool           = field(init=True)
     _user_defined  : bool           = field(init=True)
 

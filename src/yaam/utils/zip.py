@@ -21,6 +21,5 @@ def get_root_items(zip: ZipFile) -> List[str]:
 
     return [
         _.filename for _ in zip.filelist
-        if _.filename.count('/') == 0 or (_.filename.count('/') == 1 and _.is_dir()) 
+        if _.filename.count('/') == 0 or (_.filename.count('/') == 1 and _.is_dir())
     ]
-

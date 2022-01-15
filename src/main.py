@@ -4,7 +4,7 @@ YAAM main module
 
 import sys
 from copy import deepcopy
-from yaam.controller.cmd.repl import repl
+# from yaam.controller.cmd.repl import repl
 from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
@@ -12,7 +12,7 @@ from yaam.controller.manage import AddonManager
 from yaam.model.game.base import Game
 from yaam.utils import process
 from yaam.model.options import Option
-from yaam.utils.logger import init_static_logger, logging, static_logger
+from yaam.utils.logger import init_static_logger, logging
 from yaam.utils.print import print_addon_tableau
 from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
@@ -22,11 +22,10 @@ from yaam.utils.exceptions import exception_handler
 
 #####################################################################
 
-def run_main(app_context : AppContext):
+def run_main(app_context : AppContext, logger: logging.Logger):
     '''
     Main thread
     '''
-    logger = static_logger()
 
     game : Game = None
     game_stasis : Game = None
@@ -41,12 +40,12 @@ def run_main(app_context : AppContext):
         )
     finally:
         if game:
-            is_edit_mode = app_context.config.get_property(Option.EDIT)
+            # is_edit_mode = app_context.config.get_property(Option.EDIT)
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
-            is_export_only = app_context.config.get_property(Option.EXPORT)
+            # is_export_only = app_context.config.get_property(Option.EXPORT)
 
-            prev_game_binding = game_stasis.settings.binding_type
+            # prev_game_binding = game_stasis.settings.binding_type
             prev_addons_synthesis = game_stasis.synthetize()
 
             print_addon_tableau(prev_addons_synthesis, lambda x: logger.info(msg=x))
@@ -70,7 +69,7 @@ def run_main(app_context : AppContext):
             # in order to know HOW to correctly disable previous shaders and
             # enable the new ones, if any, it is necessary to know the previous
             # addon configuration incarnation
-            curr_game_binding = game.settings.binding_type
+            # curr_game_binding = game.settings.binding_type
 
             timer = Timer()
             timer.tick()
@@ -87,8 +86,9 @@ def run_main(app_context : AppContext):
                     meta_collector.load_local_metadata(addons_synthesis)
 
                     manager = AddonManager(meta_collector)
-                    manager.disable_dll_addons(addons_synthesis)
-                    manager.restore_dll_addons(addons_synthesis)
+                    manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
+                    manager.disable_dll_addons(addons_synthesis, prev_addons_synthesis)
+                    manager.restore_dll_addons(addons_synthesis, prev_addons_synthesis)
 
                     updater = AddonUpdater(app_context.config, meta_collector, http)
                     updater.update_addons(addons_synthesis)
@@ -117,18 +117,18 @@ if __name__ == "__main__":
 
     sys.excepthook = exception_handler
 
-    app_context = AppContext()
-    app_context.create_app_environment()
+    _app_context = AppContext()
+    _app_context.create_app_environment()
 
-    logger = init_static_logger(
+    _logger = init_static_logger(
         # logger_name='YAAM',
-        log_level=logging.DEBUG if app_context.debug else logging.INFO,
-        log_file=app_context.temp_dir/"yaam.log"
+        log_level=logging.DEBUG if _app_context.debug else logging.INFO,
+        log_file=_app_context.temp_dir/"yaam.log"
     )
 
-    logger.debug(msg=app_context.working_dir)
-    logger.debug(msg=str(app_context.config))
+    _logger.debug(msg=_app_context.working_dir)
+    _logger.debug(msg=str(_app_context.config))
 
-    execution_result = run_main(app_context)
+    execution_result = run_main(_app_context, _logger)
 
     sys.exit(execution_result)
