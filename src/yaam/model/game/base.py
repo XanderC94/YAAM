@@ -55,6 +55,7 @@ class Game(Synthetizer[List[Addon]]):
         binding_lut = set([
             BindingType.EXE,
             BindingType.AGNOSTIC,
+            BindingType.FILE,
             self.settings.binding_type,
         ])
 
@@ -69,7 +70,7 @@ class Game(Synthetizer[List[Addon]]):
         # automated shader selection
         index = None
         try:
-            shader_priority = [ self.settings.binding_type, BindingType.AGNOSTIC, BindingType.EXE ]
+            shader_priority = [ self.settings.binding_type, BindingType.AGNOSTIC ]
             for shader in shader_priority:
                 for (i, addon) in enumerate(addons_copy):
                     if addon.base.is_shader and addon.binding.typing == shader and addon.binding.is_enabled:

@@ -35,11 +35,11 @@ def get_filename(response: Response) -> str:
     '''
     Return the name of the file from the respose, if exists
     '''
-    name = None
+    name : str = None
 
     content_disp = response.headers.get('content-disposition', None)
     if content_disp is not None:
-        matches = re.findall(r"filename=\"?(.+)\"?", content_disp)
+        matches = re.findall(r"filename\*?=\"?([^\";]+)\"?;?", content_disp)
         if len(matches) > 0:
             name = matches[0]
 
@@ -84,7 +84,7 @@ def unpack_content(response : Response, addon: Addon) -> bytes:
     data : bytes = response.content
 
     lookup_suffix = addon.binding.typing.suffix
-    if addon.binding.typing == BindingType.AGNOSTIC:
+    if addon.binding.typing.suffix is None or len(addon.binding.typing.suffix) == 0:
         lookup_suffix = addon.binding.path.suffix
 
     if is_zip_content(response):

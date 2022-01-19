@@ -116,8 +116,13 @@ class Binding(Jsonkin):
         '''
         Returns whether this addon is a .dll or not
         '''
-        return (self._binding_type is not BindingType.EXE
-            and self._binding_type is not BindingType.NONE)
+        return self._binding_type.is_library()
+
+    def is_file(self) -> bool:
+        '''
+        Returns whether this addon is a generic file or not
+        '''
+        return self._binding_type is BindingType.FILE
 
     def is_exe(self) -> bool:
         '''

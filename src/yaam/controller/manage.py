@@ -80,9 +80,9 @@ class AddonManager(object):
         ret = 0
         for addon in addons:
             if addon.binding.is_dll() and not addon.binding.is_enabled:
-                
+
                 metadata = self.__metadata.get_local_metadata(addon)
-                
+
                 type_naming_rules = dict()
                 if metadata is not None:
                     type_naming_rules = metadata.namings.get(addon.binding.typing, dict())
@@ -196,7 +196,6 @@ class AddonManager(object):
         )
 
         return any_match
-
 
     def __restore_bin_dir(self, bin_dir: Path) -> bool:
         '''

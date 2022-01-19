@@ -51,7 +51,7 @@ class DatastreamUpdater(object):
         unpack_dir : Path = addon.binding.workspace
         makedirs(unpack_dir, exist_ok=True)
 
-        rename_enabled : bool = addon.binding.is_dll()
+        rename_enabled : bool = addon.binding.is_dll() or addon.binding.is_file()
 
         # write file on disk
         try:

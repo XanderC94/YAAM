@@ -88,7 +88,7 @@ class AddonUpdater(object):
         # ETAG is apparently inconsistent for latest release in github api
         # so the check is currently only done by means of the <last-modified> HTTP header tag
         if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified or force:
-            
+
             logger().info(msg="Local and remote metadata mismatch or empty.")
 
             logger().info(msg=f"Downloading {addon.base.name}...")

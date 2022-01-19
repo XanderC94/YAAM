@@ -7,22 +7,23 @@ from typing import Set
 
 bindingtype = namedtuple(
     typename='bindingtype',
-    field_names=['index', 'signature', 'aliases', 'can_shader', 'shader', 'suffix'],
-    defaults=[int(), str(), list(), False, str(), str()]
+    field_names=['index', 'signature', 'aliases', 'is_library', 'can_shader', 'shader', 'suffix'],
+    defaults=[int(), str(), set(), False, False, str(), str()]
 )
 
 class BindingType(Enum):
     '''
     Addon binary binding type
     '''
-    NONE = bindingtype(0, "", set([""]))
-    AGNOSTIC = bindingtype(1, "any", set(["agnostic", "none"]), can_shader=True)
+    NONE = bindingtype(0)
+    FILE = bindingtype(1, "file", set())
     EXE = bindingtype(2, "exe", set(), suffix='.exe')
-    D3D9 = bindingtype(3, "d3d9", set(["dx9"]), True, "dxgi", '.dll')
-    D3D10 = bindingtype(4, "d3d10", set(["dx10"]), True, "dxgi", '.dll')
-    D3D11 = bindingtype(5, "d3d11", set(["dx11"]), True, "dxgi", '.dll')
-    D3D12 = bindingtype(6, "d3d12", set(["dx12"]), True, "dxgi", '.dll')
-    VULKAN = bindingtype(7, "vulkan", set(["vk"]), True, "vk", '.dll')
+    AGNOSTIC = bindingtype(3, "any", set(["agnostic"]), True, True)
+    D3D9 = bindingtype(4, "d3d9", set(["dx9"]), True, True, "dxgi", '.dll')
+    D3D10 = bindingtype(5, "d3d10", set(["dx10"]), True, True, "dxgi", '.dll')
+    D3D11 = bindingtype(6, "d3d11", set(["dx11"]), True, True, "dxgi", '.dll')
+    D3D12 = bindingtype(7, "d3d12", set(["dx12"]), True, True, "dxgi", '.dll')
+    VULKAN = bindingtype(8, "vulkan", set(["vk"]), True, True, "vk", '.dll')
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, BindingType):
@@ -56,6 +57,12 @@ class BindingType(Enum):
         Return the possible aliases for the binding
         '''
         return self.value.aliases
+
+    def is_library(self) -> bool:
+        '''
+        Return whether this kind of binding is a library (.dll or .lib)
+        '''
+        return self.value.is_library
 
     def can_shader(self) -> bool:
         '''
