@@ -62,7 +62,27 @@ class AddonManager(object):
             if modified:
                 self.__metadata.save_metadata(metadata, metadata.uri)
 
-    def disable_dll_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+    def __get_naming_rules(self, addon: Addon) -> list:
+
+        metadata = self.__metadata.get_local_metadata(addon)
+
+        type_naming_rules = dict()
+        if metadata is not None:
+            type_naming_rules = metadata.namings.get(addon.binding.typing, dict())
+
+        naming_rules = []
+        if len(type_naming_rules) == 0:
+            if not addon.binding.is_headless:
+                naming_rules.append(addon.binding.default_naming)
+        else:
+            naming_rules = [
+                _ for _ in type_naming_rules.values()
+                if _.endswith(addon.binding.typing.suffix)
+            ]
+
+        return naming_rules
+
+    def disable_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''
         Overrides the typing of installed addons (.dll -> .dll.disabled)
         @addons : Iterable[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
@@ -79,102 +99,81 @@ class AddonManager(object):
 
         ret = 0
         for addon in addons:
-            if addon.binding.is_dll() and not addon.binding.is_enabled:
+            if not addon.binding.is_enabled:
+                if addon.binding.is_dll() or addon.binding.is_file():
 
-                metadata = self.__metadata.get_local_metadata(addon)
+                    workspace = addon.binding.workspace
 
-                type_naming_rules = dict()
-                if metadata is not None:
-                    type_naming_rules = metadata.namings.get(addon.binding.typing, dict())
+                    naming_rules = self.__get_naming_rules(addon)
 
-                naming = []
-                if len(type_naming_rules) == 0:
-                    if not addon.binding.is_headless:
-                        naming.append(addon.binding.default_naming)
-                else:
-                    naming = list([ _ for _ in type_naming_rules.values() if _.endswith('.dll') ])
+                    for _ in naming_rules:
+                        path = workspace / _
 
-                workspace = addon.binding.workspace
+                        can_disable = True
+                        path_disabled = Path(f"{path}.disabled")
+                        if addon.base.is_shader:
+                            # I need to match pointed shader path
+                            # but most shaders share the same name
+                            # therefore they can't be disabled indiscrimately
+                            if self.__match_metainfo(addon) or (
+                                # cover for cases where old active shader doesn't have meta informations
+                                # since only one shader can be enabled at one time
+                                # the only one that can't match for lack of metadata is
+                                # the one previously enabled
+                                prev_shader is not None and
+                                addon.base.name == prev_shader.base.name and
+                                addon.binding.typing == prev_shader.binding.typing
+                            ):
+                                name_ext = addon.base.name.lower().replace(' ', '')
+                                path_disabled = Path(f"{path}.{name_ext}")
+                            else:
+                                can_disable = False
 
-                for _ in naming:
-                    path = workspace / _
-
-                    can_disable = True
-                    path_disabled = Path(f"{path}.disabled")
-                    if addon.base.is_shader:
-                        # I need to match pointed shader path
-                        # but most shaders share the same name
-                        # therefore they can't be disabled indiscrimately
-                        if self.__match_dll_metainfo(addon) or (
-                            # cover for cases where old active shader doesn't have meta informations
-                            # since only one shader can be enabled at one time
-                            # the only one that can't match for lack of metadata is
-                            # the one previously enabled
-                            prev_shader is not None and
-                            addon.base.name == prev_shader.base.name and
-                            addon.binding.typing == prev_shader.binding.typing
-                        ):
-                            name_ext = addon.base.name.lower().replace(' ', '')
-                            path_disabled = Path(f"{path}.{name_ext}")
-                        else:
-                            can_disable = False
-                    
-                    if path.exists() and path.is_file() and can_disable:
-                        logger().info(msg=f"Addon {addon.base.name}({path.name}) will be suppressed...")
-                        os.rename(str(path), str(path_disabled))
-                        ret += 1
+                        if path.exists() and path.is_file() and can_disable:
+                            logger().info(msg=f"Addon {addon.base.name}({path.name}) will be suppressed...")
+                            os.rename(str(path), str(path_disabled))
+                            ret += 1
 
         return ret
 
-    def restore_dll_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+    def restore_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''
         Restore disabled addons.
         @addons : Iterable[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
         '''
         ret = 0
         for addon in addons:
-            if addon.binding.is_dll() and addon.binding.is_enabled:
+            if addon.binding.is_enabled:
+                if addon.binding.is_dll() or addon.binding.is_file():
 
-                metadata = self.__metadata.get_local_metadata(addon)
+                    workspace = addon.binding.workspace
 
-                type_naming_rules = dict()
-                if metadata is not None:
-                    type_naming_rules = metadata.namings.get(addon.binding.typing, dict())
+                    naming_rules = self.__get_naming_rules(addon)
 
-                namings = []
+                    for _ in naming_rules:
+                        path = workspace / _
 
-                if len(type_naming_rules) == 0:
-                    if not addon.binding.is_headless:
-                        namings.append(addon.binding.default_naming)
-                else:
-                    namings = list([ _ for _ in type_naming_rules.values() if _.endswith('.dll')])
+                        can_enable = True
+                        path_disabled = Path(f"{path}.disabled")
+                        if addon.base.is_shader:
+                            # Disabled shaders doesn't need meta-information look-up
+                            # since their extension is overridden and made unique
+                            # and addons name should be unique by design
+                            name_ext = addon.base.name.lower().replace(' ', '')
+                            path_disabled = Path(f"{path}.{name_ext}")
+                            # NOTE: At most, metainfo might be checked on the overridden file
+                            # to assert if is another shader with the wrong extension
+                            # but it supposed to not be possible
+                            # can_enable = match_dll_metainfo(addon, path_disabled)
 
-                workspace = addon.binding.workspace
-
-                for _ in namings:
-                    path = workspace / _
-
-                    can_enable = True
-                    path_disabled = Path(f"{path}.disabled")
-                    if addon.base.is_shader:
-                        # Disabled shaders doesn't need meta-information look-up
-                        # since their extension is overridden and made unique
-                        # and addons name should be unique by design
-                        name_ext = addon.base.name.lower().replace(' ', '')
-                        path_disabled = Path(f"{path}.{name_ext}")
-                        # NOTE: At most, metainfo might be checked on the overridden file
-                        # to assert if is another shader with the wrong extension
-                        # but it supposed to not be possible
-                        # can_enable = match_dll_metainfo(addon, path_disabled)
-
-                    if path_disabled.exists() and can_enable:
-                        logger().info(msg=f"Addon {addon.base.name}({path.name}) will be restored...")
-                        os.rename(str(path_disabled), str(path))
-                        ret += 1
+                        if path_disabled.exists() and can_enable:
+                            logger().info(msg=f"Addon {addon.base.name}({path.name}) will be restored...")
+                            os.rename(str(path_disabled), str(path))
+                            ret += 1
 
         return ret
 
-    def __match_dll_metainfo(self, addon: Addon, alt_path : Path = None) -> bool:
+    def __match_metainfo(self, addon: Addon, alt_path : Path = None) -> bool:
         '''
         Returns whether there are matching info between the addon
         and the linked .dll file

@@ -87,8 +87,8 @@ def run_main(app_context : AppContext, logger: logging.Logger):
 
                     manager = AddonManager(meta_collector, curr_game_binding)
                     manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
-                    manager.disable_dll_addons(addons_synthesis, prev_addons_synthesis)
-                    manager.restore_dll_addons(addons_synthesis, prev_addons_synthesis)
+                    manager.disable_addons(addons_synthesis, prev_addons_synthesis)
+                    manager.restore_addons(addons_synthesis, prev_addons_synthesis)
 
                     updater = AddonUpdater(app_context.config, meta_collector, http)
                     updater.update_addons(addons_synthesis)

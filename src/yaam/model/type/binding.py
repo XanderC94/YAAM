@@ -18,7 +18,7 @@ class BindingType(Enum):
     NONE = bindingtype(0)
     FILE = bindingtype(1, "file", set())
     EXE = bindingtype(2, "exe", set(), suffix='.exe')
-    AGNOSTIC = bindingtype(3, "any", set(["agnostic"]), True, True)
+    AGNOSTIC = bindingtype(3, "any", set(["agnostic"]), True, True, "dxgi", '.dll')
     D3D9 = bindingtype(4, "d3d9", set(["dx9"]), True, True, "dxgi", '.dll')
     D3D10 = bindingtype(5, "d3d10", set(["dx10"]), True, True, "dxgi", '.dll')
     D3D11 = bindingtype(6, "d3d11", set(["dx11"]), True, True, "dxgi", '.dll')
