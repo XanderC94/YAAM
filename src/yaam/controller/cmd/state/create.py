@@ -12,6 +12,7 @@ from yaam.controller.cmd.state.validators import YesValidator
 from yaam.controller.cmd.state.validators import AddonNameValidator, AddonURIValidator
 from yaam.controller.cmd.state.validators import BindingNameValidator, BindingPathValidator, BindingTypeValidator
 from yaam.model.type.binding import BindingType
+from yaam.utils.counter import ForwardCounter
 
 class LUTEntry:
     '''
@@ -36,7 +37,7 @@ class CreateMode(object):
     '''
     Enum class object type
     '''
-    __counter : int = -1
+    __counter = ForwardCounter()
 
     def __init__(self, entity : Callable = lambda x : None, lut : dict = None):
         self.__index : int = CreateMode.__increment()
@@ -45,8 +46,7 @@ class CreateMode(object):
 
     @staticmethod
     def __increment() -> int:
-        CreateMode.__counter += 1
-        return CreateMode.__counter
+        return CreateMode.__counter.count()
 
     @property
     def index(self) -> int:

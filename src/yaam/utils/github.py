@@ -5,6 +5,7 @@ Github API helper module
 import re
 import requests
 from requests.sessions import Session
+from yaam.utils.counter import ForwardCounter
 from yaam.utils.logger import static_logger as logger
 
 from yaam.utils.exceptions import GitHubException
@@ -83,16 +84,17 @@ class api(object):
                         # to be downloaded
                         print(f"Found {len(valid_assets)} resources:\n")
 
-                        i : int = 0
+                        i = ForwardCounter()
                         for asset in valid_assets:
-                            print(f"{i}. {asset['name']}")
-                            i+=1
+                            print(f"{i.next()}. {asset['name']}")
 
-                        index = input(f"\nWhich one should be downloaded? Choose between [0, ..., {i - 1}]: ")
-                        while not str(index).isnumeric() or int(index) < 0 or int(index) > i - 1:
-                            index = input(f"\nChoose between [0, ..., {i - 1}]: ")
+                        print()
 
-                        target_uri = valid_assets[int(index)]['browser_download_url']
+                        choice = input(f"Which one should be downloaded? Choose between [1, ..., {i}, n = skip]: ")
+                        if choice.isnumeric() and int(choice) > 0 and int(choice) < (i + 1):
+                            target_uri = valid_assets[int(choice) - 1]['browser_download_url']
+                        else:
+                            raise GitHubException("Skipped resource download by user...")
                     else:
                         raise GitHubException("Github API pointing to invalid latest release!")
             else:

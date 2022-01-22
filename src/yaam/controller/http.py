@@ -7,7 +7,7 @@ import requests
 from yaam.utils import github
 from yaam.utils.exceptions import GitHubException
 from yaam.utils.logger import static_logger as logger
-from yaam.model.config import AppConfig
+from yaam.model.appconfig import AppConfig
 from yaam.model.options import Option
 
 class HttpRequestManager(object):
@@ -96,5 +96,8 @@ class HttpRequestManager(object):
         else:
             download_uri = url
 
-        return self.get(download_uri, **kwargs)
+        res = None
+        if download_uri is not None:
+            res = self.get(download_uri, **kwargs)
+        return res
         

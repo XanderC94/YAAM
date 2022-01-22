@@ -59,7 +59,7 @@ class IGameConfiguration(object):
         return Path()
 
     @abstractmethod
-    def load(self) -> bool:
+    def load(self, init_file_path: Path = None) -> bool:
         '''
         Loads the game configuration settings.
         '''

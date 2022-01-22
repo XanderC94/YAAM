@@ -4,7 +4,7 @@ Base game module
 
 from typing import List
 from copy import deepcopy
-from yaam.model.context import GameContext
+from yaam.model.appcontext import GameContext
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
 from yaam.model.game.contract.settings import IYaamGameSettings

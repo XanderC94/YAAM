@@ -2,13 +2,12 @@
 Contexts module
 '''
 import os
-import sys
 import shutil
 from typing import Dict, List
 from pathlib import Path
 from dataclasses import dataclass, field
 from yaam.model.options import Option
-from yaam.model.config import AppConfig
+from yaam.model.appconfig import AppConfig
 from yaam.utils.json.io import write_json, read_json
 
 @dataclass(frozen=True)
@@ -30,10 +29,11 @@ class AppContext(object):
 
     def __init__(self):
         self._appdata_dir = Path(os.getenv("APPDATA"))
+        self._local_appdata_dir = Path(os.getenv("LOCALAPPDATA"))
         self._temp_dir = Path(os.getenv("TEMP"))
         self._work_dir = Path(os.getcwd())
-        self._yaam_dir = self._appdata_dir / "yaam"
-        self._res_dir = self._yaam_dir / "res"
+        self._yaam_dir = self._local_appdata_dir / "yaam"
+        self._games_dir = self._yaam_dir / "games"
         self._version = ""
 
         self._execution_path = Path()
@@ -65,6 +65,13 @@ class AppContext(object):
         return self._appdata_dir
 
     @property
+    def local_appdata_dir(self) -> Path:
+        '''
+        Returns the %LOCALAPPDATA% directory of the current system
+        '''
+        return self._local_appdata_dir
+
+    @property
     def temp_dir(self) -> Path:
         '''
         Returns the %TEMP% directory of the current system
@@ -92,22 +99,48 @@ class AppContext(object):
         '''
         return self._yaam_dir
 
-    def create_app_environment(self):
+    def init_file_path(self, game_name: str) -> Path:
+        '''
+        Return the path to the requested game init file
+        '''
+        return self._games_dir / game_name / "init.json"
+
+    def create_app_environment(self, exec_path: Path, vargs: List[str]):
         '''
         Deploy application environment if it doesn't exist
         '''
 
         os.makedirs(self._yaam_dir, exist_ok=True)
-        os.makedirs(self._res_dir, exist_ok=True)
+        os.makedirs(self._games_dir, exist_ok=True)
 
-        vargs: List[str] = sys.argv
-        self._app_config.load(self._yaam_dir / "yaam.ini", vargs[1:])
-
-        self._execution_path = Path(vargs[0])
-        self._deployment_dir = self._work_dir if self.debug else self._execution_path.parent
+        self._app_config.load(self._yaam_dir / "yaam.ini", vargs)
+        self._execution_path = exec_path
+        self._deployment_dir = self._work_dir.parent if self.debug else self._execution_path.parent
 
         manifest : dict = read_json(self._deployment_dir / "MANIFEST")
         self._version = manifest.get('version', '0.0.0.0').join('-debug' if self.debug else '-release')
+
+    def deploy_default_init_resources(self) -> None:
+        '''
+        Copy default game init resources to local if they don't exists
+        '''
+
+        default_res_path = self._deployment_dir / "res/default"
+
+        for game_path in default_res_path.iterdir():
+
+            if game_path.is_dir():
+
+                yaam_game_dir = self._games_dir / game_path.name
+                yaam_game_dir.mkdir(exist_ok=True)
+
+                def_yaam_game_dir = default_res_path / game_path.name
+
+                init_file_path = yaam_game_dir / "init.json"
+                def_init_file_path = def_yaam_game_dir / "init.json"
+
+                if def_init_file_path.exists() and not init_file_path.exists():
+                    shutil.copyfile(def_init_file_path, init_file_path)
 
     def create_game_environment(self, game_name: str, game_root: Path) -> GameContext:
         '''
@@ -115,7 +148,7 @@ class AppContext(object):
         '''
         if game_name not in self._game_contexts:
 
-            yaam_game_dir = self._res_dir / game_name
+            yaam_game_dir = self._games_dir / game_name
             yaam_game_dir.mkdir(exist_ok=True)
 
             arguments_path = yaam_game_dir / "arguments.json"
@@ -126,18 +159,19 @@ class AppContext(object):
             tmp_yaam_game_dir = self._deployment_dir / "res/default" / game_name
 
             if tmp_yaam_game_dir.exists():
-                if not arguments_path.exists():
+                if not arguments_path.exists() and (tmp_yaam_game_dir / "arguments.json").exists():
                     shutil.copyfile(tmp_yaam_game_dir / "arguments.json", arguments_path)
 
-                if not addons_path.exists():
+                if not addons_path.exists() and (tmp_yaam_game_dir / "addons.json").exists():
                     shutil.copyfile(tmp_yaam_game_dir / "addons.json", addons_path)
 
-                if not settings_path.exists():
+                if not settings_path.exists() and (tmp_yaam_game_dir / "settings.json").exists():
                     shutil.copyfile(tmp_yaam_game_dir / "settings.json", settings_path)
 
-                if not naming_map_path.exists():
+                if not naming_map_path.exists() and (tmp_yaam_game_dir / "namings.json").exists():
                     shutil.copyfile(tmp_yaam_game_dir / "namings.json", naming_map_path)
             else:
+
                 if not arguments_path.exists():
                     write_json(dict({'arguments': [] }), arguments_path)
 
@@ -169,3 +203,9 @@ class AppContext(object):
             return self._game_contexts[game_name]
         else:
             return None
+
+    def game_list(self) -> List[str]:
+        '''
+        Return the available games
+        '''
+        return [ _.name for _ in self._games_dir.iterdir() if _.is_dir()]

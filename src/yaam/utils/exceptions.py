@@ -20,8 +20,8 @@ class ConfigLoadException(Exception):
     '''
     ConfigLoadException
     '''
-    def __init__(self, config_path: Path):
-        super().__init__()
+    def __init__(self, config_path: Path, msg: str, *args):
+        super().__init__(msg, *args)
         self.config_path = config_path
 
 class GitHubException(Exception):

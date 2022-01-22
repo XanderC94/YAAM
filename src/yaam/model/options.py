@@ -5,6 +5,8 @@ from enum import Enum
 from collections import namedtuple
 from typing import Any, Set, List
 
+from yaam.utils.counter import ForwardCounter
+
 OptionEntry = namedtuple(
     typename='OptionEntry',
     field_names=['index', 'aliases', 'default', 'action', 'descr'],
@@ -17,20 +19,31 @@ OptionGroupEntry = namedtuple(
     defaults=[int(), list(), False]
 )
 
+counter = ForwardCounter()
+
 class Option(Enum):
     '''
     Yaam command line options
     '''
+
     DEBUG = OptionEntry(
-        index=-1,
+        index=counter.count(),
         aliases=set(["debug", "d"]),
         default=False,
         descr="Activate debug code",
         action="store_true"
     )
 
+    GAME = OptionEntry(
+        index=counter.count(),
+        aliases=set(["game", "g"]),
+        default=None,
+        descr="Specify which game to manage",
+        action="store"
+    )
+
     UPDATE_ADDONS = OptionEntry(
-        index=0,
+        index=counter.count(),
         aliases=set(["update", "update-addons", "update_addons", "u"]),
         default=False,
         descr="Only update addons without running the game",
@@ -38,7 +51,7 @@ class Option(Enum):
     )
 
     FORCE_ACTION = OptionEntry(
-        index=1,
+        index=counter.count(),
         aliases=set(["force", "f"]),
         default=False,
         descr="Force any specified action",
@@ -46,7 +59,7 @@ class Option(Enum):
     )
 
     RUN_STACK = OptionEntry(
-        index=2,
+        index=counter.count(),
         aliases=set(["run", "run-stack", "run_stack", "r"]),
         default=False,
         descr="Only run the game without updating the addons",
@@ -54,7 +67,7 @@ class Option(Enum):
     )
 
     EDIT = OptionEntry(
-        index=3,
+        index=counter.count(),
         aliases=set(["edit", "e"]),
         default=False,
         descr="Run YAAM edit repl",
@@ -62,7 +75,7 @@ class Option(Enum):
     )
 
     EXPORT = OptionEntry(
-        index=4,
+        index=counter.count(),
         aliases=set(["export", "x"]),
         default=False,
         descr="Export YAAM settings",
@@ -70,7 +83,7 @@ class Option(Enum):
     )
 
     GITHUB_USER = OptionEntry(
-        index=5,
+        index=counter.count(),
         aliases=set(["github-user", "github_user"]),
         default="",
         descr="Set github user",
@@ -78,7 +91,7 @@ class Option(Enum):
     )
 
     GITHUB_API_TOKEN = OptionEntry(
-        index=6,
+        index=counter.count(),
         aliases=set(["github-api-token", "github_api_token"]),
         default="",
         descr="Set github API token",
@@ -130,7 +143,14 @@ class Option(Enum):
         Return the option action upon specification
         '''
         return self.value.action
-
+    
+    @property
+    def suppress_missing(self) -> bool:
+        '''
+        Return if the option should be suppressed from the parser when missing
+        '''
+        return self.value.suppress_missing
+    
     @staticmethod
     def from_string(str_repr: str):
         '''
@@ -139,7 +159,7 @@ class Option(Enum):
         obj = None
 
         for _ in Option:
-            if _ == str_repr:
+            if _ == str_repr or str_repr in _.aliases:
                 obj = _
                 break
 
@@ -159,7 +179,10 @@ class OptionGroup(Enum):
 
     GLOBAL=OptionGroupEntry(
         index=1,
-        options=[Option.DEBUG, Option.FORCE_ACTION, Option.EDIT, Option.GITHUB_USER, Option.GITHUB_API_TOKEN],
+        options=[
+            Option.DEBUG, Option.GAME, Option.FORCE_ACTION, Option.EDIT,
+            Option.GITHUB_USER, Option.GITHUB_API_TOKEN
+        ],
         mutually_exclusive=False
     )
 

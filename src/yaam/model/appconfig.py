@@ -6,8 +6,7 @@ from typing import Any, Dict, Sequence
 from pathlib import Path
 from configparser import ConfigParser
 from yaam.model.options import Option
-from yaam.utils.argparse import Parser
-# from yaam.utils.logger import static_logger as logger
+from yaam.utils.argparser import Parser
 
 class AppProperty(object):
     '''
@@ -87,17 +86,10 @@ class AppConfig(object):
         '''
         parser = Parser()
         namespace = parser.parse(args)
-        # logger().debug(msg=namespace)
-
-        loaded_options = set([
-            Option.from_string(
-                _.removeprefix('-').removeprefix('-')
-            ) for _ in args
-        ])
 
         for var in vars(namespace):
             option = Option.from_string(var)
-            if option is not None and option in loaded_options:
+            if option is not None:
                 self.set_property(option, getattr(namespace, var), volatile=True)
 
     def save(self, path: Path):

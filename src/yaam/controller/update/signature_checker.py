@@ -16,7 +16,7 @@ class SignatureChecker(object):
     '''
 
     @staticmethod
-    def check_signatures(content: bytes, addon: Addon, metadata: AddonMetadata) -> Tuple[UpdateResult, str]:
+    def check(content: bytes, addon: Addon, metadata: AddonMetadata) -> Tuple[UpdateResult, str]:
         '''
         Check the hash signature of the given bytes content with the one specified in the addon metadata
         '''

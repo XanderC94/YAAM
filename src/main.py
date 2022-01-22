@@ -9,18 +9,40 @@ from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
 from yaam.controller.manage import AddonManager
-from yaam.model.game.base import Game
+from yaam.model.game.factory import GameFactory, Game
 from yaam.utils import process
 from yaam.model.options import Option
+from yaam.utils.counter import ForwardCounter
 from yaam.utils.logger import init_static_logger, logging
 from yaam.utils.print import print_addon_tableau
-from yaam.model.game.gw2 import GuildWars2
 from yaam.utils.exceptions import ConfigLoadException
-from yaam.model.context import AppContext
+from yaam.model.appcontext import AppContext
 from yaam.utils.timer import Timer
 from yaam.utils.exceptions import exception_handler
 
 #####################################################################
+
+def select_game(app_context: AppContext, logger: logging.Logger) ->  str:
+    '''
+    request or resolve the name of the game to be loaded
+    '''
+    game_name = app_context.config.get_property(Option.GAME)
+
+    if game_name is None:
+        game_list = app_context.game_list()
+
+        i = ForwardCounter()
+        for _ in game_list:
+            print(f"{i.next()} - {_}")
+
+        if len(game_list) > 0:
+            choice = input("Choose the game to load: ")
+            if choice.isnumeric() and int(choice) > 0 and int(choice) < i + 1:
+                game_name = game_list[int(choice) - 1]
+        else:
+            logger.error(msg="Game directory is empty...")
+
+    return game_name
 
 def run_main(app_context : AppContext, logger: logging.Logger):
     '''
@@ -30,16 +52,15 @@ def run_main(app_context : AppContext, logger: logging.Logger):
     game : Game = None
     game_stasis : Game = None
     try:
-        game = GuildWars2.incarnate(app_context)
-        game_stasis = deepcopy(game)
+        game_name = select_game(app_context, logger)
+        if game_name is not None:
+            game = GameFactory.make(game_name, app_context)
+            game_stasis = deepcopy(game)
+
     except ConfigLoadException as ex:
-        logger.info(
-            msg = f"Configuration loading error. \
-            Assert that the configuration {ex.config_path} exists. \
-            Remember to run the game at least once in order to generate the configuration."
-        )
+        logger.info(ex)
     finally:
-        if game:
+        if game is not None:
             # is_edit_mode = app_context.config.get_property(Option.EDIT)
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
@@ -94,10 +115,11 @@ def run_main(app_context : AppContext, logger: logging.Logger):
                     updater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:
-                args = []
-                for _ in game.settings.arguments:
-                    if not _.meta.is_deprecated and _.enabled:
-                        args.append(str(_.synthetize()))
+                args = [
+                    str(_.synthetize())
+                    for _ in game.settings.arguments
+                    if not _.meta.is_deprecated and _.enabled
+                ]
 
                 process.arun(
                     game.config.game_path,
@@ -118,7 +140,8 @@ if __name__ == "__main__":
     sys.excepthook = exception_handler
 
     _app_context = AppContext()
-    _app_context.create_app_environment()
+    _app_context.create_app_environment(sys.argv[0], sys.argv[1:])
+    _app_context.deploy_default_init_resources()
 
     _logger = init_static_logger(
         # logger_name='YAAM',

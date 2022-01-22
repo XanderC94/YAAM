@@ -1,7 +1,8 @@
 '''
 Command line arguments parser
 '''
-from argparse import ArgumentParser, Namespace
+
+from argparse import ArgumentParser, Namespace, SUPPRESS
 from typing import Sequence
 from yaam.model.options import OptionGroup
 
@@ -25,7 +26,7 @@ class Parser(object):
                     *[f"--{alias}" if len(alias) > 2 else f"-{alias}" for alias in opt.aliases],
                     action=opt.action,
                     help=opt.descr,
-                    default=opt.default
+                    default=SUPPRESS
                 )
 
     def parse(self, args: Sequence[str]) -> Namespace:
