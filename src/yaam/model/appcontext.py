@@ -114,7 +114,7 @@ class AppContext(object):
         os.makedirs(self._games_dir, exist_ok=True)
 
         self._app_config.load(self._yaam_dir / "yaam.ini", vargs)
-        self._execution_path = exec_path
+        self._execution_path = Path(exec_path)
         self._deployment_dir = self._work_dir.parent if self.debug else self._execution_path.parent
 
         manifest : dict = read_json(self._deployment_dir / "MANIFEST")
