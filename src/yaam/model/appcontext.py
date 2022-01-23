@@ -44,7 +44,7 @@ class AppContext(object):
         self._app_config = AppConfig()
 
     @property
-    def debug(self) -> bool:
+    def is_debug(self) -> bool:
         '''
         Return if the application is running in debug mode
         '''
@@ -83,14 +83,14 @@ class AppContext(object):
         '''
         Returns the current working directory
         '''
-        return self._temp_dir
+        return self._work_dir
 
     @property
     def deployment_dir(self) -> Path:
         '''
         Returns the deployment directory
         '''
-        return self._temp_dir
+        return self._deployment_dir
 
     @property
     def yaam_dir(self) -> Path:
@@ -115,10 +115,13 @@ class AppContext(object):
 
         self._app_config.load(self._yaam_dir / "yaam.ini", vargs)
         self._execution_path = Path(exec_path)
-        self._deployment_dir = self._work_dir.parent if self.debug else self._execution_path.parent
+        self._deployment_dir = self._execution_path.parent
+        # If calling the python script, navigate 1 level back in the directory tree
+        if self._execution_path.suffix == ".py":
+            self._deployment_dir = self._deployment_dir.parent
 
         manifest : dict = read_json(self._deployment_dir / "MANIFEST")
-        self._version = manifest.get('version', '0.0.0.0').join('-debug' if self.debug else '-release')
+        self._version = manifest.get('version', '0.0.0.0').join('-debug' if self.is_debug else '-release')
 
     def deploy_default_init_resources(self) -> None:
         '''

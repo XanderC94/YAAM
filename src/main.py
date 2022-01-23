@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     _logger = init_static_logger(
         # logger_name='YAAM',
-        log_level=logging.DEBUG if _app_context.debug else logging.INFO,
+        log_level=logging.DEBUG if _app_context.is_debug else logging.INFO,
         log_file=_app_context.temp_dir/"yaam.log"
     )
 

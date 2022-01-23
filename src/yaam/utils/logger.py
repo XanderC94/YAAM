@@ -37,7 +37,7 @@ def init_static_logger(
     )
 
     fhandler.setFormatter(log_formatter)
-    fhandler.setLevel(log_level)
+    fhandler.setLevel(logging.DEBUG)
     logger.addHandler(fhandler)
 
     shandler = logging.StreamHandler(log_stream)

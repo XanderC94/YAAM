@@ -109,6 +109,7 @@ $params = @(
     "--include-data-dir=$root/$defaults_dir=$defaults_dir",
     "--include-data-file=$root/$output_dir/MANIFEST=MANIFEST",
     "--include-data-file=$root/README.md=README.md",
+    "--include-data-file=$root/LICENSE=LICENSE",
     "--output-dir=$output_dir"
 )
 

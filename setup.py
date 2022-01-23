@@ -11,7 +11,7 @@ with open("requirements.txt", 'r', encoding='utf-8') as f:
 
 setup(
    name='yaam',
-   version='0.0.0.1',
+   version='0.1.0-alpha',
    description='Yet Another Addon Manager',
    license="GPL-3.0",
    long_description=long_description,
