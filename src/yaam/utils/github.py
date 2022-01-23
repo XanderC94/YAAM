@@ -3,14 +3,37 @@ Github API helper module
 '''
 
 import re
+from typing import List
 import requests
 from requests.sessions import Session
-from yaam.utils.counter import ForwardCounter
+from yaam.utils.json.jsonkin import Jsonkin
 from yaam.utils.logger import static_logger as logger
 
 from yaam.utils.exceptions import GitHubException
 
-class api(object):
+class Asset(Jsonkin):
+    '''
+    GitHub API download asset
+    '''
+
+    def __init__(self, name: str, url: str) -> None:
+        self.name = name
+        self.browser_download_url = url
+
+    def to_json(self) -> dict:
+        return vars(self)
+
+    @staticmethod
+    def from_json(json_obj: dict):
+        '''
+        Return ad Asset instence from its json repr
+        '''
+        return Asset(
+            name=json_obj.get('name', str()),
+            url=json_obj.get('browser_download_url', str())
+        )
+
+class API(object):
     '''
     github api static class
     '''
@@ -45,7 +68,7 @@ class api(object):
         return re.match(api_github_latest_release_regex, url) is not None
 
     @staticmethod
-    def fetch_latest_release_download_url(url: str, github: Session, **kwargs) -> str:
+    def fetch_latest_release_assets(url: str, github: Session, **kwargs) -> List[Asset]:
         '''
         Assert if url is a github api request for a latest release metadata
         and return the 'browser_download_url' link
@@ -54,9 +77,9 @@ class api(object):
         If it's a github api request but no valid metadata is found, raise Exception
 
         '''
-        target_uri = url
+        target_uris = []
 
-        if api.assert_latest_release_url(url):
+        if API.assert_latest_release_url(url):
             response = github.get(url, **kwargs)
 
             logger().debug(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
@@ -66,38 +89,10 @@ class api(object):
 
                 json_data : dict = response.json()
 
-                if 'assets' in json_data.keys():
-
-                    if len(json_data['assets']) == 1 and 'browser_download_url' in json_data['assets'][0]:
-
-                        target_uri = json_data['assets'][0]['browser_download_url']
-
-                    elif len(json_data['assets']) > 0:
-
-                        valid_assets = []
-                        for asset in json_data['assets']:
-                            if 'browser_download_url' in asset:
-                                valid_assets.append(asset)
-
-                        # Since download are too much etherogeneous
-                        # I can only let the user choose the desired resource
-                        # to be downloaded
-                        print(f"Found {len(valid_assets)} resources:\n")
-
-                        i = ForwardCounter()
-                        for asset in valid_assets:
-                            print(f"{i.next()}. {asset['name']}")
-
-                        print()
-
-                        choice = input(f"Which one should be downloaded? Choose between [1, ..., {i}, n = skip]: ")
-                        if choice.isnumeric() and int(choice) > 0 and int(choice) < (i + 1):
-                            target_uri = valid_assets[int(choice) - 1]['browser_download_url']
-                        else:
-                            raise GitHubException("Skipped resource download by user...")
-                    else:
-                        raise GitHubException("Github API pointing to invalid latest release!")
+                for asset in json_data.get('assets', dict()):
+                    if 'browser_download_url' in asset:
+                        target_uris.append(Asset.from_json(asset))
             else:
                 raise GitHubException("Github API response not in JSON format")
 
-        return target_uri
+        return target_uris

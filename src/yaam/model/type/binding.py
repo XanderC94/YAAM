@@ -1,29 +1,42 @@
 '''
 Binding types module
 '''
-from collections import namedtuple
-from enum import Enum
-from typing import Set
 
-bindingtype = namedtuple(
-    typename='bindingtype',
-    field_names=['index', 'signature', 'aliases', 'is_library', 'can_shader', 'shader', 'suffix'],
-    defaults=[int(), str(), set(), False, False, str(), str()]
-)
+from dataclasses import dataclass, field
+from enum import Enum
+from types import DynamicClassAttribute
+from typing import Set
+from yaam.utils.counter import ForwardCounter
+
+@dataclass(frozen=True)
+class BindingTypeObj(object):
+    '''
+    BindingType enum object
+    '''
+    __counter = ForwardCounter()
+
+    index: int = field(init=False, default_factory=__counter.count)
+    signature: str = field(default_factory=str)
+    aliases: set = field(default_factory=set)
+    is_library: bool = field(default=False)
+    can_shader: bool = field(default=False)
+    shader: str = field(default_factory=str)
+    suffix: str = field(default_factory=str)
 
 class BindingType(Enum):
     '''
     Addon binary binding type
     '''
-    NONE = bindingtype(0)
-    FILE = bindingtype(1, "file", set())
-    EXE = bindingtype(2, "exe", set(), suffix='.exe')
-    AGNOSTIC = bindingtype(3, "any", set(["agnostic"]), True, True, "dxgi", '.dll')
-    D3D9 = bindingtype(4, "d3d9", set(["dx9"]), True, True, "dxgi", '.dll')
-    D3D10 = bindingtype(5, "d3d10", set(["dx10"]), True, True, "dxgi", '.dll')
-    D3D11 = bindingtype(6, "d3d11", set(["dx11"]), True, True, "dxgi", '.dll')
-    D3D12 = bindingtype(7, "d3d12", set(["dx12"]), True, True, "dxgi", '.dll')
-    VULKAN = bindingtype(8, "vulkan", set(["vk"]), True, True, "vk", '.dll')
+
+    NONE = BindingTypeObj()
+    FILE = BindingTypeObj("file", set())
+    EXE = BindingTypeObj("exe", set(), suffix='.exe')
+    AGNOSTIC = BindingTypeObj("any", set(["agnostic"]), True, True, "dxgi", '.dll')
+    D3D9 = BindingTypeObj("d3d9", set(["dx9"]), True, True, "dxgi", '.dll')
+    D3D10 = BindingTypeObj("d3d10", set(["dx10"]), True, True, "dxgi", '.dll')
+    D3D11 = BindingTypeObj("d3d11", set(["dx11"]), True, True, "dxgi", '.dll')
+    D3D12 = BindingTypeObj("d3d12", set(["dx12"]), True, True, "dxgi", '.dll')
+    VULKAN = BindingTypeObj("vulkan", set(["vk"]), True, True, "vk", '.dll')
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, BindingType):
@@ -37,12 +50,19 @@ class BindingType(Enum):
     def __hash__(self) -> int:
         return hash(self.index)
 
+    @DynamicClassAttribute
+    def value(self) -> BindingTypeObj:
+        '''
+        The value of the Enum member.
+        '''
+        return super().value
+
     @property
     def index(self) -> int:
         '''
         Return the integer value of the enumeration
         '''
-        return super().value.index
+        return self.value.index
 
     @property
     def signature(self) -> str:

@@ -10,6 +10,7 @@ from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
 from yaam.controller.manage import AddonManager
 from yaam.model.game.factory import GameFactory, Game
+from yaam.model.type.binding import BindingType
 from yaam.utils import process
 from yaam.model.options import Option
 from yaam.utils.counter import ForwardCounter
