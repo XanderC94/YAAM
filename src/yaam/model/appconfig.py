@@ -8,6 +8,7 @@ from configparser import ConfigParser
 from yaam.model.options import Option
 from yaam.utils.argparser import Parser
 
+
 class AppProperty(object):
     '''
     Application configuration property
@@ -24,6 +25,7 @@ class AppProperty(object):
     def __str__(self) -> str:
         return str(self.__dict__)
 
+
 class AppConfig(object):
     '''
     Application configuration class
@@ -36,7 +38,7 @@ class AppConfig(object):
 
     def __str__(self) -> str:
         prop_list = ','.join([
-            f"{prop.option.name}:{prop.value}" 
+            f"{prop.option.name}:{prop.value}"
             for prop in self.__property_map.values()
         ])
         return f"Config: ({prop_list})"

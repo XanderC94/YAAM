@@ -13,17 +13,18 @@ from yaam.model.mutable.addon import Addon
 from yaam.utils import process
 from yaam.utils import response as responses
 
+
 class DatastreamUpdater(object):
     '''
     Static datastream addon updater class
     '''
 
-    def __init__(self, code = UpdateResult.NONE) -> None:
+    def __init__(self, code: UpdateResult = UpdateResult.NONE) -> None:
         self.__code = code
         self.naming: Dict[str, str] = dict()
 
     def __fallback_addon_name(self, response: Response, addon: Addon) -> str:
-        response_alias : str = None
+        response_alias: str = None
 
         addon_suffix = ".dll" if addon.binding.is_dll() else ".exe"
         if not addon.binding.is_headless:
@@ -48,16 +49,16 @@ class DatastreamUpdater(object):
         '''
         ret_code = self.__code
 
-        unpack_dir : Path = addon.binding.workspace
+        unpack_dir: Path = addon.binding.workspace
         makedirs(unpack_dir, exist_ok=True)
 
-        rename_enabled : bool = addon.binding.is_dll() or addon.binding.is_file()
+        rename_enabled: bool = addon.binding.is_dll() or addon.binding.is_file()
 
         # write file on disk
         try:
             can_add_alias = False
             # Compute original response filename
-            response_alias : str = responses.get_filename(response)
+            response_alias: str = responses.get_filename(response)
             # If the name is not found by normal meanings of http-header / url parsing...
             # hoping it never happens.
             if response_alias is None:
@@ -102,7 +103,7 @@ class DatastreamUpdater(object):
         try:
             installer_dir = addon.binding.path.parent / "installer"
 
-            installer_name : str = Path(urlparse(response.url).path).name
+            installer_name: str = Path(urlparse(response.url).path).name
             installer_path = installer_dir / installer_name
 
             makedirs(installer_dir, exist_ok=True)

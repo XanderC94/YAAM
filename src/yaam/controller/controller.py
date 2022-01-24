@@ -2,6 +2,7 @@
 State machine based controller for YAAM
 '''
 
+
 class YaamController():
     '''
     State machine based controller for YAAM

@@ -11,14 +11,15 @@ from yaam.utils.logger import static_logger as logger
 from yaam.model.appconfig import AppConfig
 from yaam.model.options import Option
 
+
 class HttpRequestManager(object):
     '''
     Http requests manager class
     '''
 
     def __init__(self, config: AppConfig) -> None:
-        self.__config = config
-        self.__gh_session : requests.Session = None
+        self.__config: AppConfig = config
+        self.__gh_session: requests.Session = None
         self.__gh_user = self.__config.get_property(Option.GITHUB_USER)
         self.__gh_api_token = self.__config.get_property(Option.GITHUB_API_TOKEN)
 
@@ -130,4 +131,3 @@ class HttpRequestManager(object):
             download_uri = url
 
         return self.get(download_uri, **kwargs) if download_uri is not None else None
-        

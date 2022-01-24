@@ -95,6 +95,7 @@ regex = re.compile(  # noqa: W605
 
 pattern = re.compile(regex)
 
+
 def url(value, public=False):
     """
     Return whether or not given value is a valid URL.

@@ -4,6 +4,7 @@ Object normalizations utils
 from pathlib import Path
 from typing import Union
 
+
 def normalize_abs_path(path: Union[str, Path], root: Path) -> Path:
     '''
     Normalize a path to abs

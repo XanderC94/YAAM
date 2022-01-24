@@ -5,6 +5,7 @@ from typing import Dict
 from yaam.model.mutable.binding import Binding
 from yaam.model.mutable.addon_base import AddonBase
 
+
 class Addon(object):
     '''
     Mutable Addon incarnation class
@@ -65,7 +66,7 @@ class Addon(object):
         '''
         Return a partial dict repr of the addon
         '''
-        table : dict = {}
+        table: dict = {}
 
         table['name'] = self._base.name
         table['path'] = self._binding.path.name

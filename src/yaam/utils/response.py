@@ -7,11 +7,10 @@ import zipfile
 import re
 from urllib.parse import unquote_plus, urlparse
 from requests import Response
-
 from yaam.model.mutable.addon import Addon
-from yaam.model.type.binding import BindingType
 
-def is_zip_content(response : Response) -> bool:
+
+def is_zip_content(response: Response) -> bool:
     '''
     Check if the response is referring to a compressed archive (.zip)
     '''
@@ -21,7 +20,8 @@ def is_zip_content(response : Response) -> bool:
         ('Content-Disposition' in response.headers and response.headers['Content-Disposition'].endswith(".zip"))
     )
 
-def is_json_content(response : Response) -> bool:
+
+def is_json_content(response: Response) -> bool:
     '''
     Check if the response is referring to a JSON object file (.json)
     '''
@@ -31,11 +31,12 @@ def is_json_content(response : Response) -> bool:
         ('Content-Type' in response.headers and 'application/json' in response.headers['Content-Type'])
     )
 
+
 def get_filename(response: Response) -> str:
     '''
     Return the name of the file from the respose, if exists
     '''
-    name : str = None
+    name: str = None
 
     content_disp = response.headers.get('content-disposition', None)
     if content_disp is not None:
@@ -54,7 +55,8 @@ def get_filename(response: Response) -> str:
 
     return name
 
-def find_filename(response: Response, target : str) -> bool:
+
+def find_filename(response: Response, target: str) -> bool:
     '''
     Return true if the response contains the target filename
     '''
@@ -76,12 +78,13 @@ def find_filename(response: Response, target : str) -> bool:
 
     return found
 
-def unpack_content(response : Response, addon: Addon) -> bytes:
+
+def unpack_content(response: Response, addon: Addon) -> bytes:
     '''
     Unpack response datastream
     '''
 
-    data : bytes = response.content
+    data: bytes = response.content
 
     lookup_suffix = addon.binding.typing.suffix
     if addon.binding.typing.suffix is None or len(addon.binding.typing.suffix) == 0:
@@ -100,7 +103,8 @@ def unpack_content(response : Response, addon: Addon) -> bytes:
 
     return data
 
-def repack_to_zip(content : bytes) -> zipfile.ZipFile:
+
+def repack_to_zip(content: bytes) -> zipfile.ZipFile:
     '''
     unpack content bytes to a zip
     '''

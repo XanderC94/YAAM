@@ -18,6 +18,7 @@ from yaam.utils.logger import static_logger as logger
 
 IYGS = IYaamGameSettings[Addon, Binding, Argument, AddonBase]
 
+
 class Game(Synthetizer[List[Addon]]):
     '''
     Game class trait
@@ -70,7 +71,7 @@ class Game(Synthetizer[List[Addon]]):
         # automated shader selection
         index = None
         try:
-            shader_priority = [ self.settings.binding_type, BindingType.AGNOSTIC ]
+            shader_priority = [self.settings.binding_type, BindingType.AGNOSTIC]
             for shader in shader_priority:
                 for (i, addon) in enumerate(addons_copy):
                     if addon.base.is_shader and addon.binding.typing == shader and addon.binding.is_enabled:

@@ -6,6 +6,7 @@ from typing import Iterable
 from pathlib import Path
 from yaam.utils.json.jsonkin import Jsonkin
 
+
 def jsonrepr(obj) -> dict or str or list or float or int:
     '''
     Serializer from object to JSON repr
@@ -21,11 +22,12 @@ def jsonrepr(obj) -> dict or str or list or float or int:
     elif isinstance(obj, dict):
         return dict((k, jsonrepr(v)) for k, v in obj.items())
     elif isinstance(obj, Iterable):
-        return [ jsonrepr(i) for i in obj ]
+        return [jsonrepr(i) for i in obj]
     elif hasattr(obj, '__dict__'):
         return vars(obj)
     else:
         return obj
+
 
 def objrepr(json_repr, obj_type, alt_type=None):
     '''

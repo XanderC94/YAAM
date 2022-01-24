@@ -5,6 +5,7 @@ from enum import IntEnum, auto
 
 from yaam.model.mutable.addon import Addon
 
+
 class UpdateResult(IntEnum):
     '''
     Possible results of addon update

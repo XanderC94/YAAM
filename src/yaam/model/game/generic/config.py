@@ -8,6 +8,7 @@ from yaam.model.game.abstract.config import AbstractGameConfiguration
 from yaam.model.type.binding import BindingType
 from yaam.utils.json.io import read_json
 
+
 class GenericGameConfig(AbstractGameConfiguration):
     '''
     Guild Wars 2 model class
@@ -24,10 +25,10 @@ class GenericGameConfig(AbstractGameConfiguration):
 
     def load(self, init_file_path: Path = None) -> bool:
 
-        logger().info(msg = f"Reading game path from {init_file_path}.")
+        logger().info(msg=f"Reading game path from {init_file_path}.")
 
         if init_file_path is not None:
-            init_data : dict = read_json(init_file_path)
+            init_data: dict = read_json(init_file_path)
             self._name = init_data.get('name', str())
             self._config_path = Path(init_data.get('config_path', str()))
             self._root = Path(init_data.get('root', str()))

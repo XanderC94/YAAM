@@ -5,17 +5,20 @@ from typing import Dict
 from yaam.model.type.binding import BindingType
 from yaam.utils.json.jsonkin import Jsonkin
 
+
 class AddonMetadata(Jsonkin):
     '''
     Addon Meta-data class
     '''
 
-    def __init__(self,
-        uri: str = '',
-        etag: str = '',
-        last_modified: str = '',
-        hash_signature: str = '',
-        naming_map: Dict[BindingType, Dict[str, str]] = None) -> None:
+    def __init__(
+                self,
+                uri: str = '',
+                etag: str = '',
+                last_modified: str = '',
+                hash_signature: str = '',
+                naming_map: Dict[BindingType, Dict[str, str]] = None
+            ) -> None:
 
         self.etag = etag
         self.last_modified = last_modified

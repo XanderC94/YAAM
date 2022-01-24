@@ -19,9 +19,10 @@ from yaam.utils.json.repr import jsonrepr
 from yaam.utils.logger import static_logger as logger
 from yaam.utils.normalize import normalize_abs_path
 
+
 class YaamGameSettings(AbstractYaamGameSettings[
-        Addon, Binding, Argument, AddonBase
-    ]):
+            Addon, Binding, Argument, AddonBase
+        ]):
     '''
     Yaam Game Settings model class stub
     '''
@@ -51,19 +52,19 @@ class YaamGameSettings(AbstractYaamGameSettings[
     def load(self) -> bool:
         # Load arguments
         consume_json_entries(
-            read_json(self._context.args_path), { "arguments": self._load_arguments }
+            read_json(self._context.args_path), {"arguments": self._load_arguments}
         )
 
         # Load Addon bases
         consume_json_entries(
-            read_json(self._context.addons_path), { "addons": self._load_addon_bases }
+            read_json(self._context.addons_path), {"addons": self._load_addon_bases}
         )
 
         # Load Argument enabled-disabled settings
         settings_json_obj = read_json(self._context.settings_path)
 
         consume_json_entries(
-            settings_json_obj, { "arguments": self._incarnate_arguments }
+            settings_json_obj, {"arguments": self._incarnate_arguments}
         )
 
         # need to know the current binding type to correctly load the addons bindings
@@ -80,13 +81,13 @@ class YaamGameSettings(AbstractYaamGameSettings[
 
         # Load Addons bindings
         consume_json_entries(
-            settings_json_obj, { "bindings": self._load_bindings }
+            settings_json_obj, {"bindings": self._load_bindings}
         )
 
         # read naming map
         naming_map_obj = read_json(self._context.naming_map_path)
         consume_json_entries(
-            naming_map_obj, { "namings": self._load_namings }
+            naming_map_obj, {"namings": self._load_namings}
         )
 
         logger().info(msg=f"Chosen bindings {self._binding_type.name}.")
@@ -133,7 +134,7 @@ class YaamGameSettings(AbstractYaamGameSettings[
         '''
         Creates addons incarnations from bases and bindings
         '''
-        addons : List[Addon] = list()
+        addons: List[Addon] = list()
 
         # build addons incarnations by binding
         for binding_type in BindingType:
@@ -235,7 +236,7 @@ class YaamGameSettings(AbstractYaamGameSettings[
                 if not self.has_addon_base(addon_name):
                     # create base for dangling binding
                     addon_base = AddonBase(addon_name)
-                    self.add_addon_base(addon_base) # add placeholder
+                    self.add_addon_base(addon_base)  # add placeholder
                     n_dangling_bases += 1
 
         return n_dangling_bases

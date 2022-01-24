@@ -10,17 +10,19 @@ from yaam.model.options import Option
 from yaam.model.appconfig import AppConfig
 from yaam.utils.json.io import write_json, read_json
 
+
 @dataclass(frozen=True)
 class GameContext(object):
     '''
     Game context module
     '''
-    game_root      : Path = field(init=True)
-    yaam_game_dir  : Path = field(init=True)
-    args_path      : Path = field(init=True)
-    addons_path    : Path = field(init=True)
-    settings_path  : Path = field(init=True)
-    naming_map_path : Path = field(init=True)
+    game_root: Path = field(init=True)
+    yaam_game_dir: Path = field(init=True)
+    args_path: Path = field(init=True)
+    addons_path: Path = field(init=True)
+    settings_path: Path = field(init=True)
+    naming_map_path: Path = field(init=True)
+
 
 class AppContext(object):
     '''
@@ -120,7 +122,7 @@ class AppContext(object):
         if self._execution_path.suffix == ".py":
             self._deployment_dir = self._deployment_dir.parent
 
-        manifest : dict = read_json(self._deployment_dir / "MANIFEST")
+        manifest: dict = read_json(self._deployment_dir / "MANIFEST")
         self._version = manifest.get('version', '0.0.0.0').join('-debug' if self.is_debug else '-release')
 
     def deploy_default_init_resources(self) -> None:
@@ -176,10 +178,10 @@ class AppContext(object):
             else:
 
                 if not arguments_path.exists():
-                    write_json(dict({'arguments': [] }), arguments_path)
+                    write_json(dict({'arguments': []}), arguments_path)
 
                 if not addons_path.exists():
-                    write_json(dict({'addons': [] }), addons_path)
+                    write_json(dict({'addons': []}), addons_path)
 
                 if not settings_path.exists():
                     write_json(dict({'arguments': [], 'bindings': []}), settings_path)
@@ -211,4 +213,4 @@ class AppContext(object):
         '''
         Return the available games
         '''
-        return [ _.name for _ in self._games_dir.iterdir() if _.is_dir()]
+        return [_.name for _ in self._games_dir.iterdir() if _.is_dir()]

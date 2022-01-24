@@ -4,6 +4,7 @@ ZIP helper functions module
 from typing import List
 from zipfile import ZipFile
 
+
 def get_root_dirs(zip: ZipFile) -> List[str]:
     '''
     Returns the names of all the root directories in the archive
@@ -13,6 +14,7 @@ def get_root_dirs(zip: ZipFile) -> List[str]:
         _.filename for _ in zip.filelist
         if _.filename.count('/') == 1 and _.is_dir()
     ]
+
 
 def get_root_items(zip: ZipFile) -> List[str]:
     '''

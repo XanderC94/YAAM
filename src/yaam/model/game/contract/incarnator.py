@@ -1,10 +1,11 @@
 '''
-Game static incarnator module 
+Game static incarnator module
 '''
 from abc import abstractmethod
 from yaam.model.game.base import Game
 from yaam.patterns.incarnator import StaticBiIncarnator
 from yaam.model.appcontext import AppContext
+
 
 class IGameIncarnator(StaticBiIncarnator[str, AppContext, Game]):
     '''
@@ -18,4 +19,3 @@ class IGameIncarnator(StaticBiIncarnator[str, AppContext, Game]):
         Create an incarnation of the game
         '''
         return None
-    

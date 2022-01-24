@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List
 import win32com.client
 
+
 def get_windows_namespace(path: Path):
     '''
     Get windows namespace for the specified path
@@ -15,12 +16,13 @@ def get_windows_namespace(path: Path):
 
     if path.exists():
         __path = path.resolve()
-        shell=win32com.client.gencache.EnsureDispatch('Shell.Application', 0)
+        shell = win32com.client.gencache.EnsureDispatch('Shell.Application', 0)
         namespace = shell.NameSpace(str(__path.parent if __path.is_file() else __path))
 
     return (shell, namespace)
 
-def get_wfile_metaheader(path: Path, namespace = None) -> List[str]:
+
+def get_wfile_metaheader(path: Path, namespace=None) -> List[str]:
     '''
     Get file metadata header
     '''
@@ -41,7 +43,8 @@ def get_wfile_metaheader(path: Path, namespace = None) -> List[str]:
 
     return header
 
-def get_wfile_metadata(path: Path, namespace = None, header: List[str] = None) ->  Dict[str, str]:
+
+def get_wfile_metadata(path: Path, namespace=None, header: List[str] = None) -> Dict[str, str]:
     '''
     Retreive windows file metadata
     '''

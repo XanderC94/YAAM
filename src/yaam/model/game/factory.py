@@ -7,6 +7,7 @@ from yaam.model.game.base import Game
 from yaam.model.game.generic.base import GenericGame
 from yaam.model.game.custom.gw2.base import GuildWars2
 
+
 class GameFactory(object):
     '''
     A static game factory class

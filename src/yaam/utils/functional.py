@@ -11,6 +11,7 @@ Mapper = Callable[[T], K]
 Consumer = Callable[[T], None]
 SwissKnife = Dict[str, Tuple[Mapper, Consumer]]
 
+
 def identity(_: T) -> T:
     '''
     Identity function

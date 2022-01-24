@@ -11,6 +11,7 @@ from yaam.model.game.generic.config import GenericGameConfig
 from yaam.model.game.generic.settings import GenericYaamGameSettings
 from yaam.utils.exceptions import ConfigLoadException
 
+
 class GenericGame(Game, IGameIncarnator):
     '''
     Guild Wars 2 model class incarnator
@@ -25,8 +26,8 @@ class GenericGame(Game, IGameIncarnator):
         init_file_path = app_context.init_file_path(game_name)
 
         if not config.load(init_file_path):
-            raise ConfigLoadException(config.path,
-                msg = (f"Configuration loading error. {config.path} might not exists.")
+            raise ConfigLoadException(
+                config.path, msg=f"Configuration loading error. {config.path} might not exists."
             )
 
         game_context = app_context.create_game_environment(config.name, config.game_root)

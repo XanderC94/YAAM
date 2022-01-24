@@ -12,6 +12,7 @@ from yaam.utils.json.io import read_json, write_json
 from yaam.utils.logger import static_logger as logger
 from yaam.utils.hashing import Hasher
 
+
 class MetadataCollector(object):
     '''
     Addon metadata collector
@@ -31,8 +32,8 @@ class MetadataCollector(object):
                 self.__local_metadata[_.base.name] = dict()
 
             self.__local_metadata[_.base.name] = self.__get_local_metadata(_)
-        
-    def get_local_metadata(self, addon: Addon) ->  AddonMetadata:
+
+    def get_local_metadata(self, addon: Addon) -> AddonMetadata:
         '''
         Get the local addon metadata if exists
         '''
@@ -42,7 +43,7 @@ class MetadataCollector(object):
         '''
         Compute the addon metadata path from addon info
         '''
-        metadata_path : Path = None
+        metadata_path: Path = None
 
         metadata_stem = addon.base.name.replace(' ', '_').lower()
 
@@ -57,8 +58,8 @@ class MetadataCollector(object):
         '''
         Retrieve local addon metadata
         '''
-        metadata_path : Path = self.__get_metadata_path(addon)
-        metadata : AddonMetadata = AddonMetadata.from_json(read_json(metadata_path))
+        metadata_path: Path = self.__get_metadata_path(addon)
+        metadata: AddonMetadata = AddonMetadata.from_json(read_json(metadata_path))
         if len(metadata.hash_signature) == 0 and not addon.binding.is_headless:
             metadata.hash_signature = Hasher.SHA256.make_hash_from_file(addon.binding.path)
         metadata.uri = metadata_path

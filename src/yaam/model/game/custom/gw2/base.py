@@ -10,6 +10,7 @@ from yaam.model.game.contract.settings import IYaamGameSettings
 from yaam.model.game.base import Game
 from yaam.model.appcontext import AppContext, GameContext
 
+
 class GuildWars2(Game, IGameIncarnator):
     '''
     Guild Wars 2 model class incarnator
@@ -26,7 +27,7 @@ class GuildWars2(Game, IGameIncarnator):
         if not gw2_config.load(init_file_path):
             raise ConfigLoadException(
                 gw2_config.path,
-                msg = (
+                msg=(
                     "Configuration loading error. "
                     + f"Assert that the configuration {gw2_config.path} exists. "
                     + "Remember to run the game at least once in order to generate the configuration."

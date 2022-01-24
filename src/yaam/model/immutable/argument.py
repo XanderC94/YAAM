@@ -9,13 +9,14 @@ from yaam.utils.json.repr import jsonrepr
 
 T = TypeVar('T')
 
+
 @dataclass(frozen=True)
 class ArgumentSynthesis(Generic[T], Jsonkin):
     '''
     Immutable command line argument synthetis class
     '''
-    _name          : str    = field(init=True)
-    _value         : T      = field(init=True, default=None)
+    _name: str = field(init=True)
+    _value: T = field(init=True, default=None)
 
     def __hash__(self) -> int:
         return hash((self._name, self._value))
@@ -36,7 +37,7 @@ class ArgumentSynthesis(Generic[T], Jsonkin):
         )
 
     @property
-    def name(self) ->str:
+    def name(self) -> str:
         '''
         Argument name
         '''
@@ -50,7 +51,7 @@ class ArgumentSynthesis(Generic[T], Jsonkin):
         return self._value
 
     @value.setter
-    def value(self, value : T):
+    def value(self, value: T):
         '''
         Set argument value
         '''
@@ -75,24 +76,25 @@ class ArgumentSynthesis(Generic[T], Jsonkin):
         )
 
     def to_json(self) -> dict:
-        arg = { 'name': self.name }
+        arg = {'name': self.name}
 
         if self.value is not None:
             arg['value'] = jsonrepr(self.value)
 
         return arg
 
+
 @dataclass(frozen=True)
 class ArgumentInfo(Jsonkin):
     '''
     Immutable Command line Argument class
     '''
-    _name          : str            = field(init=True)
-    _values        : list           = field(init=True)
-    _value_type    : ArgumentType   = field(init=True)
-    _description   : str            = field(init=True)
-    _deprecated    : bool           = field(init=True)
-    _user_defined  : bool           = field(init=True)
+    _name: str = field(init=True)
+    _values: list = field(init=True)
+    _value_type: ArgumentType = field(init=True)
+    _description: str = field(init=True)
+    _deprecated: bool = field(init=True)
+    _user_defined: bool = field(init=True)
 
     def __hash__(self) -> int:
         return hash(self.name)

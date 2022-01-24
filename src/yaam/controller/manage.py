@@ -12,6 +12,7 @@ import yaam.utils.metadata as meta
 from yaam.model.mutable.addon import Addon
 from yaam.utils.logger import static_logger as logger
 
+
 class AddonManager(object):
     '''
     Addon management class
@@ -26,8 +27,8 @@ class AddonManager(object):
         Detect and resolve renamed addons by aligning physical names to pointed ones
         '''
 
-        def check_and_rename(addon : Addon, prev_rule: str, new_rule : str) -> None:
-            ret : bool = False
+        def check_and_rename(addon: Addon, prev_rule: str, new_rule: str) -> None:
+            ret: bool = False
             if prev_rule is not None and new_rule is not None and prev_rule != new_rule:
                 logger().info(msg=f"Detected a name change in {addon.base.name}: {prev_rule} is now {new_rule}")
                 prev_target = addon.binding.workspace / prev_rule
@@ -173,7 +174,7 @@ class AddonManager(object):
 
         return ret
 
-    def __match_metainfo(self, addon: Addon, alt_path : Path = None) -> bool:
+    def __match_metainfo(self, addon: Addon, alt_path: Path = None) -> bool:
         '''
         Returns whether there are matching info between the addon
         and the linked .dll file
@@ -219,7 +220,8 @@ class AddonManager(object):
 
             ret = True
 
-        elif addons_bak_dir.exists(): # backward compatibility
+        # backward compatibility
+        elif addons_bak_dir.exists():
 
             logger().info(msg="Addons will be restored...")
 

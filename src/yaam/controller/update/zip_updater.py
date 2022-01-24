@@ -14,12 +14,13 @@ from yaam.utils import process
 import yaam.utils.response as responses
 import yaam.utils.zip as zip_helper
 
+
 class ZipUpdater(object):
     '''
     Static zipped addons updater class
     '''
 
-    def __init__(self, code = UpdateResult.NONE) -> None:
+    def __init__(self, code: UpdateResult = UpdateResult.NONE) -> None:
         self.__code = code
         self.naming: Dict[str, str] = dict()
 
@@ -165,12 +166,12 @@ class ZipUpdater(object):
             # if the content is a zip,
             # unpack all the content in the parent directory
             # of file pointed by the addon path
-            zip_content : ZipFile = responses.repack_to_zip(response.content)
+            zip_content: ZipFile = responses.repack_to_zip(response.content)
             # if an addon doesn't specify a name (points to a folder)
             # item are unpacked as-is (no rename) and will be repacked
             # to the root directoy if the zip root is a single folder
             # NOTE: Renaming is possible in this case only with a rename map
-            unpack_dir : Path = addon.binding.workspace
+            unpack_dir: Path = addon.binding.workspace
 
             makedirs(unpack_dir, exist_ok=True)
 

@@ -5,11 +5,12 @@ from enum import Enum
 from typing import Any
 from pathlib import Path
 
+
 class ArgumentType(Enum):
     '''
     Argument value type factory
     '''
-    NONE = (0, lambda x : x)
+    NONE = (0, lambda x: x)
     BOOLEAN = (1, bool)
     NUMERIC = (2, float)
     IP = (3, str)

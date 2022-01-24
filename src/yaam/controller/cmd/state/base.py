@@ -4,23 +4,23 @@ Base REPL state class module
 
 from abc import abstractmethod
 from cmd import Cmd
-
 from yaam.model.game.base import Game
+
 
 class AREPLState(Cmd):
     '''
     Abstract REPL state class
     '''
 
-    def __init__(self, name: str, game: Game, completekey: str = 'tab', stdin = None, stdout = None) -> None:
+    def __init__(self, name: str, game: Game, completekey: str = 'tab', stdin=None, stdout=None) -> None:
         super().__init__(completekey=completekey, stdin=stdin, stdout=stdout)
 
         self.__name = name
-        self.intro=f"{self.__name} repl started. Use \"help\" or \"?\" to list available interactions."
-        self.outro=f"{self.__name} repl ended."
-        self.prompt=f"({self.__name}): "
+        self.intro = f"{self.__name} repl started. Use \"help\" or \"?\" to list available interactions."
+        self.outro = f"{self.__name} repl ended."
+        self.prompt = f"({self.__name}): "
         self._game: Game = game
-    
+
     @property
     def name(self):
         '''

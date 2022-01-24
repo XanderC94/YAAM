@@ -6,12 +6,13 @@ from yaam.controller.cmd.state.base import AREPLState
 from yaam.controller.cmd.state.create import REPLCreateMode, REPLCreateState
 from yaam.model.game.base import Game
 
+
 class REPL(AREPLState):
     '''
     Yaam REPL class implementation
     '''
 
-    def __init__(self, game: Game, completekey: str = 'tab', stdin = None, stdout = None) -> None:
+    def __init__(self, game: Game, completekey: str = 'tab', stdin=None, stdout=None) -> None:
         super().__init__("YAAM", game, completekey=completekey, stdin=stdin, stdout=stdout)
 
     def do_new(self, args: str):
@@ -53,7 +54,7 @@ class REPL(AREPLState):
         Example: list <addons | bindings | chains>
         '''
         print("Requested: ", "list", args)
-        
+
         if args.lower() == "addons":
             for base in self._game.settings.bases.values():
                 self.stdout.write(f"{str(base)}\n")
@@ -66,6 +67,7 @@ class REPL(AREPLState):
 
     def _can_complete(self, args: str) -> bool:
         return True
+
 
 def repl(game: Game):
     '''

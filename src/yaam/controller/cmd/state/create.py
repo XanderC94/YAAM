@@ -14,17 +14,20 @@ from yaam.controller.cmd.state.validators import BindingNameValidator, BindingPa
 from yaam.model.type.binding import BindingType
 from yaam.utils.counter import ForwardCounter
 
+
 class LUTEntry:
     '''
     Game entity properties look-up table
     '''
-    def __init__(self, 
-            attribute : str = "", 
-            typing : object = None, 
-            optional : bool = False, 
-            validator : Callable = YesValidator(), 
-            handle : Callable = lambda x, y: None, 
-            description : str = ""):
+    def __init__(
+                self,
+                attribute: str = "",
+                typing: object = None,
+                optional: bool = False,
+                validator: Callable = YesValidator(),
+                handle: Callable = lambda x, y: None,
+                description: str = ""
+            ):
 
         self.attribute = attribute
         self.typing = typing
@@ -33,14 +36,15 @@ class LUTEntry:
         self.handle = handle
         self.description = description
 
+
 class CreateMode(object):
     '''
     Enum class object type
     '''
     __counter = ForwardCounter()
 
-    def __init__(self, entity : Callable = lambda x : None, lut : dict = None):
-        self.__index : int = CreateMode.__increment()
+    def __init__(self, entity: Callable = lambda x: None, lut: dict = None):
+        self.__index: int = CreateMode.__increment()
         self.__entity = entity
         self.__lut = lut
 
@@ -68,6 +72,7 @@ class CreateMode(object):
         Return associated entity properties' look-up table
         '''
         return self.__lut
+
 
 class REPLCreateMode(Enum):
     '''
@@ -119,7 +124,7 @@ class REPLCreateMode(Enum):
             validator=YesValidator(),
             handle=lambda obj, val: AddonBase.dependencies.__set__(obj, val.split(',')),
             description="""
-            A comma separated list of this addon dependencies 
+            A comma separated list of this addon dependencies
             (other addons on which this addon depends on to work correctly)
             """
         ),
@@ -129,7 +134,7 @@ class REPLCreateMode(Enum):
             validator=YesValidator(),
             handle=lambda obj, val: AddonBase.contributors.__set__(obj, val.split(',')),
             description="""
-            A comma separated list of this addon developement contributors 
+            A comma separated list of this addon developement contributors
             """
         ),
         'chainloads': LUTEntry(
@@ -138,7 +143,7 @@ class REPLCreateMode(Enum):
             validator=YesValidator(),
             handle=lambda obj, val: AddonBase.chainloads.__set__(obj, val.split(',')),
             description="""
-            A comma separated list of this addon chainload names in order of preference 
+            A comma separated list of this addon chainload names in order of preference
             """
         )
     }))
@@ -236,7 +241,7 @@ class REPLCreateMode(Enum):
         return tuple(command.split('=', 1))
 
     @staticmethod
-    def from_string(str_repr:str):
+    def from_string(str_repr: str):
         '''
         Return this enum obj from string repr
         '''
@@ -249,16 +254,20 @@ class REPLCreateMode(Enum):
 
         return mode
 
+
 #######################################################################################
+
 
 class REPLCreateState(AREPLState):
     '''
     REPL entity creation state
     '''
 
-    def __init__(self,
-        name: str, mode: REPLCreateMode, game: Game,
-        completekey: str = 'tab', stdin=None, stdout=None) -> None:
+    def __init__(
+                self,
+                name: str, mode: REPLCreateMode, game: Game,
+                completekey: str = 'tab', stdin=None, stdout=None
+            ) -> None:
 
         super().__init__(f"{name}-{mode.signature}", game, completekey=completekey, stdin=stdin, stdout=stdout)
         self.__mode = mode
@@ -326,12 +335,12 @@ class REPLCreateState(AREPLState):
     def postloop(self) -> None:
 
         if self._completed:
-            
+
             self.stdout.write(f"{str(self.__entity)}\n")
 
             if self.__mode == REPLCreateMode.ADDON and isinstance(self.__entity, AddonBase):
                 self._game.settings.bases[self.__entity.name] = self.__entity
             elif self.__mode == REPLCreateMode.BINDING and isinstance(self.__entity, Binding):
                 self._game.settings.bindings[self.__entity.typing][self.__entity.name] = self.__entity
-            
+
         return super().postloop()

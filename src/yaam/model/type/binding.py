@@ -8,6 +8,7 @@ from types import DynamicClassAttribute
 from typing import Set
 from yaam.utils.counter import ForwardCounter
 
+
 @dataclass(frozen=True)
 class BindingTypeObj(object):
     '''
@@ -22,6 +23,7 @@ class BindingTypeObj(object):
     can_shader: bool = field(default=False)
     shader: str = field(default_factory=str)
     suffix: str = field(default_factory=str)
+
 
 class BindingType(Enum):
     '''

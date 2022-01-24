@@ -6,6 +6,7 @@ import importlib
 from typing import Callable
 from types import FunctionType
 
+
 class Jsonkin(object):
     """
     A mixin class that enable json serialization and deserialization
@@ -30,23 +31,26 @@ class Jsonkin(object):
     def __repr__(self):
         return str(self.to_json())
 
+
 ###############################################################
 
-def tuple_to_json(tobj:tuple) -> dict:
+
+def tuple_to_json(tobj: tuple) -> dict:
     '''
     Convert tuple object to json obj
     '''
     return dict((str(k), tobj[k]) for k in range(len(tobj)))
 
-def tuple_from_json(json_obj:dict) -> tuple:
+
+def tuple_from_json(json_obj: dict) -> tuple:
     '''
     Convert json obj to tuple
     '''
     return tuple(json_obj[k] for k in json_obj)
 
+
 ################################################################
 
-##################################################################################
 
 class FunctionWrapper(Jsonkin, Callable[[object], object]):
     '''

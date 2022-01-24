@@ -2,12 +2,13 @@
 Simple counter class module
 '''
 
+
 class ForwardCounter(object):
     '''
     Simple forward counter class implementation
     '''
 
-    def __init__(self, start : int = 0, step : int = 1) -> None:
+    def __init__(self, start: int = 0, step: int = 1) -> None:
         self.__start = start
         self.__step = step
         self.__value = start
@@ -17,7 +18,7 @@ class ForwardCounter(object):
         return the current counter value and evaluate the next one
         '''
         res = self.__value
-        self.__value+=self.__step
+        self.__value += self.__step
         return res
 
     def __int__(self) -> int:
@@ -36,7 +37,7 @@ class ForwardCounter(object):
         '''
         evaluate the next counter value and returns it
         '''
-        self.__value+=self.__step
+        self.__value += self.__step
         return self.__value
 
     def reset(self) -> None:

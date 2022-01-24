@@ -13,11 +13,13 @@ B = TypeVar('B')
 C = TypeVar('C')
 D = TypeVar('D')
 
+
 class ABCD(ABC, Generic[A, B, C, D]):
     '''
     4-generic class
     '''
     pass
+
 
 class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
     '''
@@ -46,7 +48,7 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
         Set a new binding type for the game
         '''
         pass
-    
+
     @property
     @abstractmethod
     def bindings(self) -> Dict[BindingType, Dict[str, B]]:
@@ -171,9 +173,8 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
         return False
 
     @abstractmethod
-    def digest(self) ->  str:
+    def digest(self) -> str:
         '''
         Return the setting digest
         '''
         return str()
- 

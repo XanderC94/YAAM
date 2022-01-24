@@ -23,7 +23,8 @@ from yaam.utils.exceptions import exception_handler
 
 #####################################################################
 
-def select_game(app_context: AppContext, logger: logging.Logger) ->  str:
+
+def select_game(app_context: AppContext, logger: logging.Logger) -> str:
     '''
     request or resolve the name of the game to be loaded
     '''
@@ -45,13 +46,14 @@ def select_game(app_context: AppContext, logger: logging.Logger) ->  str:
 
     return game_name
 
-def run_main(app_context : AppContext, logger: logging.Logger):
+
+def run_main(app_context: AppContext, logger: logging.Logger):
     '''
     Main thread
     '''
 
-    game : Game = None
-    game_stasis : Game = None
+    game: Game = None
+    game_stasis: Game = None
     try:
         game_name = select_game(app_context, logger)
         if game_name is not None:
@@ -91,7 +93,7 @@ def run_main(app_context : AppContext, logger: logging.Logger):
             # in order to know HOW to correctly disable previous shaders and
             # enable the new ones, if any, it is necessary to know the previous
             # addon configuration incarnation
-            curr_game_binding = game.settings.binding_type
+            curr_game_binding: BindingType = game.settings.binding_type
 
             timer = Timer()
             timer.tick()
@@ -135,6 +137,7 @@ def run_main(app_context : AppContext, logger: logging.Logger):
             logger.info(msg="Stack complete. Closing...")
 
     return game is not None
+
 
 if __name__ == "__main__":
 

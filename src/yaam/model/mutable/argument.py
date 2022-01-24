@@ -11,6 +11,7 @@ from yaam.utils.json.repr import jsonrepr
 
 T = TypeVar('T')
 
+
 class Argument(Synthetizer[ArgumentSynthesis[T]], Jsonkin):
     '''
     Mutable Argument model class
@@ -18,7 +19,7 @@ class Argument(Synthetizer[ArgumentSynthesis[T]], Jsonkin):
 
     def __init__(self, arg: ArgumentInfo, value: T = None, enabled=False):
         self.value: T = value
-        self.enabled : bool = enabled
+        self.enabled: bool = enabled
         self._argument: ArgumentInfo = arg
 
     def __hash__(self) -> int:
@@ -38,7 +39,7 @@ class Argument(Synthetizer[ArgumentSynthesis[T]], Jsonkin):
         return ArgumentSynthesis(self.meta.name, self.value)
 
     @staticmethod
-    def from_json(json_obj:dict):
+    def from_json(json_obj: dict):
         '''
         Return the object representation of this object
         '''
@@ -50,7 +51,7 @@ class Argument(Synthetizer[ArgumentSynthesis[T]], Jsonkin):
         '''
         Map the json rapresentation into an object of this class
         '''
-        arg = { 'name': self.meta.name }
+        arg = {'name': self.meta.name}
 
         if self.meta.typing is not ArgumentType.NONE:
             arg['value'] = jsonrepr(self.value)

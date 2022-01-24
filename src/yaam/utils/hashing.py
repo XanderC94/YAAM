@@ -6,6 +6,7 @@ import hashlib
 from enum import Enum
 from pathlib import Path
 
+
 class Hasher(Enum):
     '''
     Available hashing algorithms
@@ -33,7 +34,7 @@ class Hasher(Enum):
 
         return strategy
 
-    def make_hash_from_file(self, fname : Path) -> str:
+    def make_hash_from_file(self, fname: Path) -> str:
         '''
         Return hashcode for the specified file with the specified algorithm
         @fname: Path -- path to the file for which computing the hash

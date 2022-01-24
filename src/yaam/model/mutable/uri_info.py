@@ -3,12 +3,13 @@ Uri info model class module
 '''
 from yaam.utils.json.jsonkin import Jsonkin
 
+
 class UriInfo(Jsonkin):
     '''
     Addon base uri info class
     '''
 
-    def __init__(self, is_installer : bool = False, is_offline = True) -> None:
+    def __init__(self, is_installer: bool = False, is_offline: bool = True) -> None:
         self._is_installer = is_installer
         self._is_offline = is_offline
 
@@ -27,14 +28,14 @@ class UriInfo(Jsonkin):
         return self._is_offline
 
     @is_installer.setter
-    def is_installer(self, is_installer:bool) -> bool:
+    def is_installer(self, is_installer: bool) -> bool:
         '''
         Return if the companion uri points to an installer
         '''
         self._is_installer = is_installer
 
     @is_offline.setter
-    def is_offline(self, is_offline:bool) -> bool:
+    def is_offline(self, is_offline: bool) -> bool:
         '''
         Return if the companion uri points to an offline installer
         '''

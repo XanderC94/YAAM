@@ -5,20 +5,23 @@ from typing import List
 from yaam.model.mutable.uri_info import UriInfo
 from yaam.utils.json.jsonkin import Jsonkin
 
+
 class AddonBase(Jsonkin):
     '''
     Base Addon class
     '''
 
-    def __init__(self,
-        name: str = str(),
-        uri: str = str(),
-        uri_info: UriInfo = None,
-        description: str = str(),
-        contribs: List[str] = None,
-        dependencies: List[str] = None,
-        chainloads: List[str] = None,
-        is_shader: bool = False):
+    def __init__(
+                self,
+                name: str = str(),
+                uri: str = str(),
+                uri_info: UriInfo = None,
+                description: str = str(),
+                contribs: List[str] = None,
+                dependencies: List[str] = None,
+                chainloads: List[str] = None,
+                is_shader: bool = False
+            ):
 
         self._name = name
         self._uri = uri
@@ -91,7 +94,7 @@ class AddonBase(Jsonkin):
         return self._chainloads
 
     @property
-    def is_shader(self)-> bool:
+    def is_shader(self) -> bool:
         '''
         Return whether this addon is a shader library or not
         '''

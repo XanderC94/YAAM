@@ -6,18 +6,21 @@ from typing import List
 from yaam.model.type.binding import BindingType
 from yaam.utils.json.jsonkin import Jsonkin
 
+
 class Binding(Jsonkin):
     '''
     Mutable Addon binding model
     '''
 
-    def __init__(self,
-        name: str = str(),
-        path: Path = Path(),
-        args: List[str] = None,
-        enabled: bool = False,
-        updateable: bool = False,
-        binding_type: BindingType = BindingType.AGNOSTIC):
+    def __init__(
+                self,
+                name: str = str(),
+                path: Path = Path(),
+                args: List[str] = None,
+                enabled: bool = False,
+                updateable: bool = False,
+                binding_type: BindingType = BindingType.AGNOSTIC
+            ):
 
         self._name = name
         self._path = path
@@ -131,42 +134,42 @@ class Binding(Jsonkin):
         return self._binding_type is BindingType.EXE
 
     @name.setter
-    def name(self, new_name : str):
+    def name(self, new_name: str):
         '''
         Set the Addon name
         '''
         self._name = new_name
 
     @path.setter
-    def path(self, new_path : Path):
+    def path(self, new_path: Path):
         '''
         Set the Addon path
         '''
         self._path = new_path
 
     @args.setter
-    def args(self, new_args : List[str]):
+    def args(self, new_args: List[str]):
         '''
         Set the Addon path
         '''
         self._args = new_args
 
     @is_updateable.setter
-    def updateable(self, updateable : bool):
+    def updateable(self, updateable: bool):
         '''
         Set whether or not this addon should be updated
         '''
         self._updateable = updateable
 
     @is_enabled.setter
-    def is_enabled(self, enabled : bool) -> str:
+    def is_enabled(self, enabled: bool) -> str:
         '''
         Set whether or not this addon is enabled
         '''
         self._enabled = enabled
 
     @typing.setter
-    def typing(self, new_binding : BindingType):
+    def typing(self, new_binding: BindingType):
         '''
         Set the addon binding type
         '''

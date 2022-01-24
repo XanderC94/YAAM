@@ -2,11 +2,11 @@
 Game property validator
 '''
 
-from pathlib import Path
 from typing import Any
 from yaam.model.game.base import Game
 from yaam.model.type.binding import BindingType
 import yaam.utils.validators.url as validator
+
 
 class PropertyValidator(object):
     '''
@@ -14,7 +14,7 @@ class PropertyValidator(object):
     '''
 
     def __init__(self) -> None:
-        self._error : str = ""
+        self._error: str = ""
 
     def __call__(self, game: Game, property_value: Any) -> bool:
         return self.validate(game, property_value)
@@ -32,6 +32,7 @@ class PropertyValidator(object):
         '''
         return self._error if self._error[-1] == '\n' else f"{self._error}\n"
 
+
 class YesValidator(PropertyValidator):
     '''
     Always return true
@@ -39,6 +40,7 @@ class YesValidator(PropertyValidator):
 
     def validate(self, game: Game, property_value: Any) -> bool:
         return True
+
 
 class AddonNameValidator(PropertyValidator):
     '''
@@ -60,6 +62,7 @@ class AddonNameValidator(PropertyValidator):
 
         return is_valid
 
+
 class AddonURIValidator(PropertyValidator):
     '''
     Addon base uri validator
@@ -76,6 +79,7 @@ class AddonURIValidator(PropertyValidator):
             self._error = "Specified property not of the required type.\n"
 
         return is_valid
+
 
 class BindingNameValidator(PropertyValidator):
     '''
@@ -97,6 +101,7 @@ class BindingNameValidator(PropertyValidator):
 
         return is_valid
 
+
 class BindingPathValidator(PropertyValidator):
     '''
     Binding path validator
@@ -113,6 +118,7 @@ class BindingPathValidator(PropertyValidator):
             self._error = "Specified property not of the required type.\n"
 
         return is_valid
+
 
 class BindingTypeValidator(PropertyValidator):
     '''

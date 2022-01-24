@@ -21,6 +21,7 @@ OptionGroupEntry = namedtuple(
 
 counter = ForwardCounter()
 
+
 class Option(Enum):
     '''
     Yaam command line options
@@ -143,14 +144,14 @@ class Option(Enum):
         Return the option action upon specification
         '''
         return self.value.action
-    
+
     @property
     def suppress_missing(self) -> bool:
         '''
         Return if the option should be suppressed from the parser when missing
         '''
         return self.value.suppress_missing
-    
+
     @staticmethod
     def from_string(str_repr: str):
         '''
@@ -165,19 +166,21 @@ class Option(Enum):
 
         return obj
 
+
 #############################################################
+
 
 class OptionGroup(Enum):
     '''
     Yaam command line options groups
     '''
-    EXECUTION_MODE=OptionGroupEntry(
+    EXECUTION_MODE = OptionGroupEntry(
         index=0,
         options=[Option.RUN_STACK, Option.UPDATE_ADDONS, Option.EXPORT],
         mutually_exclusive=True
     )
 
-    GLOBAL=OptionGroupEntry(
+    GLOBAL = OptionGroupEntry(
         index=1,
         options=[
             Option.DEBUG, Option.GAME, Option.FORCE_ACTION, Option.EDIT,
@@ -187,7 +190,7 @@ class OptionGroup(Enum):
     )
 
     def __hash__(self) -> int:
-        return hash(tuple([self.index, *[ hash(_) for _ in self.options]]))
+        return hash(tuple([self.index, *[hash(_) for _ in self.options]]))
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Option):

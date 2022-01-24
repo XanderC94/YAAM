@@ -7,12 +7,13 @@ from pathlib import Path
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
 
+
 class AbstractGameConfiguration(IGameConfiguration):
     '''
     Game model base class
     '''
 
-    def __init__(self, default_binding : BindingType = BindingType.AGNOSTIC):
+    def __init__(self, default_binding: BindingType = BindingType.AGNOSTIC):
 
         self._name: str = str()
         self._config_path: Path = Path()

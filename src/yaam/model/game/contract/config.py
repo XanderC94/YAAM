@@ -6,6 +6,7 @@ from pathlib import Path
 from abc import abstractmethod
 from yaam.model.type.binding import BindingType
 
+
 class IGameConfiguration(object):
     '''
     Game configuration model Interface

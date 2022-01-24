@@ -3,14 +3,15 @@ Timer class module
 '''
 import time
 
+
 class Timer(object):
     '''
     Timer class
     '''
 
     def __init__(self) -> None:
-        self.__tick : float = 0
-        self.__tock : float = 0
+        self.__tick: float = 0
+        self.__tock: float = 0
         self.__tock_called = False
 
     def tick(self):

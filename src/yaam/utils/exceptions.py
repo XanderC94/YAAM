@@ -6,6 +6,7 @@ import sys
 from typing import Any
 from yaam.utils.logger import static_logger as logger
 
+
 def exception_handler(ex_type, ex_value, ex_traceback):
     '''
     Uncaught exception handler
@@ -16,6 +17,7 @@ def exception_handler(ex_type, ex_value, ex_traceback):
 
     logger().critical("Uncaught exception", exc_info=(ex_type, ex_value, ex_traceback))
 
+
 class ConfigLoadException(Exception):
     '''
     ConfigLoadException
@@ -23,6 +25,7 @@ class ConfigLoadException(Exception):
     def __init__(self, config_path: Path, msg: str, *args):
         super().__init__(msg, *args)
         self.config_path = config_path
+
 
 class GitHubException(Exception):
     '''
@@ -32,6 +35,7 @@ class GitHubException(Exception):
     def __init__(self, *args) -> None:
         super().__init__(*args)
 
+
 class UpdateException(Exception):
     '''
     Update related exceptions
@@ -39,6 +43,7 @@ class UpdateException(Exception):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
+
 
 class Found(Exception):
     '''
@@ -48,4 +53,3 @@ class Found(Exception):
     def __init__(self, obj: Any, *args) -> None:
         super().__init__(*args)
         self.content = obj
-        

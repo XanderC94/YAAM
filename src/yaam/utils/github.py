@@ -11,6 +11,7 @@ from yaam.utils.logger import static_logger as logger
 
 from yaam.utils.exceptions import GitHubException
 
+
 class Asset(Jsonkin):
     '''
     GitHub API download asset
@@ -33,13 +34,14 @@ class Asset(Jsonkin):
             url=json_obj.get('browser_download_url', str())
         )
 
+
 class API(object):
     '''
     github api static class
     '''
 
     @staticmethod
-    def open_session(user = str(), token = str()):
+    def open_session(user: str = str(), token: str = str()):
         '''
         Create github api session
         '''
@@ -87,7 +89,7 @@ class API(object):
 
             if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
 
-                json_data : dict = response.json()
+                json_data: dict = response.json()
 
                 for asset in json_data.get('assets', dict()):
                     if 'browser_download_url' in asset:

@@ -18,6 +18,7 @@ import yaam.utils.validators.url as validator
 from yaam.utils.logger import static_logger as logger
 import yaam.utils.response as responses
 
+
 class AddonUpdater(object):
     '''
     Addon updater class
@@ -37,8 +38,10 @@ class AddonUpdater(object):
         @addons: list -- list of addons to updated
         '''
 
-        force_update = (self.__config.get_property(Option.UPDATE_ADDONS)
-            and self.__config.get_property(Option.FORCE_ACTION))
+        force_update = (
+            self.__config.get_property(Option.UPDATE_ADDONS)
+            and self.__config.get_property(Option.FORCE_ACTION)
+        )
 
         for addon in addons:
             self.update_addon(addon, force_update)
@@ -71,9 +74,9 @@ class AddonUpdater(object):
         ret_code = UpdateResult.NONE
 
         default_request_args = {
-            'timeout':10,
-            'allow_redirects':True,
-            'headers':{
+            'timeout': 10,
+            'allow_redirects': True,
+            'headers': {
                 'cache-control': 'no-cache',
                 'pragma': 'no-cache'
             }

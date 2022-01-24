@@ -4,55 +4,59 @@ Game model incarnator module
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
-V = TypeVar('V')
-N = TypeVar('N')
-I = TypeVar('I')
+P0 = TypeVar('P0')
+P1 = TypeVar('P1')
+IncOut = TypeVar('IncOut')
 
-class Incarnator(ABC, Generic[V, I]):
+
+class Incarnator(ABC, Generic[P0, IncOut]):
     '''
     Incarnator pattern interface
     '''
 
     @abstractmethod
-    def incarnate(self, value: V = None) -> I:
+    def incarnate(self, param: P0 = None) -> IncOut:
         '''
         Return the object incarnation
         '''
         return None
 
-class BiIncarnator(ABC, Generic[N, V, I]):
+
+class BiIncarnator(ABC, Generic[P0, P1, IncOut]):
     '''
     Double Incarnator pattern interface
     '''
 
     @abstractmethod
-    def incarnate(self, value1 : N, value2: V = None) -> I:
+    def incarnate(self, param0: P0 = None, param1: P1 = None) -> IncOut:
         '''
         Return the object incarnation
         '''
         return None
 
-class StaticIncarnator(ABC, Generic[V, I]):
+
+class StaticIncarnator(ABC, Generic[P0, IncOut]):
     '''
     Static Incarnator pattern interface
     '''
 
     @staticmethod
     @abstractmethod
-    def incarnate(value: V) -> I:
+    def incarnate(param: P0 = None) -> IncOut:
         '''
         Return the object incarnation
         '''
         return None
 
-class StaticBiIncarnator(ABC, Generic[N, V, I]):
+
+class StaticBiIncarnator(ABC, Generic[P0, P1, IncOut]):
     '''
     Static Double Incarnator pattern interface
     '''
 
     @staticmethod
     @abstractmethod
-    def incarnate(value1 : N, value2: V = None) -> I:
+    def incarnate(param0: P0 = None, param1: P1 = None) -> IncOut:
         '''
         Return the object incarnation
         '''

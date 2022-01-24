@@ -6,6 +6,7 @@ from typing import TypeVar, Generic
 
 V = TypeVar('V')
 
+
 class Synthetizer(ABC, Generic[V]):
     '''
     Synthetizer pattern interface

@@ -11,6 +11,7 @@ from yaam.model.game.abstract.config import AbstractGameConfiguration
 
 #############################################################################################
 
+
 class GW2Config(AbstractGameConfiguration):
     '''
     Guild Wars 2 model class
@@ -34,11 +35,11 @@ class GW2Config(AbstractGameConfiguration):
         load_ok = False
 
         if init_file_path is not None:
-            init_data : dict = read_json(init_file_path)
+            init_data: dict = read_json(init_file_path)
             self._name = init_data.get('name', self._name)
             self._config_path = Path(expandvars(init_data.get('config_path', self._config_path))).resolve()
 
-        logger().info(msg = f"Reading game path from {self.path}.")
+        logger().info(msg=f"Reading game path from {self.path}.")
 
         if self.path.exists():
             with open(self.path, encoding="utf-8") as _:

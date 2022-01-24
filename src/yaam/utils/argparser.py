@@ -6,6 +6,7 @@ from argparse import ArgumentParser, Namespace, SUPPRESS
 from typing import Sequence
 from yaam.model.options import OptionGroup
 
+
 class Parser(object):
     '''
     Yaam command line arguments parser
@@ -13,7 +14,7 @@ class Parser(object):
     def __init__(self) -> None:
         super().__init__()
 
-        self.__parser = ArgumentParser(prog="YAAM", description="Yet Another Addon Manager" )
+        self.__parser = ArgumentParser(prog="YAAM", description="Yet Another Addon Manager")
 
         for opt_group in OptionGroup:
 
@@ -40,4 +41,3 @@ class Parser(object):
         Return parsed arguments
         '''
         return self.__parser
-        

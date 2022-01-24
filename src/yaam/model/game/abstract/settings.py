@@ -12,20 +12,21 @@ B = TypeVar('B')
 C = TypeVar('C')
 D = TypeVar('D')
 
+
 class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
     '''
     Abstract Yaam Game Settings model class
     '''
 
-    def __init__(self, settings_path: Path, binding : BindingType = BindingType.AGNOSTIC):
+    def __init__(self, settings_path: Path, binding: BindingType = BindingType.AGNOSTIC):
 
         self._settings_path = settings_path
 
-        self._args : Dict[str, C] = dict()
-        self._bases : Dict[str, D] = dict()
-        self._bindings : Dict[BindingType, Dict[str, B]] = dict()
-        self._binding_type : BindingType = binding
-        self._naming_map : Dict[BindingType, Dict[str, Dict[str, str]]] = dict()
+        self._args: Dict[str, C] = dict()
+        self._bases: Dict[str, D] = dict()
+        self._bindings: Dict[BindingType, Dict[str, B]] = dict()
+        self._binding_type: BindingType = binding
+        self._naming_map: Dict[BindingType, Dict[str, Dict[str, str]]] = dict()
 
     @property
     def path(self) -> Path:
@@ -106,4 +107,3 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
     @property
     def namings(self) -> Dict[BindingType, Dict[str, Dict[str, str]]]:
         return self._naming_map
-        
