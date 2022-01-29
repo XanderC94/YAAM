@@ -16,10 +16,10 @@ on:
         required: true
         type: string
 
-#   push:
-#     # Sequence of patterns matched against refs/tags
-#     tags:
-#     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*-test' # Push events to matching v*, i.e. v1.0, v20.15.10
     
 jobs:
   build:
@@ -84,11 +84,11 @@ jobs:
 #         path: |
 #           bin/standalone/mvsc/yaam/yaam-standalone-msvc.zip
           
-    - name: Release built artifacts
-      uses: ncipollo/release-action@v1
-      with:
-        name: YAAM release ${{steps.info.outputs.tag}}
-        tag: ${{steps.info.outputs.tag}}
-        body: Automated build release for YAAM ${{steps.info.outputs.tag}}
-        artifacts: bin/standalone/mvsc/yaam/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
-        token: ${{ secrets.RELEASE_TOKEN }}
+    # - name: Release built artifacts
+    #   uses: ncipollo/release-action@v1
+    #   with:
+    #     name: YAAM release ${{steps.info.outputs.tag}}
+    #     tag: ${{steps.info.outputs.tag}}
+    #     body: Automated build release for YAAM ${{steps.info.outputs.tag}}
+    #     artifacts: bin/standalone/mvsc/yaam/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+    #     token: ${{ secrets.RELEASE_TOKEN }}
