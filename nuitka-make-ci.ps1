@@ -66,6 +66,24 @@ $entrypoint="src/$entrypoint_name.py"
 if (-not(Test-Path -path "$root/$output_dir"))
 {
     New-Item -path "$root/$output_dir" -force -itemtype "directory" | Out-Null
+    Write-Output "Created output dir $root/$output_dir"
+}
+else
+{
+    Remove-Item -path "$root/$output_dir/*" -force -recurse
+    Write-Output "Cleared $root/$output_dir content"
+}
+
+# create artifacts dir if doesn't exist
+if (-not(Test-Path -path "$root/artifacts"))
+{
+    New-Item -path "$root/artifacts" -force -itemtype "directory" | Out-Null
+    Write-Output "Created artifacts dir $root/artifacts"
+}
+else
+{
+    Remove-Item -path "$root/artifacts/*" -force -recurse
+    Write-Output "Cleared $root/artifacts content"
 }
 
 # Load manifest template and write in bin folder
@@ -102,23 +120,6 @@ $params = @(
     "--output-dir=$output_dir"
 )
 
-if ($mode -eq "standalone")
-{
-    if (Test-Path -path "$root/$output_dir/$target_name")
-    {
-        Remove-Item -path "$root/$output_dir/$target_name" -force -recurse
-        Write-Output "Cleared previous build $root/$output_dir/$target_name"
-    }
-}
-else 
-{
-    if (Test-Path -path "$root/$output_dir/$target_name.exe")
-    {
-        Remove-Item -path "$root/$output_dir/$target_name.exe" -force
-        Write-Output "Cleared previous build $root/$output_dir/$target_name.exe"
-    }    
-}
-
 @(python -m nuitka $params $entrypoint)
 
 if ($mode -eq "standalone")
@@ -139,16 +140,16 @@ if ($mode -eq "standalone")
         Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
     }
 
-    Compress-Archive -path $root/$output_dir/$target_name -destinationpath "$root/$output_dir/$target_name-$mode-$compiler-$tag.zip"
-    Write-Output "Created $root/$output_dir/yaam-standalone-msvc-$tag.zip"
+    Compress-Archive -path $root/$output_dir/$target_name -destinationpath "$root/artifacts/$target_name-$mode-$compiler-$tag.zip"
+    Write-Output "Created $root/artifacts/yaam-standalone-msvc-$tag.zip"
 }
 else 
 {
     Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
     Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $root/$output_dir/$target_name.exe"
     
-    Compress-Archive -path $root/$output_dir -destinationpath "$root/$output_dir/$target_name-$mode-$compiler-$tag.zip"
-    Write-Output "Created $root/$output_dir/yaam-standalone-msvc-$tag.zip"
+    Compress-Archive -path $root/$output_dir/$target_name.exe -destinationpath "$root/artifacts/$target_name-$mode-$compiler-$tag.zip"
+    Write-Output "Created $root/artifacts/yaam-standalone-msvc-$tag.zip"
 }
 
 exit 0

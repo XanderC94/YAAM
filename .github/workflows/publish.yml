@@ -65,8 +65,8 @@ jobs:
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 150 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=150 --statistics
         
     # - name: Test with pytest
     #   run: |
@@ -84,13 +84,14 @@ jobs:
     #     echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
 
     - name: Upload artifacts
+      id: artifacts
       uses: actions/upload-artifact@v2
       with:
         name: yaam-standalone-msvc-${{steps.info.outputs.tag}}
-        path: |
-          ${{ github.workspace }}/bin/standalone/mvsc/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+        path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
           
     - name: Release built artifacts
+      id: release
       uses: ncipollo/release-action@v1
       with:
         name: YAAM release ${{steps.info.outputs.tag}}
