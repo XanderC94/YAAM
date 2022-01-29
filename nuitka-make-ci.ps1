@@ -97,6 +97,7 @@ $params = @(
     "--include-data-file=$root/$output_dir/MANIFEST=MANIFEST",
     "--include-data-file=$root/README.md=README.md",
     "--include-data-file=$root/LICENSE=LICENSE",
+    "--assume-yes-for-downloads"
     "--remove-output",
     "--output-dir=$output_dir"
 )
@@ -137,4 +138,4 @@ else
     Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $root/$output_dir/$target_name.exe"
 }
 
-exit 1
+exit 0
