@@ -76,7 +76,8 @@ jobs:
         echo $(dir ${{ github.workspace }})
         echo $(dir ${{ github.workspace }}/bin)
         echo $(dir ${{ github.workspace }}/bin/standalone)
-        echo $(dir ${{ github.workspace }}/bin/standalone/yaam)
+        echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
+        echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
 
     - name: Zip build artifacts
       uses: thedoctor0/zip-release@master
