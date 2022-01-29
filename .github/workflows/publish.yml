@@ -85,5 +85,5 @@ jobs:
         body: Automated build release for YAAM ${{steps.info.outputs.tag}}
         artifacts: yaam-standalone-msvc-${{steps.info.outputs.tag}}
         token: ${{ secrets.yaam_publish_token }}
-        prerelease: ${{ Contains(${{steps.info.outputs.tag}}, 'alpha') }}
-        draft: ${{ Contains(${{steps.info.outputs.tag}}, 'test') }}
+        prerelease: ${{ Contains(steps.info.outputs.tag, 'alpha') }}
+        draft: ${{ Contains(steps.info.outputs.tag, 'test') }}
