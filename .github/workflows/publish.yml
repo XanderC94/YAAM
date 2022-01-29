@@ -75,13 +75,15 @@ jobs:
         .\nuitka-make-ci.ps1 -lto -tag ${{steps.info.outputs.tag}} -revision ${{steps.info.outputs.rev}}
         echo $(dir ${{ github.workspace }})
         echo $(dir ${{ github.workspace }}/bin)
+        echo $(dir ${{ github.workspace }}/bin/standalone)
+        echo $(dir ${{ github.workspace }}/bin/standalone/yaam)
 
     - name: Zip build artifacts
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
         # path: ./bin/standalone/mvsc/yaam
-        directory: ./bin/standalone/mvsc/yaam
+        directory: bin/standalone/mvsc/yaam
         filename: yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
         
 #     - name: Archive production artifacts
