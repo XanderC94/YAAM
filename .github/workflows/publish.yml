@@ -96,6 +96,6 @@ jobs:
         tag: ${{steps.info.outputs.tag}}
         body: Automated build release for YAAM ${{steps.info.outputs.tag}}
         artifacts: ${{ github.workspace }}/bin/standalone/mvsc/yaam/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
-        token: ${{ secrets.RELEASE_TOKEN }}
+        token: ${{ secrets.yaam_publish_token }}
         prerelease: Contains("alpha", ${{steps.info.outputs.tag}})
         draft: Contains("test", ${{steps.info.outputs.tag}})
