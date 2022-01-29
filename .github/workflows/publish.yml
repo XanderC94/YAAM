@@ -74,7 +74,7 @@ jobs:
       run: |
         .\nuitka-make-ci.ps1 -lto -tag ${{steps.info.outputs.tag}} -revision ${{steps.info.outputs.rev}}
         echo $(dir ${{ github.workspace }})
-        echo $(dir ${{ github.workspace }}/bin/standalone/mvsc/yaam)
+        echo $(dir ${{ github.workspace }}/bin)
 
     - name: Zip build artifacts
       uses: thedoctor0/zip-release@master
