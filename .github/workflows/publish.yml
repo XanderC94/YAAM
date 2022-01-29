@@ -76,15 +76,19 @@ jobs:
       shell: pwsh
       run: |
         .\nuitka-make-ci.ps1 -lto -tag ${{steps.info.outputs.tag}} -revision ${{steps.info.outputs.rev}}
-        echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
-        echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
+
+    # - name: Echo output files
+    #   shell: pwsh
+    #   run: |
+    #     echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
+    #     echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: yaam-standalone-msvc-${{steps.info.outputs.tag}}
         path: |
-          ${{ github.workspace }}bin/standalone/mvsc/yaam-standalone-msvc.zip
+          ${{ github.workspace }}bin/standalone/mvsc/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
           
     - name: Release built artifacts
       uses: ncipollo/release-action@v1
