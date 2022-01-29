@@ -26,31 +26,40 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@master
-      with:
-        arch: "x64"
-        toolset: "14.29"
-        
+    - name: Checkout
+      uses: actions/checkout@v2
+      
     - name: Get last available repo info
       id: info
       run: |
         echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
         echo "::set-output name=rev::$(git rev-parse --short=8  head)"
 
-    - name: Set up Python
+    - name: Initialize MSVC developer tools
+    - uses: ilammy/msvc-dev-cmd@master
+      with:
+        arch: "x64"
+        toolset: "14.29"
+        
+    - name: Set up Python distribution
       uses: actions/setup-python@v2
       with:
         python-version: "3.9.9"
         architecture: "x64"
         cache: pip
         
-    - name: Install dependencies
+    - name: Get Python distribution info
+      id: python
+      shell: pwsh
+      run: |
+        echo "::set-output name=version::$(@(python -V).substring(7))"
+
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r requirements.txt
-        python $env:RUNNER_TOOL_CACHE/Python/3.9.9/x64/Scripts/pywin32_postinstall.py -install
+        python $env:RUNNER_TOOL_CACHE/Python/${{steps.python.outputs.version}}/x64/Scripts/pywin32_postinstall.py -install
         
     - name: Lint with flake8
       run: |
@@ -75,7 +84,7 @@ jobs:
       with:
         name: yaam-standalone-msvc-${{steps.info.outputs.tag}}
         path: |
-          ${{ github.workspace }}bin/standalone/mvsc/yaam/yaam-standalone-msvc.zip
+          ${{ github.workspace }}bin/standalone/mvsc/yaam-standalone-msvc.zip
           
     - name: Release built artifacts
       uses: ncipollo/release-action@v1
