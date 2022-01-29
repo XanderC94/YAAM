@@ -138,11 +138,17 @@ if ($mode -eq "standalone")
         Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
         Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
     }
+
+    Compress-Archive -path $root/$output_dir/$target_name -destinationpath "$root/$output_dir/$target_name-$mode-$compiler-$tag.zip"
+    Write-Output "Created $root/$output_dir/yaam-standalone-msvc-$tag.zip"
 }
 else 
 {
     Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
     Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $root/$output_dir/$target_name.exe"
+    
+    Compress-Archive -path $root/$output_dir -destinationpath "$root/$output_dir/$target_name-$mode-$compiler-$tag.zip"
+    Write-Output "Created $root/$output_dir/yaam-standalone-msvc-$tag.zip"
 }
 
 exit 0
