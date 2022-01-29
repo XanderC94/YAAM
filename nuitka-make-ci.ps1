@@ -78,7 +78,7 @@ $manifest | ConvertTo-Json -depth 32 | Set-Content -path "$root/$output_dir/MANI
 $params = @(
     "--$mode",
     # "--$compiler"
-    (&{ if ($compiler -eq "msvc") { "--$compiler=14.2" } else { "--$compiler" } }),
+    (&{ if ($compiler -eq "msvc") { "--$compiler=14.3" } else { "--$compiler" } }),
     (&{ if ($lto -eq $true) { "--lto=yes" } else { "" } }),
     "--plugin-enable=pylint-warnings",
     "--include-module=win32com.gen_py",

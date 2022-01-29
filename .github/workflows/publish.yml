@@ -28,10 +28,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: ilammy/msvc-dev-cmd@master
       with:
         arch: "x64"
-        toolset: "14.29"
+        toolset: "14.31"
         
     - name: Get last available repo info tag
       id: info
@@ -73,10 +73,14 @@ jobs:
       shell: pwsh
       run: |
         .\nuitka-make-ci.ps1 -lto -tag ${{steps.info.outputs.tag}} -revision ${{steps.info.outputs.rev}}
-        
+
     - name: Zip build artifacts
-      run: zip yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip ./bin/standalone/mvsc/yaam/* -r
-      
+      uses: thedoctor0/zip-release@master
+      with:
+        type: 'zip'
+        path: ./bin/standalone/mvsc/yaam/
+        filename: yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+        exclusions: '*.git* /*node_modules/* .editorconfig'
 #     - name: Archive production artifacts
 #       uses: actions/upload-artifact@v2
 #       with:
