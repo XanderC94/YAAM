@@ -88,7 +88,7 @@ jobs:
       with:
         name: yaam-standalone-msvc-${{steps.info.outputs.tag}}
         path: |
-          ${{ github.workspace }}bin/standalone/mvsc/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+          ${{ github.workspace }}/bin/standalone/mvsc/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
           
     - name: Release built artifacts
       uses: ncipollo/release-action@v1
