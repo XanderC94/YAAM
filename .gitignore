@@ -134,3 +134,4 @@ bin/
 .vscode
 .vscode
 .out
+.tmp

@@ -1,5 +1,5 @@
 ﻿beautifulsoup4==4.10.0
-dataclasses==0.8
+dataclasses==0.6
 nuitka==0.6.17
 pipreqs==0.4.10
 pywin32==302

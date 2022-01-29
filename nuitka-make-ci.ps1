@@ -1,7 +1,11 @@
 param (
     [System.String]$mode="standalone",
     [System.String]$compiler="msvc",
-    [switch]$lto
+    [switch]$lto,
+    [Parameter(Mandatory=$true)]
+    [System.String]$tag,
+    [Parameter(Mandatory=$true)]
+    [System.String]$revision
 )
 
 if (-not($mode -eq "onefile" -or $mode -eq "standalone"))
@@ -15,23 +19,6 @@ if (-not($compiler -eq "msvc" -or $compiler -eq "mingw64"))
     Write-Error "Invalid compiler mode. Choose [msvc, mingw64]."
     exit 0
 }
-
-$root=$PSScriptRoot
-
-# $requirements=New-Object System.Collections.Generic.List[System.Object]
-# $requirements.AddRange(@(pipreqs --print))
-# $pip_list=@(pip list)
-# $nuitka_version=([System.String]($pip_list | Select-String "nuitka")).Split(" ")[-1]
-# $pipreqs_version=([System.String]($pip_list | Select-String "pipreqs")).Split(" ")[-1]
-# $requirements.Add("nuitka==$nuitka_version")
-# $requirements.Add("pipreqs==$pipreqs_version")
-# $requirements | Sort-Object | Set-Content "$root/requirements.txt" -encoding utf8 -force | Out-Null
-# Write-Output "Updated required project modules file."
-
-$tag=[System.String](@(git describe --tags --abbrev=0 --always))
-$revision=[System.String](@(git rev-parse --short=8  head))
-
-$product_name="Yet Another Addon Manager"
 
 $tag_pattern="v(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)(?>-(?<type>alpha|beta))?(?>-(?<revision>.*))?"
 $match_result=[regex]::Matches($tag, $tag_pattern)[0]
@@ -59,13 +46,12 @@ if ($match_result.success)
         $type
     )
 }
-else 
-{
-    $tag = "none"
-}
 
-Write-Output "YAAM $tag-$revision $version"
+Write-Output "YAAM $tag-$revision ($version)"
 
+$root=$PSScriptRoot
+
+$product_name="Yet Another Addon Manager"
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$tag-$revision"
 $icon_path="res/icon/yaam.ico"
@@ -91,7 +77,8 @@ $manifest | ConvertTo-Json -depth 32 | Set-Content -path "$root/$output_dir/MANI
 
 $params = @(
     "--$mode",
-    "--$compiler",
+    # "--$compiler"
+    (&{ if ($compiler -eq "msvc") { "--$compiler=14.2" } else { "--$compiler" } }),
     (&{ if ($lto -eq $true) { "--lto=yes" } else { "" } }),
     "--plugin-enable=pylint-warnings",
     "--include-module=win32com.gen_py",
@@ -116,23 +103,18 @@ $params = @(
 
 if ($mode -eq "standalone")
 {
-    if (Test-Path -path "$root/$output_dir/$target_name.bak")
-    {
-        Remove-Item -path "$root/$output_dir/$target_name.bak" -force -recurse
-        Write-Output "Cleared previous backup $root/$output_dir/$target_name.bak"
-    }
-    
     if (Test-Path -path "$root/$output_dir/$target_name")
     {
-        Move-Item -path "$root/$output_dir/$target_name" -destination "$root/$output_dir/$target_name.bak" -force
-        Write-Output "Created new backup of $root/$output_dir/$target_name -> $root/$output_dir/$target_name.bak"
-    } 
+        Remove-Item -path "$root/$output_dir/$target_name" -force -recurse
+        Write-Output "Cleared previous build $root/$output_dir/$target_name"
+    }
 }
 else 
 {
     if (Test-Path -path "$root/$output_dir/$target_name.exe")
     {
-        Move-Item -path "$root/$output_dir/$target_name.exe" -destination "$root/$output_dir/$target_name.exe.bak" -force
+        Remove-Item -path "$root/$output_dir/$target_name.exe" -force
+        Write-Output "Cleared previous build $root/$output_dir/$target_name.exe"
     }    
 }
 
@@ -152,6 +134,7 @@ if ($mode -eq "standalone")
 else 
 {
     Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
+    Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $root/$output_dir/$target_name.exe"
 }
 
 exit 1
