@@ -5,16 +5,16 @@ name: Publish YAAM
 
 on:
 
-  workflow_dispatch:
-    inputs:
-      name:
-        description: 'Release name'
-        required: true
-        type: string
-      body:
-        description: 'Release body'
-        required: true
-        type: string
+  # workflow_dispatch:
+  #   inputs:
+  #     name:
+  #       description: 'Release name'
+  #       required: true
+  #       type: string
+  #     body:
+  #       description: 'Release body'
+  #       required: true
+  #       type: string
 
   push:
     # Sequence of patterns matched against refs/tags
@@ -39,6 +39,8 @@ jobs:
         git fetch --prune --unshallow --tags
         echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
         echo "::set-output name=rev::$(git rev-parse --short=8  head)"
+        echo "::set-output name=is_prerelease::$(Contains("alpha", ${{steps.info.outputs.tag}}))"
+        echo "::set-output name=is_draft::$(Contains("test", ${{steps.info.outputs.tag}}))"
         echo ${{steps.info.outputs.tag}}-${{steps.info.outputs.rev}}
 
     # - name: Install pipenv
@@ -91,11 +93,12 @@ jobs:
     #     path: |
     #       bin/standalone/mvsc/yaam/yaam-standalone-msvc.zip
           
-    # - name: Release built artifacts
-    #   uses: ncipollo/release-action@v1
-    #   with:
-    #     name: YAAM release ${{steps.info.outputs.tag}}
-    #     tag: ${{steps.info.outputs.tag}}
-    #     body: Automated build release for YAAM ${{steps.info.outputs.tag}}
-    #     artifacts: bin/standalone/mvsc/yaam/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
-    #     token: ${{ secrets.RELEASE_TOKEN }}
+    - name: Release built artifacts
+      uses: ncipollo/release-action@v1
+      with:
+        name: YAAM release ${{steps.info.outputs.tag}}
+        tag: ${{steps.info.outputs.tag}}
+        body: Automated build release for YAAM ${{steps.info.outputs.tag}}
+        artifacts: ${{ github.workspace }}/bin/standalone/mvsc/yaam/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+        token: ${{ secrets.RELEASE_TOKEN }}
+        prerelease: ${{steps.info.outputs.is_prerelease}}
