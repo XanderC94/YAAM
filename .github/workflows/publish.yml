@@ -17,7 +17,6 @@ on:
   #       type: string
 
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
     
@@ -33,14 +32,11 @@ jobs:
         arch: "x64"
         toolset: "14.29"
         
-    - name: Get last available repo info tag
+    - name: Get last available repo info
       id: info
       run: |
         echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
         echo "::set-output name=rev::$(git rev-parse --short=8  head)"
-
-    # - name: Install pipenv
-    #   run: pipx install pipenv
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -74,20 +70,12 @@ jobs:
         echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
         echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
 
-    # - name: Zip build artifacts
-    #   uses: thedoctor0/zip-release@master
-    #   with:
-    #     type: 'zip'
-    #     # path: ./bin/standalone/mvsc/yaam
-    #     directory: ${{ github.workspace }}/bin/standalone/mvsc/yaam
-    #     filename: yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
-        
-    # - name: Archive production artifacts
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: yaam-standalone-msvc
-    #     path: |
-    #       bin/standalone/mvsc/yaam/yaam-standalone-msvc.zip
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: yaam-standalone-msvc-${{steps.info.outputs.tag}}
+        path: |
+          ${{ github.workspace }}bin/standalone/mvsc/yaam/yaam-standalone-msvc.zip
           
     - name: Release built artifacts
       uses: ncipollo/release-action@v1
@@ -95,7 +83,7 @@ jobs:
         name: YAAM release ${{steps.info.outputs.tag}}
         tag: ${{steps.info.outputs.tag}}
         body: Automated build release for YAAM ${{steps.info.outputs.tag}}
-        artifacts: ${{ github.workspace }}/bin/standalone/mvsc/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+        artifacts: yaam-standalone-msvc-${{steps.info.outputs.tag}}
         token: ${{ secrets.yaam_publish_token }}
-        prerelease: Contains(${{steps.info.outputs.tag}}, 'alpha')
-        draft: Contains(${{steps.info.outputs.tag}}, 'test')
+        prerelease: ${{ Contains(${{steps.info.outputs.tag}}, 'alpha') }}
+        draft: ${{ Contains(${{steps.info.outputs.tag}}, 'test') }}
