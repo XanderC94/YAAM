@@ -78,9 +78,8 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        path: ./bin/standalone/mvsc/yaam/
+        path: bin/standalone/mvsc/yaam/
         filename: yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
-        exclusions: '*.git* /*node_modules/* .editorconfig'
 #     - name: Archive production artifacts
 #       uses: actions/upload-artifact@v2
 #       with:
