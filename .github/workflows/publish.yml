@@ -100,3 +100,4 @@ jobs:
         token: ${{ secrets.yaam_publish_token }}
         prerelease: ${{ Contains(steps.info.outputs.tag, 'alpha') }}
         draft: ${{ Contains(steps.info.outputs.tag, 'test') }}
+        allowUpdates: true
