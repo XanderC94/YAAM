@@ -59,7 +59,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r requirements.txt
-        python $env:RUNNER_TOOL_CACHE/Python/${{steps.python.outputs.version}}/x64/Scripts/pywin32_postinstall.py -install
+        python $env:RUNNER_TOOL_CACHE/Python/${{ steps.python.outputs.version }}/x64/Scripts/pywin32_postinstall.py -install
         
     - name: Lint with flake8
       run: |
@@ -75,7 +75,7 @@ jobs:
     - name: Build with nuitka
       shell: pwsh
       run: |
-        .\nuitka-make-ci.ps1 -lto -tag ${{steps.info.outputs.tag}} -revision ${{steps.info.outputs.rev}}
+        .\nuitka-make-ci.ps1 -lto -tag ${{ steps.info.outputs.tag }} -revision ${{ steps.info.outputs.rev }}
 
     # - name: Echo output files
     #   shell: pwsh
@@ -87,18 +87,19 @@ jobs:
       id: artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: yaam-standalone-msvc-${{steps.info.outputs.tag}}
-        path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+        name: yaam-standalone-msvc-${{ steps.info.outputs.tag }}
+        path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.info.outputs.tag }}.zip
         retention-days: 7
           
     - name: Release built artifacts
       id: release
       uses: ncipollo/release-action@v1
       with:
-        name: YAAM release ${{steps.info.outputs.tag}}
-        tag: ${{steps.info.outputs.tag}}
-        body: Automated build release for YAAM ${{steps.info.outputs.tag}}
-        artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{steps.info.outputs.tag}}.zip
+        name: YAAM release ${{ steps.info.outputs.tag }}
+        tag: ${{ steps.info.outputs.tag }}
+        body: Automated build release for YAAM ${{ steps.info.outputs.tag }}
+        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.info.outputs.tag }}.md
+        artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.info.outputs.tag }}.zip
         token: ${{ secrets.yaam_publish_token }}
         prerelease: ${{ Contains(steps.info.outputs.tag, 'alpha') }}
         draft: ${{ Contains(steps.info.outputs.tag, 'test') }}
