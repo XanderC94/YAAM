@@ -144,10 +144,18 @@ if ($mode -eq "standalone")
     Move-Item -path "$root/$output_dir/$target_name/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name/$target_name.exe" -force
     Write-Output "Renamed $root/$output_dir/$entrypoint_name.dist/$entrypoint_name.exe to $root/$output_dir/$target_name/$target_name.exe"
     
-    Remove-Item -path "$root/$output_dir/MANIFEST" -force
-    Write-Output "Cleared $root/$output_dir/MANIFEST"
-    Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
-    Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
+    if (Test-Path -path "$root/$output_dir/MANIFEST")
+    {
+        Remove-Item -path "$root/$output_dir/MANIFEST" -force
+        Write-Output "Cleared $root/$output_dir/MANIFEST"
+    }
+
+    if (Test-Path -path "$root/$output_dir/$entrypoint_name.build")
+    {
+        Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
+        Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
+    }
+
 }
 else 
 {

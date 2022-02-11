@@ -74,7 +74,7 @@ class AddonUpdater(object):
         ret_code = UpdateResult.NONE
 
         default_request_args = {
-            'timeout': 10,
+            'timeout': 120,
             'allow_redirects': True,
             'headers': {
                 'cache-control': 'no-cache',
@@ -93,7 +93,12 @@ class AddonUpdater(object):
         # so the check is currently only done by means of the <last-modified> HTTP header tag
         if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified or force:
 
-            logger().info(msg="Local and remote metadata mismatch or empty.")
+            if len(metadata.last_modified) == 0:
+                logger().info(msg="Local metadata are empty!")
+            elif remote_metadata.last_modified != metadata.last_modified:
+                logger().info(msg=f"Metadata mismatch {metadata.last_modified} -> {remote_metadata.last_modified}.")
+            else:
+                logger().info(msg="Forced addon update.")
 
             logger().info(msg=f"Downloading {addon.base.name}...")
 
