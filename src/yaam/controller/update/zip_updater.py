@@ -181,7 +181,7 @@ class ZipUpdater(object):
                 self.__unpack_zip(zip_content, unpack_dir, addon)
 
         except IOError as ex:
-            logger().error(ex)
+            logger().error(msg=str(ex))
             ret_code = ret_code.error()
         except BadZipfile as ex:
             logger().error(msg=str(ex))
