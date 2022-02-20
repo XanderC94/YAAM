@@ -84,14 +84,11 @@ There are four configuration files:
 {
     "name": "bob",
     "uri": "https://link/to/bob/latest/release",
-    "uri_info": {
-        "is_installer": true | false,
-        "is_offline": true | false
-    },
     "description": "A short description of what this addon does",
     "contribs": [ "Bob", "Alice", "Megan" ],
     "dependencies": [ "alice" ],
-    "is_shader": true | false 
+    "is_shader": true | false,
+    "is_installer": true | false
 }
 ```
 

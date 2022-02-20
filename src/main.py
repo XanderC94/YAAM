@@ -47,7 +47,7 @@ def select_game(app_context: AppContext, logger: logging.Logger) -> str:
     return game_name
 
 
-def run_main(app_context: AppContext, logger: logging.Logger):
+def run_yaam(app_context: AppContext, logger: logging.Logger):
     '''
     Main thread
     '''
@@ -118,11 +118,18 @@ def run_main(app_context: AppContext, logger: logging.Logger):
                     updater.update_addons(addons_synthesis)
 
             if not is_addon_update_only:
-                args = [
-                    str(_.synthetize())
-                    for _ in game.settings.arguments
-                    if not _.meta.is_deprecated and _.enabled
-                ]
+                # for some reasons compiling this 4 line of code as
+                # args = [
+                #     str(_.synthetize())
+                #     for _ in game.settings.arguments
+                #     if not _.meta.is_deprecated and _.enabled
+                # ]
+                # will make Nuitka go completely bonkers
+                # therefore, future me, don't change it again.
+                args = []
+                for _ in game.settings.arguments:
+                    if not _.meta.is_deprecated and _.enabled:
+                        args.append(str(_.synthetize()))
 
                 process.arun(
                     game.config.game_path,
@@ -156,6 +163,6 @@ if __name__ == "__main__":
     _logger.debug(msg=_app_context.working_dir)
     _logger.debug(msg=str(_app_context.config))
 
-    execution_result = run_main(_app_context, _logger)
+    execution_result = run_yaam(_app_context, _logger)
 
     sys.exit(execution_result)
