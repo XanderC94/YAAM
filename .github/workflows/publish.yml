@@ -77,10 +77,10 @@ jobs:
       shell: pwsh
       run: >
         .\nuitka-make-ci.ps1
-          -standalone -lto
-          -tag ${{ steps.info.outputs.tag }}
-          -revision ${{ steps.info.outputs.rev }}
-          -pythonpath ${{ steps.python.outputs.pythonpath }}
+        -standalone -lto
+        -tag ${{ steps.info.outputs.tag }}
+        -revision ${{ steps.info.outputs.rev }}
+        -pythonpath ${{ steps.python.outputs.pythonpath }}
 
     # - name: Echo output files
     #   shell: pwsh
