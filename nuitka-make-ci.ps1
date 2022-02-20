@@ -96,7 +96,8 @@ $params = @(
     "--include-data-file=$root/LICENSE=LICENSE",
     "--include-data-file=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py=orderedmultidict/__version__.py"
     "--remove-output",
-    "--output-dir=$output_dir"
+    "--output-dir=$output_dir",
+    "--assume-yes-for-downloads"
 )
 
 @(python -m nuitka $params $entrypoint)

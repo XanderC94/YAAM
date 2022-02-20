@@ -75,8 +75,12 @@ jobs:
         
     - name: Build with nuitka
       shell: pwsh
-      run: |
-        .\nuitka-make-ci.ps1 -lto -tag ${{ steps.info.outputs.tag }} -revision ${{ steps.info.outputs.rev }} -pythonpath ${{ steps.python.outputs.pythonpath }}
+      run: >
+        .\nuitka-make-ci.ps1
+          -standalone -lto
+          -tag ${{ steps.info.outputs.tag }}
+          -revision ${{ steps.info.outputs.rev }}
+          -pythonpath ${{ steps.python.outputs.pythonpath }}
 
     # - name: Echo output files
     #   shell: pwsh
