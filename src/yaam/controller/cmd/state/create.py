@@ -6,7 +6,7 @@ from enum import Enum
 from distutils.util import strtobool
 from pathlib import Path
 from typing import Any, Callable, Dict
-from yaam.model.game.base import Game, AddonBase, Binding
+from yaam.model.game.abstract.base import Game, AddonBase, Binding
 from yaam.controller.cmd.state.base import AREPLState
 from yaam.controller.cmd.state.validators import YesValidator
 from yaam.controller.cmd.state.validators import AddonNameValidator, AddonURIValidator

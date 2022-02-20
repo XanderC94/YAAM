@@ -9,7 +9,7 @@ from yaam.model.type.binding import BindingType
 
 class IGameConfiguration(object):
     '''
-    Game configuration model Interface
+    Game configuration model interface
     '''
 
     @property

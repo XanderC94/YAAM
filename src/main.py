@@ -9,7 +9,9 @@ from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
 from yaam.controller.manage import AddonManager
-from yaam.model.game.factory import GameFactory, Game
+from yaam.model.game.factory import GameFactory, IGame
+from yaam.model.mutable.addon_base import AddonBase
+from yaam.model.mutable.binding import Binding
 from yaam.model.type.binding import BindingType
 from yaam.utils import process
 from yaam.model.options import Option
@@ -52,12 +54,12 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
     Main thread
     '''
 
-    game: Game = None
-    game_stasis: Game = None
+    game: IGame[AddonBase, Binding] = None
+    game_stasis: IGame[AddonBase, Binding] = None
     try:
         game_name = select_game(app_context, logger)
         if game_name is not None:
-            game = GameFactory.make(game_name, app_context)
+            game = GameFactory.incarnate(game_name, app_context)
             game_stasis = deepcopy(game)
 
     except ConfigLoadException as ex:

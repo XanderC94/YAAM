@@ -1,18 +1,68 @@
 '''
 Mutable Addon module
 '''
-from typing import Dict
+from abc import ABC, abstractmethod
+from typing import Dict, Generic, TypeVar
 from yaam.model.mutable.binding import Binding
 from yaam.model.mutable.addon_base import AddonBase
 
 
-class Addon(object):
+A = TypeVar('A')
+B = TypeVar('B')
+
+
+class IAddon(ABC, Generic[A, B]):
+    '''
+    Mutable Addon interface
+    '''
+
+    @property
+    @abstractmethod
+    def base(self) -> AddonBase:
+        '''
+        Return the Addon Base object
+        '''
+        return None
+
+    @property
+    @abstractmethod
+    def binding(self) -> Binding:
+        '''
+        Return the Addon Binding object
+        '''
+        return None
+
+    @property
+    @abstractmethod
+    def naming(self) -> Dict[str, str]:
+        '''
+        Return the Addon naming rules
+        '''
+        return None
+
+    @property
+    @abstractmethod
+    def is_valid(self) -> bool:
+        '''
+        Return whether this addon has a valid configuration or not.
+        Name should not be empty and the path should be an existing one.
+        '''
+        return False
+
+    @abstractmethod
+    def to_table(self) -> dict:
+        '''
+        Return a partial dict repr of the addon
+        '''
+        return None
+
+
+class Addon(IAddon[AddonBase, Binding]):
     '''
     Mutable Addon incarnation class
     '''
 
     def __init__(self, base: AddonBase, binding: Binding, naming: Dict[str, str]):
-
         self._base = base
         self._binding = binding
         self._naming = naming
@@ -35,37 +85,21 @@ class Addon(object):
 
     @property
     def base(self) -> AddonBase:
-        '''
-        Return the Addon Base object
-        '''
         return self._base
 
     @property
     def binding(self) -> Binding:
-        '''
-        Return the Addon Binding object
-        '''
         return self._binding
 
     @property
     def naming(self) -> Dict[str, str]:
-        '''
-        Return the Addon naming rules
-        '''
         return self._naming
 
     @property
     def is_valid(self) -> bool:
-        '''
-        Return whether this addon has a valid configuration or not.
-        Name should not be empty and the path should be an existing one.
-        '''
         return len(self._base.name) and self._binding.path.exists()
 
     def to_table(self) -> dict:
-        '''
-        Return a partial dict repr of the addon
-        '''
         table: dict = {}
 
         table['name'] = self._base.name

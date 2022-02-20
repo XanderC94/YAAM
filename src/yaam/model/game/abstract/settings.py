@@ -10,10 +10,9 @@ from yaam.model.game.contract.settings import IYaamGameSettings
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
-D = TypeVar('D')
 
 
-class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
+class AbstractYaamGameSettings(IYaamGameSettings[A, B, C], object):
     '''
     Abstract Yaam Game Settings model class
     '''
@@ -23,7 +22,7 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         self._settings_path = settings_path
 
         self._args: Dict[str, C] = dict()
-        self._bases: Dict[str, D] = dict()
+        self._bases: Dict[str, A] = dict()
         self._bindings: Dict[BindingType, Dict[str, B]] = dict()
         self._binding_type: BindingType = binding
         self._naming_map: Dict[BindingType, Dict[str, Dict[str, str]]] = dict()
@@ -44,7 +43,7 @@ class AbstractYaamGameSettings(IYaamGameSettings[A, B, C, D], object):
         return self._bindings
 
     @property
-    def bases(self) -> Dict[str, D]:
+    def bases(self) -> Dict[str, A]:
         return self._bases
 
     @property

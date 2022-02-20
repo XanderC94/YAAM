@@ -5,23 +5,38 @@ Game model abstract class module
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Generic, TypeVar, ValuesView
+from yaam.model.mutable.addon import IAddon
 from yaam.model.type.binding import BindingType
 from yaam.patterns.synthetizer import Synthetizer
+
 
 A = TypeVar('A')
 B = TypeVar('B')
 C = TypeVar('C')
-D = TypeVar('D')
 
 
-class ABCD(ABC, Generic[A, B, C, D]):
+class BiGeneric(ABC, Generic[A, B]):
     '''
-    4-generic class
+    2-generic class
     '''
     pass
 
 
-class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
+class TriGeneric(ABC, Generic[A, B, C]):
+    '''
+    3-generic class
+    '''
+    pass
+
+
+class IAddonSynthetizer(BiGeneric[A, B], Synthetizer[List[IAddon[A, B]]]):
+    '''
+    Addon synthetizer stub interface
+    '''
+    pass
+
+
+class IYaamGameSettings(TriGeneric[A, B, C], IAddonSynthetizer[A, B]):
     '''
     Game yaam settings model interface
     '''
@@ -59,7 +74,7 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
 
     @property
     @abstractmethod
-    def bases(self) -> Dict[str, D]:
+    def bases(self) -> Dict[str, A]:
         '''
         Returns game addon basis
         '''
@@ -88,7 +103,7 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
         return None
 
     @abstractmethod
-    def argument(self, name: str) -> A:
+    def argument(self, name: str) -> C:
         '''
         Returns a game argument
         '''
@@ -116,7 +131,7 @@ class IYaamGameSettings(ABCD[A, B, C, D], Synthetizer[List[A]]):
         return False
 
     @abstractmethod
-    def add_addon_base(self, base: D) -> bool:
+    def add_addon_base(self, base: A) -> bool:
         '''
         Add a new game addon base
         '''

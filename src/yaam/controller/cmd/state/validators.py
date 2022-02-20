@@ -3,7 +3,7 @@ Game property validator
 '''
 
 from typing import Any
-from yaam.model.game.base import Game
+from yaam.model.game.abstract.base import Game
 from yaam.model.type.binding import BindingType
 import yaam.utils.validators.url as validator
 

@@ -4,6 +4,7 @@ Game model incarnator module
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
+
 P0 = TypeVar('P0')
 P1 = TypeVar('P1')
 IncOut = TypeVar('IncOut')

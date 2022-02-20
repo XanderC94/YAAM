@@ -1,25 +1,28 @@
 '''
 Guild Wars 2 model class
 '''
+from yaam.model.game.contract.base import IGame
 from yaam.model.game.custom.gw2.config import GW2Config
 from yaam.model.game.custom.gw2.settings import YaamGW2Settings
+from yaam.model.mutable.addon_base import AddonBase
+from yaam.model.mutable.binding import Binding
 from yaam.utils.exceptions import ConfigLoadException
 from yaam.model.game.contract.config import IGameConfiguration
 from yaam.model.game.contract.incarnator import IGameIncarnator
 from yaam.model.game.contract.settings import IYaamGameSettings
-from yaam.model.game.base import Game
+from yaam.model.game.abstract.base import AbstractGame
 from yaam.model.appcontext import AppContext, GameContext
 
 
-class GuildWars2(Game, IGameIncarnator):
+class GuildWars2(AbstractGame, IGameIncarnator):
     '''
     Guild Wars 2 model class incarnator
     '''
     def __init__(self, config: IGameConfiguration, settings: IYaamGameSettings, game_context: GameContext) -> None:
-        Game.__init__(self, config, settings, game_context)
+        AbstractGame.__init__(self, config, settings, game_context)
 
     @staticmethod
-    def incarnate(game_name: str = "Guild Wars 2", app_context: AppContext = None) -> Game:
+    def incarnate(game_name: str = "Guild Wars 2", app_context: AppContext = None) -> IGame[AddonBase, Binding]:
         gw2_config = GW2Config(app_context.appdata_dir)
 
         init_file_path = app_context.init_file_path(game_name)

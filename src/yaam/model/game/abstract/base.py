@@ -5,21 +5,21 @@ Base game module
 from typing import List
 from copy import deepcopy
 from yaam.model.appcontext import GameContext
+from yaam.model.game.contract.base import IGame
 from yaam.model.type.binding import BindingType
 from yaam.model.game.contract.config import IGameConfiguration
 from yaam.model.game.contract.settings import IYaamGameSettings
-from yaam.model.mutable.addon import Addon
+from yaam.model.mutable.addon import IAddon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.argument import Argument
 from yaam.model.mutable.binding import Binding
-from yaam.patterns.synthetizer import Synthetizer
 from yaam.utils.exceptions import Found
 from yaam.utils.logger import static_logger as logger
 
-IYGS = IYaamGameSettings[Addon, Binding, Argument, AddonBase]
+IYGS = IYaamGameSettings[AddonBase, Binding, Argument]
 
 
-class Game(Synthetizer[List[Addon]]):
+class AbstractGame(IGame[AddonBase, Binding]):
     '''
     Game class trait
     '''
@@ -49,7 +49,7 @@ class Game(Synthetizer[List[Addon]]):
         '''
         return self._yaam_settings
 
-    def synthetize(self) -> List[Addon]:
+    def synthetize(self) -> List[IAddon[AddonBase, Binding]]:
         '''
         Synthetize a coherent list of addons to enable / disable / update / ...
         '''

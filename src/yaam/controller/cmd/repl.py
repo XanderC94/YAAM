@@ -4,7 +4,7 @@ YAAM Read-Evaluate-print loop module
 
 from yaam.controller.cmd.state.base import AREPLState
 from yaam.controller.cmd.state.create import REPLCreateMode, REPLCreateState
-from yaam.model.game.base import Game
+from yaam.model.game.abstract.base import Game
 
 
 class REPL(AREPLState):

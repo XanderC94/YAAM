@@ -4,7 +4,7 @@ Base REPL state class module
 
 from abc import abstractmethod
 from cmd import Cmd
-from yaam.model.game.base import Game
+from yaam.model.game.abstract.base import Game
 
 
 class AREPLState(Cmd):

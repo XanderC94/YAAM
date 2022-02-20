@@ -8,7 +8,7 @@ from typing import List
 from yaam.model.appcontext import GameContext
 from yaam.model.game.abstract.settings import AbstractYaamGameSettings
 from yaam.model.immutable.argument import ArgumentSynthesis
-from yaam.model.mutable.addon import Addon
+from yaam.model.mutable.addon import Addon, IAddon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.argument import Argument
 from yaam.model.mutable.binding import Binding
@@ -21,7 +21,7 @@ from yaam.utils.normalize import normalize_abs_path
 
 
 class YaamGameSettings(AbstractYaamGameSettings[
-            Addon, Binding, Argument, AddonBase
+            AddonBase, Binding, Argument
         ]):
     '''
     Yaam Game Settings model class stub
@@ -130,11 +130,11 @@ class YaamGameSettings(AbstractYaamGameSettings[
 
         return True
 
-    def synthetize(self) -> List[Addon]:
+    def synthetize(self) -> List[IAddon[AddonBase, Binding]]:
         '''
         Creates addons incarnations from bases and bindings
         '''
-        addons: List[Addon] = list()
+        addons: List[IAddon[AddonBase, Binding]] = list()
 
         # build addons incarnations by binding
         for binding_type in BindingType:
