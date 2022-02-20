@@ -175,7 +175,7 @@ class ZipUpdater(object):
 
             makedirs(unpack_dir, exist_ok=True)
 
-            if addon.base.uri_info.is_installer:
+            if addon.base.is_installer:
                 self.__unpack_installer_zip(zip_content, unpack_dir / "installer", addon)
             else:
                 self.__unpack_zip(zip_content, unpack_dir, addon)

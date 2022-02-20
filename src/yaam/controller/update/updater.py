@@ -14,7 +14,6 @@ from yaam.model.appconfig import AppConfig
 from yaam.model.options import Option
 from yaam.model.mutable.addon import Addon
 from yaam.utils.exceptions import GitHubException
-import yaam.utils.validators.url as validator
 from yaam.utils.logger import static_logger as logger
 import yaam.utils.response as responses
 
@@ -58,7 +57,7 @@ class AddonUpdater(object):
 
         if not addon.binding.is_enabled:
             ret_code = UpdateResult.DISABLED
-        elif not validator.url(addon.base.uri):
+        elif not addon.base.uri.is_valid():
             logger().info(msg=f"No valid update URL provided for {addon.base.name}({addon.binding.path.name}).")
             ret_code = UpdateResult.INVALID_URL
         elif not addon.binding.path.exists() or addon.binding.is_updateable:
@@ -127,7 +126,7 @@ class AddonUpdater(object):
                         remote_metadata.namings[addon.binding.typing] = uploader.naming
                     else:
                         uploader = DatastreamUpdater(ret_code)
-                        if addon.base.uri_info.is_installer:
+                        if addon.base.is_installer:
                             ret_code = uploader.update_from_installer(response, addon)
                         else:
                             ret_code = uploader.update_from_datastream(response, addon)

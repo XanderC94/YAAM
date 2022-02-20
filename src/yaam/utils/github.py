@@ -10,6 +10,7 @@ from yaam.utils.json.jsonkin import Jsonkin
 from yaam.utils.logger import static_logger as logger
 
 from yaam.utils.exceptions import GitHubException
+from yaam.utils.uri import URI
 
 
 class Asset(Jsonkin):
@@ -17,7 +18,7 @@ class Asset(Jsonkin):
     GitHub API download asset
     '''
 
-    def __init__(self, name: str, url: str) -> None:
+    def __init__(self, name: str, url: URI) -> None:
         self.name = name
         self.browser_download_url = url
 
@@ -31,7 +32,7 @@ class Asset(Jsonkin):
         '''
         return Asset(
             name=json_obj.get('name', str()),
-            url=json_obj.get('browser_download_url', str())
+            url=URI(json_obj.get('browser_download_url', None))
         )
 
 
@@ -52,25 +53,25 @@ class API(object):
         return github
 
     @staticmethod
-    def assert_github_api_url(url: str):
+    def assert_github_api_url(url: URI):
         '''
         Assert whether the given url matches
         https://api.github.com/(.+)
         '''
         api_github_regex = r"https:\/\/api\.github\.com\/(.+)"
-        return re.match(api_github_regex, url) is not None
+        return re.match(api_github_regex, str(url)) is not None
 
     @staticmethod
-    def assert_latest_release_url(url: str):
+    def assert_latest_release_url(url: URI):
         '''
         Assert whether the given url matches
         https://api.github.com/repos/(.+)/releases/latest
         '''
         api_github_latest_release_regex = r"https:\/\/api\.github\.com\/repos\/(.+)\/releases\/latest"
-        return re.match(api_github_latest_release_regex, url) is not None
+        return re.match(api_github_latest_release_regex, str(url)) is not None
 
     @staticmethod
-    def fetch_latest_release_assets(url: str, github: Session, **kwargs) -> List[Asset]:
+    def fetch_latest_release_assets(url: URI, github: Session, **kwargs) -> List[Asset]:
         '''
         Assert if url is a github api request for a latest release metadata
         and return the 'browser_download_url' link

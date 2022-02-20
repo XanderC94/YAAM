@@ -10,6 +10,7 @@ from yaam.utils.exceptions import GitHubException
 from yaam.utils.logger import static_logger as logger
 from yaam.model.appconfig import AppConfig
 from yaam.model.options import Option
+from yaam.utils.uri import URI
 
 
 class HttpRequestManager(object):
@@ -60,7 +61,7 @@ class HttpRequestManager(object):
 
         return response
 
-    def get(self, url: str, **kwargs) -> requests.Response:
+    def get(self, url: URI, **kwargs) -> requests.Response:
         '''
         HTTP GET <URL> <ARGS>
         '''
@@ -74,7 +75,7 @@ class HttpRequestManager(object):
 
         return self.__request_wrapper(__get_internal)
 
-    def head(self, url: str, **kwargs) -> requests.Response:
+    def head(self, url: URI, **kwargs) -> requests.Response:
         '''
         HTTP HEAD <URL> <ARGS>
         '''
@@ -88,7 +89,7 @@ class HttpRequestManager(object):
 
         return self.__request_wrapper(__head_internal)
 
-    def __assets_followup(self, assets: List[github.Asset]) -> str:
+    def __assets_followup(self, assets: List[github.Asset]) -> URI:
         download_uri = None
 
         if len(assets) == 1:
@@ -115,7 +116,7 @@ class HttpRequestManager(object):
 
         return download_uri
 
-    def get_download(self, url: str, **kwargs) -> requests.Response:
+    def get_download(self, url: URI, **kwargs) -> requests.Response:
         '''
         HTTP GET <URL> <ARG>
 

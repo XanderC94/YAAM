@@ -2,8 +2,8 @@
 Addon base module
 '''
 from typing import List
-from yaam.model.mutable.uri_info import UriInfo
 from yaam.utils.json.jsonkin import Jsonkin
+from yaam.utils.uri import URI
 
 
 class AddonBase(Jsonkin):
@@ -14,24 +14,24 @@ class AddonBase(Jsonkin):
     def __init__(
                 self,
                 name: str = str(),
-                uri: str = str(),
-                uri_info: UriInfo = None,
+                uri: URI or str = str(),
                 description: str = str(),
                 contribs: List[str] = None,
                 dependencies: List[str] = None,
                 chainloads: List[str] = None,
-                is_shader: bool = False
+                is_shader: bool = False,
+                is_installer: bool = False
             ):
 
         self._name = name
-        self._uri = uri
-        self._uri_info = uri_info
+        self._uri = URI(uri) if isinstance(uri, str) else uri
         self._description = description
         self._contributors: List[str] = contribs if contribs else list()
         self._dependencies: List[str] = dependencies if dependencies else list()
         self._chainloads: List[str] = chainloads if chainloads else list()
 
         self._is_shader = is_shader
+        self._is_installer = is_installer
 
     def __hash__(self) -> int:
         return hash(self._name)
@@ -52,18 +52,11 @@ class AddonBase(Jsonkin):
         return self._name
 
     @property
-    def uri(self) -> str:
+    def uri(self) -> URI:
         '''
         The uri of the addon
         '''
         return self._uri
-
-    @property
-    def uri_info(self) -> UriInfo:
-        '''
-        Return useful info about the URI
-        '''
-        return self._uri_info
 
     @property
     def description(self) -> str:
@@ -100,6 +93,13 @@ class AddonBase(Jsonkin):
         '''
         return self._is_shader
 
+    @property
+    def is_installer(self) -> bool:
+        '''
+        Return whether this addon is an installer or not
+        '''
+        return self._is_installer
+
     @name.setter
     def name(self, new_name: str) -> None:
         '''
@@ -108,11 +108,11 @@ class AddonBase(Jsonkin):
         self._name = new_name
 
     @uri.setter
-    def uri(self, new_uri: str) -> None:
+    def uri(self, new_uri: URI or str) -> None:
         '''
         Set the addon update url
         '''
-        self._uri = new_uri
+        self._uri = URI(new_uri) if isinstance(new_uri, str) else new_uri
 
     @description.setter
     def description(self, new_description: str) -> None:
@@ -149,6 +149,13 @@ class AddonBase(Jsonkin):
         '''
         self._is_shader = is_shader
 
+    @is_installer.setter
+    def is_installer(self, is_installer: bool):
+        '''
+        Set if this addon represents an installer or not
+        '''
+        self._is_installer = is_installer
+
     @staticmethod
     def from_json(json_obj: dict):
         '''
@@ -157,12 +164,12 @@ class AddonBase(Jsonkin):
         return AddonBase(
             name=json_obj['name'],
             uri=json_obj.get('uri', None),
-            uri_info=UriInfo.from_json(json_obj.get('uri_info', dict())),
             description=json_obj.get('description', ""),
             contribs=json_obj.get('contribs', []),
             dependencies=json_obj.get('dependencies', []),
             chainloads=json_obj.get('chainloads', []),
-            is_shader=json_obj.get('is_shader', False)
+            is_shader=json_obj.get('is_shader', False),
+            is_installer=json_obj.get('is_installer', False)
         )
 
     def to_json(self) -> dict:
@@ -172,10 +179,10 @@ class AddonBase(Jsonkin):
         return {
             'name': self.name,
             'uri': self.uri,
-            'uri_info': self.uri_info.to_json(),
             'description': self.description,
             'contribs': self.contributors,
             'dependencies': self.dependencies,
             'chainloads': self.chainloads,
-            'is_shader': self.is_shader
+            'is_shader': self.is_shader,
+            'is_installer': self._is_installer
         }
