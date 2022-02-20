@@ -16,56 +16,28 @@ if (-not($compiler -eq "msvc" -or $compiler -eq "mingw64"))
     exit 0
 }
 
-$root=$PSScriptRoot
+$pythonpath=@(./scripts/find-pythonpath.ps1)
 
-# $requirements=New-Object System.Collections.Generic.List[System.Object]
-# $requirements.AddRange(@(pipreqs --print))
-# $pip_list=@(pip list)
-# $nuitka_version=([System.String]($pip_list | Select-String "nuitka")).Split(" ")[-1]
-# $pipreqs_version=([System.String]($pip_list | Select-String "pipreqs")).Split(" ")[-1]
-# $requirements.Add("nuitka==$nuitka_version")
-# $requirements.Add("pipreqs==$pipreqs_version")
-# $requirements | Sort-Object | Set-Content "$root/requirements.txt" -encoding utf8 -force | Out-Null
-# Write-Output "Updated required project modules file."
+if ($pythonpath.Length -eq 0)
+{
+    Write-Error "Python not found... Closing."
+    exit 0
+}
+else 
+{
+    Write-Output "Python path is $pythonpath"    
+}
 
 $tag=[System.String](@(git describe --tags --abbrev=0 --always))
 $revision=[System.String](@(git rev-parse --short=8  head))
 
-$product_name="Yet Another Addon Manager"
-
-$tag_pattern="v(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)(?>-(?<type>alpha|beta))?(?>-(?<revision>.*))?"
-$match_result=[regex]::Matches($tag, $tag_pattern)[0]
-
-$version="0.0.0.0"
-
-if ($match_result.success)
-{
-    $type="0"
-    
-    if ($match_result.groups["type"].value -eq "alpha")
-    {
-        $type="2"
-    }
-    elseif ($match_result.groups['type'].value -eq "beta")
-    {
-        $type="1"
-    }
-
-    $version=[string]::Format(
-        "{0}.{1}.{2}.{3}", 
-        $match_result.Groups['major'].value, 
-        $match_result.Groups['minor'].value,
-        $match_result.Groups['bugfix'].value,
-        $type
-    )
-}
-else 
-{
-    $tag = "none"
-}
+$version=@(./scripts/get-version.ps1 -tag $tag -revision $revision)
 
 Write-Output "YAAM $tag-$revision $version"
 
+$root=$PSScriptRoot
+
+$product_name="Yet Another Addon Manager"
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$tag-$revision"
 $icon_path="res/icon/yaam.ico"
@@ -94,6 +66,7 @@ $params = @(
     (&{ if ($compiler -eq "msvc") { "--$compiler=14.3" } else { "--$compiler" } }),
     (&{ if ($lto -eq $true) { "--lto=yes" } else { "" } }),
     "--plugin-enable=pylint-warnings",
+    # "--follow-imports",
     "--include-module=win32com.gen_py",
     "--include-module=win32com.client",
     "--include-module=win32com.server",
@@ -110,6 +83,7 @@ $params = @(
     "--include-data-file=$root/$output_dir/MANIFEST=MANIFEST",
     "--include-data-file=$root/README.md=README.md",
     "--include-data-file=$root/LICENSE=LICENSE",
+    "--include-data-file=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py=orderedmultidict/__version__.py"
     "--remove-output",
     "--output-dir=$output_dir"
 )
@@ -162,4 +136,4 @@ else
     Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
 }
 
-exit 1
+exit 0

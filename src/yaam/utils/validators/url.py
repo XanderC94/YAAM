@@ -1,7 +1,7 @@
 '''
 URL validator module
 
-taken from pipy validators and made Nuitka-compliant
+Taken from pipy validators modules and made Nuitka-compliant
 '''
 import re
 

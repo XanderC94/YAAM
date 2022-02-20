@@ -53,13 +53,14 @@ jobs:
       shell: pwsh
       run: |
         echo "::set-output name=version::$(@(python -V).substring(7))"
+        echo "::set-output name=pythonpath::$(@(./scripts/find-pythonpath.ps1))"
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r requirements.txt
-        python $env:RUNNER_TOOL_CACHE/Python/${{ steps.python.outputs.version }}/x64/Scripts/pywin32_postinstall.py -install
+        python ${{ steps.python.outputs.pythonpath }}/Scripts/pywin32_postinstall.py -install
         
     - name: Lint with flake8
       run: |
@@ -75,7 +76,7 @@ jobs:
     - name: Build with nuitka
       shell: pwsh
       run: |
-        .\nuitka-make-ci.ps1 -lto -tag ${{ steps.info.outputs.tag }} -revision ${{ steps.info.outputs.rev }}
+        .\nuitka-make-ci.ps1 -lto -tag ${{ steps.info.outputs.tag }} -revision ${{ steps.info.outputs.rev }} -pythonpath ${{ steps.python.outputs.pythonpath }}
 
     # - name: Echo output files
     #   shell: pwsh

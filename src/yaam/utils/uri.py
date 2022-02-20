@@ -2,7 +2,7 @@
 URI class module
 '''
 from furl import furl
-import validators
+import yaam.utils.validators.url as validators
 
 
 class URI(furl):
