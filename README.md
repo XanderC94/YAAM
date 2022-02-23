@@ -49,7 +49,7 @@ optional arguments:
                         Set github API token
 ```
 
-All these parameters can be defaulted to a physical .INI file under %APPDATA%/yaam/yaam.ini.
+All these parameters can be defaulted to a physical .INI file under %localappdata%/yaam/yaam.ini.
 
 ```[INI]
 [yaam]
@@ -65,7 +65,7 @@ Since many GW2 addons are distributed through GitHub, YAAM supports addons updat
 
 There are four configuration files:
 
-* **Arguments** (%appdata%yaam/res/game/arguments.json): this configuration file stores or should store all the supported CLI arguments for a game. **All GW2 arguments are already deployed with the software** but are there so you can tamper with them however you like.
+* **Arguments** (%localappdata%yaam/res/\<game-name>/arguments.json): this configuration file stores or should store all the supported CLI arguments for a game. **All GW2 arguments are already deployed with the software** but are there so you can tamper with them however you like.
 
 ```[JSON]
 {
@@ -78,7 +78,7 @@ There are four configuration files:
 }
 ```
 
-* **Addons** (%appdata%yaam/res/game/addons.json): this configuration file stores a list of all the addons along their update uri, a description and other useful metadata. A list of GW2 addons is already provided with the software.
+* **Addons** (%localappdata%yaam/res/\<game-name>/addons.json): this configuration file stores a list of all the addons along their update uri, a description and other useful metadata. A list of GW2 addons is already provided with the software.
 
 ```[JSON]
 {
@@ -92,7 +92,7 @@ There are four configuration files:
 }
 ```
 
-* **Settings** (%appdata%yaam/res/game/settings.json): this configuration file stores the current state of both chosen arguments and addons. For addons are recorded name and value (if any) while addons specify the path of deployment, activation, updating and binding type (exe, dx9, dx11, agnostic, ...)
+* **Settings** (%localappdata%yaam/res/\<game-name>/settings.json): this configuration file stores the current state of both chosen arguments and addons. For addons are recorded name and value (if any) while addons specify the path of deployment, activation, updating and binding type (exe, dx9, dx11, agnostic, ...)
 
 ```[JSON]
 {
@@ -137,7 +137,7 @@ Among the binding types (exe, dx9, dx10, dx11, dx12, vulkan, agnostic), "exe"s" 
 
 NOTE: In the case of Guild Wars 2 the command-line argument "-dx11" is checked since it can't be asserted programmatically in any other way (no entry in the XML file either).
 
-* Namings (%appdata%yaam/res/game/namings.json): This "configuration" file stores custom deployment settings for each addons. Currently, only renaming, squashing (path flattening) and unsquashing (path inflating) are supported and should be done programmatically.
+* Namings (%localappdata%yaam/res/\<game-name>/namings.json): This "configuration" file stores custom deployment settings for each addons. Currently, only renaming, squashing (path flattening) and unsquashing (path inflating) are supported and should be done programmatically.
 
 ```[JSON]
 "namings": [      
