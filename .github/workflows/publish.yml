@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v2
       
     - name: Get last available repo info
-      id: info
+      id: latest
       run: |
         echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
         echo "::set-output name=rev::$(git rev-parse --short=8 head)"
@@ -28,7 +28,7 @@ jobs:
     - name: Get tag revision
       id: tag
       run: |
-        echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.info.outputs.tag }}).substring(0, 8))"
+        echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.latest.outputs.tag }}).substring(0, 8))"
     
     - name: Initialize MSVC developer tools
       uses: ilammy/msvc-dev-cmd@master
@@ -75,8 +75,8 @@ jobs:
         -mode standalone
         -compiler msvc
         -lto
-        -tag ${{ steps.info.outputs.tag }}
-        -revision ${{ steps.info.outputs.rev }}
+        -tag ${{ steps.latest.outputs.tag }}
+        -revision ${{ steps.latest.outputs.rev }}
         -pythonpath ${{ steps.python.outputs.pythonpath }}
 
     # - name: Echo output files
@@ -89,20 +89,21 @@ jobs:
       id: artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: yaam-standalone-msvc-${{ steps.info.outputs.tag }}
-        path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.info.outputs.tag }}.zip
+        name: yaam-standalone-msvc-${{ steps.latest.outputs.tag }}
+        path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         retention-days: 7
-          
+    
     - name: Release built artifacts
+      if: ${{ github.event_name == 'push' }} 
       id: release
       uses: ncipollo/release-action@v1
       with:
-        name: YAAM release ${{ steps.info.outputs.tag }}
-        tag: ${{ steps.info.outputs.tag }}
-        body: Automated build release for YAAM ${{ steps.info.outputs.tag }}
-        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.info.outputs.tag }}.md
-        artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.info.outputs.tag }}.zip
+        name: YAAM release ${{ steps.latest.outputs.tag }}
+        tag: ${{ steps.latest.outputs.tag }}
+        body: Automated build release for YAAM ${{ steps.latest.outputs.tag }}
+        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.latest.outputs.tag }}.md
+        artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         token: ${{ secrets.yaam_publish_token }}
-        prerelease: ${{ Contains(steps.info.outputs.tag, 'alpha') }}
-        draft: ${{ Contains(steps.info.outputs.tag, 'test') }}
+        prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}
+        draft: ${{ Contains(steps.latest.outputs.tag, 'test') || steps.tag.outputs.rev != steps.latest.outputs.rev }}
         allowUpdates: true
