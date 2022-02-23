@@ -34,7 +34,7 @@ jobs:
       uses: ilammy/msvc-dev-cmd@master
       with:
         arch: "x64"
-        toolset: "14.30"
+        toolset: "14.29"
         
     - name: Set up Python distribution
       uses: actions/setup-python@v2
