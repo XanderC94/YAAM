@@ -4,22 +4,12 @@
 name: Publish YAAM
 
 on:
-
-  # workflow_dispatch:
-  #   inputs:
-  #     name:
-  #       description: 'Release name'
-  #       required: true
-  #       type: string
-  #     body:
-  #       description: 'Release body'
-  #       required: true
-  #       type: string
-
   push:
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-    
+  
+  workflow_dispatch:
+
 jobs:
   build:
 
@@ -33,8 +23,13 @@ jobs:
       id: info
       run: |
         echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
-        echo "::set-output name=rev::$(git rev-parse --short=8  head)"
-
+        echo "::set-output name=rev::$(git rev-parse --short=8 head)"
+      
+    - name: Get tag revision
+      id: tag
+      run: |
+        echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.info.outputs.tag }}).substring(0, 8))"
+    
     - name: Initialize MSVC developer tools
       uses: ilammy/msvc-dev-cmd@master
       with:
