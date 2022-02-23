@@ -31,7 +31,7 @@ jobs:
         echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.latest.outputs.tag }}).substring(0, 8))"
 
     - name: Initialize MSVC developer tools
-      uses: ilammy/msvc-dev-cmd@1
+      uses: ilammy/msvc-dev-cmd@v1.10
       with:
         arch: "x64"
         toolset: "14.30"
