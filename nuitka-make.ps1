@@ -120,8 +120,6 @@ Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
 
 @(python -m nuitka $params $entrypoint)
 
-Get-Content "$output_dir/build.log" | Write-Verbose
-
 # Rename built objects
 if ($mode -eq "standalone")
 {
