@@ -71,10 +71,11 @@ jobs:
     - name: Build with nuitka
       shell: pwsh
       run: >
-        .\nuitka-make-ci.ps1
+        .\nuitka-make.ps1
         -mode standalone
         -compiler msvc
         -lto
+        -artifacts
         -tag ${{ steps.latest.outputs.tag }}
         -revision ${{ steps.latest.outputs.rev }}
         -pythonpath ${{ steps.python.outputs.pythonpath }}

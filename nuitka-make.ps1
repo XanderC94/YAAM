@@ -1,41 +1,43 @@
 param (
-    [System.String]$mode="standalone",
-    [System.String]$compiler="msvc",
-    [switch]$lto
+    [System.String]$mode="standalone", # choose between standalone and onefile
+    [System.String]$compiler="msvc", # choose between msvc, mingw64 or llvm
+    [System.String]$msvc="latest", # msvc compiler version, e.g.: 14.3, 14.2, ... latest
+    [switch]$lto,
+    [switch]$artifacts,
+    [switch]$backup,
+    [System.String]$tag,
+    [System.String]$revision,
+    [System.String]$pythonpath
 )
 
-if (-not($mode -eq "onefile" -or $mode -eq "standalone"))
-{
-    Write-Error "Invalid make mode. Choose [onefile, standalone]."
-    exit 0
-}
-
-if (-not($compiler -eq "msvc" -or $compiler -eq "mingw64"))
-{
-    Write-Error "Invalid compiler mode. Choose [msvc, mingw64]."
-    exit 0
-}
-
-$pythonpath=@(./scripts/find-pythonpath.ps1)
+$root=$PSScriptRoot
 
 if ($pythonpath.Length -eq 0)
 {
-    Write-Error "Python not found... Closing."
-    exit 0
+    $pythonpath=[System.String]@(./scripts/find-pythonpath.ps1)
+
+    if ($pythonpath.Length -eq 0)
+    {
+        Write-Error "Python-path not found... Closing."
+        exit 1
+    }
 }
-else 
+
+Write-Output "Python path is $pythonpath"    
+
+if ($tag.Length -eq 0)
 {
-    Write-Output "Python path is $pythonpath"    
+    $tag=[System.String](@(git describe --tags --abbrev=0 --always))
 }
 
-$tag=[System.String](@(git describe --tags --abbrev=0 --always))
-$revision=[System.String](@(git rev-parse --short=8  head))
+if ($revision.Length -eq 0)
+{
+    $revision=[System.String](@(git rev-parse --short=8  head))
+}
 
-$version=@(./scripts/get-version.ps1 -tag $tag -revision $revision)
+$version=[System.String]@(./scripts/get-version.ps1 -tag $tag -revision $revision)
 
 Write-Output "YAAM $tag-$revision $version"
-
-$root=$PSScriptRoot
 
 $product_name="Yet Another Addon Manager"
 $company_name="https://github.com/XanderC94"
@@ -52,6 +54,29 @@ $entrypoint="src/$entrypoint_name.py"
 if (-not(Test-Path -path "$root/$output_dir"))
 {
     New-Item -path "$root/$output_dir" -force -itemtype "directory" | Out-Null
+    Write-Output "Created output dir $root/$output_dir"
+}
+elseif ($backup -eq $true)
+{
+    $ext = &( { if ($mode -eq "onefile") { ".exe" } else { "" } })
+    @(./scripts/backup-target.ps1 -target "$root/$output_dir/$target_name$ext")
+}
+else
+{
+    Remove-Item -path "$root/$output_dir/*" -force -recurse
+    Write-Output "Cleared $root/$output_dir content"
+}
+
+# create artifacts dir if doesn't exist
+if (-not(Test-Path -path "$root/artifacts"))
+{
+    New-Item -path "$root/artifacts" -force -itemtype "directory" | Out-Null
+    Write-Output "Created artifacts dir $root/artifacts"
+}
+elseif ($backup -eq $false)
+{
+    Remove-Item -path "$root/artifacts/*" -force -recurse
+    Write-Output "Cleared $root/artifacts content"
 }
 
 # Load manifest template and write in bin folder
@@ -63,8 +88,8 @@ $manifest | ConvertTo-Json -depth 32 | Set-Content -path "$root/$output_dir/MANI
 
 $params = @(
     "--$mode",
-    (&{ if ($compiler -eq "msvc") { "--$compiler=14.3" } else { "--$compiler" } }),
-    (&{ if ($lto -eq $true) { "--lto=yes" } else { "" } }),
+    (&{ if ($compiler -eq "msvc") { "--$compiler=$msvc" } else { "--$compiler" } }),
+    (&{ if ($lto -eq $true) { "--lto=yes" } else { "--lto=no" } }),
     "--plugin-enable=pylint-warnings",
     # "--follow-imports",
     "--include-module=win32com.gen_py",
@@ -78,62 +103,63 @@ $params = @(
     "--windows-company-name=$company_name",
     "--windows-file-description=$description",
     "--windows-icon-from-ico=$icon_path",
-    (&{ if ($lto -eq $true) { "--windows-onefile-tempdir-spec=%TEMP%/yaam-release" } else { "" } }),
+    (&{ if ($mode -eq "onefile") { "--windows-onefile-tempdir-spec=%TEMP%/yaam-release" } else { "" } }),
     "--include-data-dir=$root/$defaults_dir=$defaults_dir",
     "--include-data-file=$root/$output_dir/MANIFEST=MANIFEST",
     "--include-data-file=$root/README.md=README.md",
     "--include-data-file=$root/LICENSE=LICENSE",
     "--include-data-file=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py=orderedmultidict/__version__.py"
+    "--assume-yes-for-downloads",
     "--remove-output",
     "--output-dir=$output_dir"
 )
 
-if ($mode -eq "standalone")
-{
-    if (Test-Path -path "$root/$output_dir/$target_name.bak")
-    {
-        Remove-Item -path "$root/$output_dir/$target_name.bak" -force -recurse
-        Write-Output "Cleared previous backup $root/$output_dir/$target_name.bak"
-    }
-    
-    if (Test-Path -path "$root/$output_dir/$target_name")
-    {
-        Move-Item -path "$root/$output_dir/$target_name" -destination "$root/$output_dir/$target_name.bak" -force
-        Write-Output "Created new backup of $root/$output_dir/$target_name -> $root/$output_dir/$target_name.bak"
-    } 
-}
-else 
-{
-    if (Test-Path -path "$root/$output_dir/$target_name.exe")
-    {
-        Move-Item -path "$root/$output_dir/$target_name.exe" -destination "$root/$output_dir/$target_name.exe.bak" -force
-    }    
-}
+$nuitka_version=[System.String]([array]@(python -m nuitka --version)[0])
+
+Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
 
 @(python -m nuitka $params $entrypoint)
 
+Get-Content "$output_dir/build.log" | Write-Verbose
+
+# Rename built objects
 if ($mode -eq "standalone")
 {
     Move-Item -path "$root/$output_dir/$entrypoint_name.dist" -destination "$root/$output_dir/$target_name" -force
     Move-Item -path "$root/$output_dir/$target_name/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name/$target_name.exe" -force
     Write-Output "Renamed $root/$output_dir/$entrypoint_name.dist/$entrypoint_name.exe to $root/$output_dir/$target_name/$target_name.exe"
-    
-    if (Test-Path -path "$root/$output_dir/MANIFEST")
-    {
-        Remove-Item -path "$root/$output_dir/MANIFEST" -force
-        Write-Output "Cleared $root/$output_dir/MANIFEST"
-    }
-
-    if (Test-Path -path "$root/$output_dir/$entrypoint_name.build")
-    {
-        Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
-        Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
-    }
-
 }
 else 
 {
     Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
+    Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $root/$output_dir/$target_name.exe"
+}
+
+# clear leftovers
+if (Test-Path -path "$root/$output_dir/MANIFEST")
+{
+    Remove-Item -path "$root/$output_dir/MANIFEST" -force
+    Write-Output "Cleared $root/$output_dir/MANIFEST"
+}
+
+if (Test-Path -path "$root/$output_dir/$entrypoint_name.build")
+{
+    Remove-Item -path "$root/$output_dir/$entrypoint_name.build" -force -recurse
+    Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
+}
+
+# create artifacts
+if ($artifacts)
+{
+    $target = "$root/$output_dir/$target_name"
+
+    if ($mode -eq "onefile")
+    {
+        $target = "$target.exe"
+    }
+    
+    Compress-Archive -path $target -destinationpath "$root/artifacts/$target_name-$mode-$compiler-$tag.zip"
+    Write-Output "Created $root/artifacts/$target_name-$mode-$compiler-$tag.zip"
 }
 
 exit 0
