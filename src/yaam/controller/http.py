@@ -20,6 +20,7 @@ class HttpRequestManager(object):
 
     def __init__(self, config: AppConfig) -> None:
         self.__config: AppConfig = config
+        self.__web_session: requests.Session = None
         self.__gh_session: requests.Session = None
         self.__gh_user = self.__config.get_property(Option.GITHUB_USER)
         self.__gh_api_token = self.__config.get_property(Option.GITHUB_API_TOKEN)
@@ -38,12 +39,18 @@ class HttpRequestManager(object):
         if self.__gh_session is None:
             self.__gh_session = github.API.open_session(self.__gh_user, self.__gh_api_token)
 
+        if self.__web_session is None:
+            self.__web_session = requests.Session()
+
     def close_sessions(self):
         '''
         End HTTP sessions
         '''
         if self.__gh_session is not None:
             self.__gh_session.close()
+
+        if self.__web_session is not None:
+            self.__web_session.close()
 
     def __request_wrapper(self, func: Callable[[], requests.Response]) -> requests.Response:
         response = None
@@ -70,7 +77,7 @@ class HttpRequestManager(object):
             if github.API.assert_latest_release_url(url):
                 response = self.__gh_session.get(url, **kwargs)
             else:
-                response = requests.get(url, **kwargs)
+                response = self.__web_session.get(url, **kwargs)
             return response
 
         return self.__request_wrapper(__get_internal)
@@ -84,7 +91,7 @@ class HttpRequestManager(object):
             if github.API.assert_latest_release_url(url):
                 response = self.__gh_session.head(url, **kwargs)
             else:
-                response = requests.head(url, **kwargs)
+                response = self.__web_session.head(url, **kwargs)
             return response
 
         return self.__request_wrapper(__head_internal)
