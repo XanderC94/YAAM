@@ -3,7 +3,7 @@ Argument typing module
 '''
 from enum import Enum
 from typing import Any
-from pathlib import Path
+from yaam.utils.path import Path
 
 
 class ArgumentType(Enum):

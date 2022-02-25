@@ -1,8 +1,7 @@
 '''
 Guild Wars 2 model class
 '''
-from os.path import expandvars
-from pathlib import Path
+from yaam.utils.path import Path, mkpath
 from bs4 import BeautifulSoup
 from yaam.utils.logger import static_logger as logger
 from yaam.utils.json.io import read_json
@@ -37,7 +36,7 @@ class GW2Config(AbstractGameConfiguration):
         if init_file_path is not None:
             init_data: dict = read_json(init_file_path)
             self._name = init_data.get('name', self._name)
-            self._config_path = Path(expandvars(init_data.get('config_path', self._config_path))).resolve()
+            self._config_path = mkpath(init_data.get('config_path', self._config_path))
 
         logger().info(msg=f"Reading game path from {self.path}.")
 
@@ -48,7 +47,7 @@ class GW2Config(AbstractGameConfiguration):
                 if gw2_config_xml is not None:
                     gw2_app_token = gw2_config_xml.find("GSA_SDK").find("APPLICATION")
 
-                    self._root = Path(gw2_app_token.find("INSTALLPATH")['Value'])
+                    self._root = mkpath(gw2_app_token.find("INSTALLPATH")['Value'])
                     self._exe = gw2_app_token.find("EXECUTABLE")['Value']
 
                     if self._root.exists():

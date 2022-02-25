@@ -4,7 +4,7 @@ Contexts module
 import os
 import shutil
 from typing import Dict, List
-from pathlib import Path
+from yaam.utils.path import Path, mkpath
 from dataclasses import dataclass, field
 from yaam.model.options import Option
 from yaam.model.appconfig import AppConfig
@@ -30,10 +30,10 @@ class AppContext(object):
     '''
 
     def __init__(self):
-        self._appdata_dir = Path(os.getenv("APPDATA"))
-        self._local_appdata_dir = Path(os.getenv("LOCALAPPDATA"))
-        self._temp_dir = Path(os.getenv("TEMP"))
-        self._work_dir = Path(os.getcwd())
+        self._appdata_dir = mkpath(os.getenv("APPDATA"))
+        self._local_appdata_dir = mkpath(os.getenv("LOCALAPPDATA"))
+        self._temp_dir = mkpath(os.getenv("TEMP"))
+        self._work_dir = mkpath(os.getcwd())
         self._yaam_dir = self._local_appdata_dir / "yaam"
         self._games_dir = self._yaam_dir / "games"
         self._version = ""
@@ -116,7 +116,7 @@ class AppContext(object):
         os.makedirs(self._games_dir, exist_ok=True)
 
         self._app_config.load(self._yaam_dir / "yaam.ini", vargs)
-        self._execution_path = Path(exec_path)
+        self._execution_path = mkpath(exec_path)
         self._deployment_dir = self._execution_path.parent
         # If calling the python script, navigate 1 level back in the directory tree
         if self._execution_path.suffix == ".py":
