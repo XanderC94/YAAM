@@ -13,6 +13,7 @@ class AddonMetadata(Jsonkin):
 
     def __init__(
                 self,
+                addon: str = '',
                 uri: str = '',
                 etag: str = '',
                 last_modified: str = '',
@@ -20,6 +21,7 @@ class AddonMetadata(Jsonkin):
                 naming_map: Dict[BindingType, Dict[str, str]] = None
             ) -> None:
 
+        self.addon = addon
         self.etag = etag
         self.last_modified = last_modified
         self.hash_signature = hash_signature
@@ -37,6 +39,7 @@ class AddonMetadata(Jsonkin):
             namings[binding_type] = _.get('naming', dict())
 
         return AddonMetadata(
+            addon=json_obj.get('addon', ''),
             etag=json_obj.get('etag', ''),
             last_modified=json_obj.get('last_modified', ''),
             hash_signature=json_obj.get('hash_signature', ''),
@@ -53,6 +56,7 @@ class AddonMetadata(Jsonkin):
             namings.append({'type': key.signature, 'naming': dict([(str(o), str(n)) for (o, n) in value.items()])})
 
         return {
+            'addon': self.addon,
             'etag': self.etag,
             'last_modified': self.last_modified,
             'hash_signature': self.hash_signature,

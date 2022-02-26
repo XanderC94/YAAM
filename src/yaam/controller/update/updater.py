@@ -2,7 +2,6 @@
 GW2SL update utility module
 '''
 
-from pathlib import Path
 from typing import Iterable
 from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
@@ -84,18 +83,17 @@ class AddonUpdater(object):
         # check HASH / SIGNATURE before downloading the resource
         logger().info(msg=f"Fetching {addon.base.name} metadata...")
 
-        metadata = self.__meta_collector.get_local_metadata(addon)
+        local_metadata = self.__meta_collector.get_local_metadata(addon)
         remote_metadata = self.__meta_collector.get_remote_metadata(addon, **default_request_args)
-        remote_metadata.namings = metadata.namings
 
         # ETAG is apparently inconsistent for latest release in github api
         # so the check is currently only done by means of the <last-modified> HTTP header tag
-        if len(metadata.last_modified) == 0 or remote_metadata.last_modified != metadata.last_modified or force:
+        if len(local_metadata.last_modified) == 0 or remote_metadata.last_modified != local_metadata.last_modified or force:
 
-            if len(metadata.last_modified) == 0:
+            if len(local_metadata.last_modified) == 0:
                 logger().info(msg="Local metadata are empty!")
-            elif remote_metadata.last_modified != metadata.last_modified:
-                logger().info(msg=f"Metadata mismatch {metadata.last_modified} -> {remote_metadata.last_modified}.")
+            elif remote_metadata.last_modified != local_metadata.last_modified:
+                logger().info(msg=f"Metadata mismatch {local_metadata.last_modified} -> {remote_metadata.last_modified}.")
             else:
                 logger().info(msg="Forced addon update.")
 
@@ -114,31 +112,33 @@ class AddonUpdater(object):
 
                 # checking the hash signature as well as to not update needessly
                 # since remote metadata might be lacking in some cases
-                [ret_code, remote_metadata.hash_signature] = SignatureChecker.check(response.content, addon, metadata)
+                [ret_code, remote_metadata.hash_signature] = SignatureChecker.check(response.content, addon, local_metadata)
 
                 if ret_code == UpdateResult.TO_CREATE or ret_code == UpdateResult.TO_UPDATE or force:
 
                     logger().info(msg=ret_code.message(addon))
 
+                    remote_metadata.namings = local_metadata.namings
+
                     if responses.is_zip_content(response):
-                        uploader = ZipUpdater(ret_code)
-                        ret_code = uploader.update_from_zip(response, addon)
-                        remote_metadata.namings[addon.binding.typing] = uploader.naming
+                        updater = ZipUpdater(ret_code)
+                        ret_code = updater.update_from_zip(response, addon)
+                        remote_metadata.namings[addon.binding.typing] = updater.naming
                     else:
-                        uploader = DatastreamUpdater(ret_code)
+                        updater = DatastreamUpdater(ret_code)
                         if addon.base.is_installer:
-                            ret_code = uploader.update_from_installer(response, addon)
+                            ret_code = updater.update_from_installer(response, addon)
                         else:
-                            ret_code = uploader.update_from_datastream(response, addon)
-                        remote_metadata.namings[addon.binding.typing] = uploader.naming
+                            ret_code = updater.update_from_datastream(response, addon)
+                        remote_metadata.namings[addon.binding.typing] = updater.naming
 
                     logger().info(msg=ret_code.message(addon))
 
                 # local metadata must be updated if:
                 # - an addon has been created or updated
-                # - addon metadatas don't match but the addon signatures do
+                # - addon metadatas don't match (e.g.: date) but the addon signatures do
                 if ret_code in [UpdateResult.CREATED, UpdateResult.UPDATED, UpdateResult.UP_TO_DATE] or force:
-                    self.__meta_collector.save_metadata(remote_metadata, Path(metadata.uri))
+                    self.__meta_collector.save_metadata(remote_metadata, local_metadata.uri)
             else:
                 logger().error(msg="Received invalid response from addon update uri. Skipping...")
                 ret_code = UpdateResult.DOWNLOAD_FAILED

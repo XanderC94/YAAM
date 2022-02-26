@@ -108,7 +108,7 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
 
             if not is_run_only:
                 with HttpRequestManager(app_context.config) as http:
-                    meta_collector = MetadataCollector(http)
+                    meta_collector = MetadataCollector(http, game.context)
                     meta_collector.load_local_metadata(addons_synthesis)
 
                     manager = AddonManager(meta_collector, curr_game_binding)
