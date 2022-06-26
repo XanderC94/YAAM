@@ -1,5 +1,10 @@
 # Yet Another Addon Manager (YAAM)
 
+<a href="https://scan.coverity.com/projects/xanderc94-yaam">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/24847/badge.svg"/>
+</a>
+
 ## Premise
 
 Since this whole little project of mine was born to foremost play with Python and also to ease my laziness managing Guild Wars 2 addons, the software currently supports only such game and its supported addon "type" (.dll), plus executables and installers. Depepending on my free time, I would like to add support for other games and kind of addons "types" (ex.: scripts).
