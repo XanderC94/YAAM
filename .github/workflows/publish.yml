@@ -83,9 +83,11 @@ jobs:
         -pythonpath ${{ steps.python.outputs.pythonpath }}
 
     - name: Create string version
+      id: version
       shell: pwsh
       run: |
-        echo "::set-output name=short-version::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }} -short))"
+        echo "::set-output name=short::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }} -short))"
+        echo "::set-output name=complete::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }}  -revision ${{ steps.latest.outputs.rev }} -complete))"
 
     # - name: Echo output files
     #   shell: pwsh
@@ -101,11 +103,11 @@ jobs:
         path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         retention-days: 7
     
-    - name: Fetch release changelog
-      id: changelog
-      shell: pwsh
-      run: |
-        echo "::set-output name=body::$(@(./scripts/get-changelog.ps1 -tag ${{ steps.latest.outputs.tag }}))" 
+    # - name: Fetch release changelog
+    #   id: changelog
+    #   shell: pwsh
+    #   run: |
+    #     echo "::set-output name=body::$(@(./scripts/get-changelog.ps1 -tag ${{ steps.latest.outputs.tag }}))" 
 
     - name: Release built artifacts
       if: ${{ github.event_name == 'push' }} 
@@ -115,7 +117,7 @@ jobs:
         name: YAAM release ${{ steps.latest.outputs.tag }}
         tag: ${{ steps.latest.outputs.tag }}
         body: Automated build release ${{ steps.latest.outputs.tag }}
-        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.latest.outputs.tag }}.md
+        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.version.outputs.short }}.md
         artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         token: ${{ secrets.yaam_publish_token }}
         prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}
