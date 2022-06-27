@@ -82,6 +82,11 @@ jobs:
         -revision ${{ steps.latest.outputs.rev }}
         -pythonpath ${{ steps.python.outputs.pythonpath }}
 
+    - name: Create string version
+      shell: pwsh
+      run: |
+        echo "::set-output name=short-version::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }} -short))"
+
     # - name: Echo output files
     #   shell: pwsh
     #   run: |
@@ -109,7 +114,8 @@ jobs:
       with:
         name: YAAM release ${{ steps.latest.outputs.tag }}
         tag: ${{ steps.latest.outputs.tag }}
-        body: ${{ steps.changelog.outputs.body }}
+        body: Automated build release ${{ steps.latest.outputs.tag }}
+        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.latest.outputs.tag }}.md
         artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         token: ${{ secrets.yaam_publish_token }}
         prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}

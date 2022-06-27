@@ -35,7 +35,7 @@ if ($revision.Length -eq 0)
     $revision=[System.String](@(git rev-parse --short=8  head))
 }
 
-$version=[System.String]@(./scripts/get-version.ps1 -tag $tag -revision $revision)
+$version=[System.String]@(./scripts/get-version.ps1 -tag $tag)
 
 Write-Output "YAAM $tag-$revision $version"
 
