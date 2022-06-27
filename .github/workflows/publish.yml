@@ -64,9 +64,9 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 150 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=150 --statistics
         
-    # - name: Test with pytest
-    #   run: |
-    #     pytest
+    - name: Test with pytest
+      run: |
+        pytest
         
     - name: Build with nuitka
       shell: pwsh
@@ -94,6 +94,12 @@ jobs:
         path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         retention-days: 7
     
+    - name: Fetch release changelog
+      id: changelog
+      shell: pwsh
+      run: |
+        echo "::set-output name=body::$(@(./scripts/get-changelog.ps1 -tag ${{ steps.latest.outputs.tag }}))" 
+
     - name: Release built artifacts
       if: ${{ github.event_name == 'push' }} 
       id: release
@@ -101,10 +107,11 @@ jobs:
       with:
         name: YAAM release ${{ steps.latest.outputs.tag }}
         tag: ${{ steps.latest.outputs.tag }}
-        body: Automated build release for YAAM ${{ steps.latest.outputs.tag }}
-        bodyFile: ${{ github.workspace }}/changelogs/${{ steps.latest.outputs.tag }}.md
+        body: ${{ steps.changelog.outputs.body }}
         artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         token: ${{ secrets.yaam_publish_token }}
         prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}
         draft: ${{ Contains(steps.latest.outputs.tag, 'test') || steps.tag.outputs.rev != steps.latest.outputs.rev }}
         allowUpdates: true
+        # removeArtifacts: true
+        replacesArtifacts: true
