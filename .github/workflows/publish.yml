@@ -107,10 +107,10 @@ jobs:
       id: changelog-info
       uses: andstor/file-existence-action@v1
       with:
-        files: ${{ github.workspace }}/changelogs/${{ steps.version.outputs.short }}.md
+        files: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
 
     - name: Create release changelog
-      if: steps.changelog-info.outputs.file_exists == false
+      if: ${{ steps.changelog-info.outputs.file_exists == false }}
       id: automated-changelog
       shell: pwsh
       run: |
@@ -118,13 +118,11 @@ jobs:
         echo Automated build release >> ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
 
     - name: Release built artifacts
-      if: steps.changelog-info.outputs.file_exists == true
       id: release
       uses: ncipollo/release-action@v1
       with:
         name: YAAM release ${{ steps.latest.outputs.tag }}
         tag: ${{ steps.latest.outputs.tag }}
-        body: 
         bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
         artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
         token: ${{ secrets.yaam_publish_token }}
