@@ -1,0 +1,61 @@
+
+name: Lint, Test & Build YAAM
+
+description: Lint, Test and Build process of Yet Another Addon Manager using Nuitka
+
+inputs:
+  git-tag:
+    description: "Latest git branch tag"
+    required: true
+    default: "0.0.0"
+  git-rev:
+    description: "Latest git branch revision"
+    required: true
+    default: "0"
+  # python-version:
+  #   description: "Python version"
+  #   required: true
+  #   default: "0.0.0"
+  python-path:
+    description: "Python path"
+    required: true
+    default: "C:\\Python"
+
+jobs:
+  using: composite
+
+  lint-test-and-build:
+
+    runs-on: windows-2022
+
+    steps:
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 150 chars wide
+          flake8 src --count --exit-zero --max-complexity=10 --max-line-length=150 --statistics
+          
+      - name: Test with pytest
+        shell: pwsh
+        run: |
+          $env:PYTHONPATH+=';./src/'
+          pytest ./test/
+          
+      - name: Build with nuitka
+        shell: pwsh
+        run: >
+          .\nuitka-make.ps1
+          -mode standalone
+          -compiler msvc
+          -lto
+          -artifacts
+          -tag ${{ inputs.git-tag }}
+          -revision ${{ inputs.git-rev }}
+          -pythonpath ${{ inputs.python-path }}
+
+      - name: Echo output files
+        shell: pwsh
+        run: |
+          echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
+          echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
