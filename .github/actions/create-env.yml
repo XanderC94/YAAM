@@ -28,7 +28,10 @@ jobs:
   create-env:
 
     steps:
-
+      
+      - name: Checkout
+        uses: actions/checkout@v3
+        
       - name: Get last available repo info
         id: latest
         run: |
