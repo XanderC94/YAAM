@@ -1,6 +1,9 @@
 name: Create YAAM environment
 
-description: Create environment to Lint, Test and Build Yet Another Addon Manager
+description: Create environment to test and build YAAM
+
+on:
+  workflow_call:
 
 outputs:
   git-latest-tag:
@@ -23,8 +26,6 @@ jobs:
   using: composite
 
   create-env:
-
-    runs-on: windows-2022
 
     steps:
 

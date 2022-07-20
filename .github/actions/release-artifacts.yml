@@ -1,6 +1,9 @@
 name: Lint, Test & Build YAAM
 
-description: Lint, Test and Build process of Yet Another Addon Manager using Nuitka
+description: Release the built artifacts
+
+on:
+  workflow_call:
 
 inputs:
   git-tag:
@@ -28,10 +31,7 @@ jobs:
 
   release-artifacts:
 
-    runs-on: windows-2022
-
     steps:
-    
       - name: Create string version
         id: version
         shell: pwsh

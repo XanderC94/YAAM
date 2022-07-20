@@ -16,117 +16,118 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      
-    - name: Get last available repo info
-      id: latest
-      run: |
-        echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
-        echo "::set-output name=rev::$(git rev-parse --short=8 head)"
-      
-    - name: Get tag revision
-      id: tag
-      run: |
-        echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.latest.outputs.tag }}).substring(0, 8))"
-
-    - name: Initialize MSVC developer tools
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: "x64"
-        toolset: "14.*"
-        
-    - name: Set up Python distribution
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.9.9"
-        architecture: "x64"
-        cache: pip
-        
-    - name: Get Python distribution info
-      id: python
-      shell: pwsh
-      run: |
-        echo "::set-output name=version::$(@(python -V).substring(7))"
-        echo "::set-output name=pythonpath::$(@(./scripts/find-pythonpath.ps1))"
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        pip install -r requirements.txt
-        python ${{ steps.python.outputs.pythonpath }}/Scripts/pywin32_postinstall.py -install
-        
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 150 chars wide
-        flake8 src --count --exit-zero --max-complexity=10 --max-line-length=150 --statistics
-        
-    - name: Test with pytest
-      shell: pwsh
-      run: |
-        $env:PYTHONPATH+=';./src/'
-        pytest ./test/
-        
-    - name: Build with nuitka
-      shell: pwsh
-      run: >
-        .\nuitka-make.ps1
-        -mode standalone
-        -compiler msvc
-        -lto
-        -artifacts
-        -tag ${{ steps.latest.outputs.tag }}
-        -revision ${{ steps.latest.outputs.rev }}
-        -pythonpath ${{ steps.python.outputs.pythonpath }}
-
-    - name: Echo output files
-      shell: pwsh
-      run: |
-        echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
-        echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
-
-    - name: Create string version
-      id: version
-      shell: pwsh
-      run: |
-        echo "::set-output name=short::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }} -short))"
-        echo "::set-output name=complete::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }}  -revision ${{ steps.latest.outputs.rev }} -complete))"
-
-    - name: Upload artifacts
-      id: artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: yaam-standalone-msvc-${{ steps.latest.outputs.tag }}
-        path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
-        retention-days: 7
     
-    - name: Test release changelog existence
-      id: changelog-info
-      uses: andstor/file-existence-action@v1
-      with:
-        files: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Get last available repo info
+        id: latest
+        run: |
+          echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
+          echo "::set-output name=rev::$(git rev-parse --short=8 head)"
+        
+      - name: Get tag revision
+        id: tag
+        run: |
+          echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.latest.outputs.tag }}).substring(0, 8))"
 
-    - name: Create release changelog
-      if: ${{ steps.changelog-info.outputs.file_exists == 'false' }}
-      id: automated-changelog
-      shell: pwsh
-      run: |
-        echo "Automated build release" >> ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+      - name: Initialize MSVC developer tools
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: "x64"
+          toolset: "14.*"
+          
+      - name: Set up Python distribution
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9.9"
+          architecture: "x64"
+          cache: pip
+          
+      - name: Get Python distribution info
+        id: python
+        shell: pwsh
+        run: |
+          echo "::set-output name=version::$(@(python -V).substring(7))"
+          echo "::set-output name=pythonpath::$(@(./scripts/find-pythonpath.ps1))"
 
-    - name: Release built artifacts
-      id: release
-      uses: ncipollo/release-action@v1
-      with:
-        name: YAAM release ${{ steps.latest.outputs.tag }}
-        tag: ${{ steps.latest.outputs.tag }}
-        bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
-        artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
-        token: ${{ secrets.yaam_publish_token }}
-        prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}
-        draft: ${{ Contains(steps.latest.outputs.tag, 'test') || steps.tag.outputs.rev != steps.latest.outputs.rev }} || !${{ github.event_name == 'push' }}
-        allowUpdates: true
-        # removeArtifacts: true
-        replacesArtifacts: true
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          pip install -r requirements.txt
+          python ${{ steps.python.outputs.pythonpath }}/Scripts/pywin32_postinstall.py -install
+          
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 150 chars wide
+          flake8 src --count --exit-zero --max-complexity=10 --max-line-length=150 --statistics
+          
+      - name: Test with pytest
+        shell: pwsh
+        run: |
+          $env:PYTHONPATH+=';./src/'
+          pytest ./test/
+          
+      - name: Build with nuitka
+        shell: pwsh
+        run: >
+          .\nuitka-make.ps1
+          -mode standalone
+          -compiler msvc
+          -lto
+          -artifacts
+          -tag ${{ steps.latest.outputs.tag }}
+          -revision ${{ steps.latest.outputs.rev }}
+          -pythonpath ${{ steps.python.outputs.pythonpath }}
+
+      - name: Echo output files
+        shell: pwsh
+        run: |
+          echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
+          echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
+
+      - name: Create string version
+        id: version
+        shell: pwsh
+        run: |
+          echo "::set-output name=short::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }} -short))"
+          echo "::set-output name=complete::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }}  -revision ${{ steps.latest.outputs.rev }} -complete))"
+
+      - name: Upload artifacts
+        id: artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: yaam-standalone-msvc-${{ steps.latest.outputs.tag }}
+          path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
+          retention-days: 7
+      
+      - name: Test release changelog existence
+        id: changelog-info
+        uses: andstor/file-existence-action@v1
+        with:
+          files: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+
+      - name: Create release changelog
+        if: ${{ steps.changelog-info.outputs.file_exists == 'false' }}
+        id: automated-changelog
+        shell: pwsh
+        run: |
+          echo "Automated build release" >> ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+
+      - name: Release built artifacts
+        id: release
+        uses: ncipollo/release-action@v1
+        with:
+          name: YAAM release ${{ steps.latest.outputs.tag }}
+          tag: ${{ steps.latest.outputs.tag }}
+          bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+          artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
+          token: ${{ secrets.yaam_publish_token }}
+          prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}
+          draft: ${{ Contains(steps.latest.outputs.tag, 'test') || steps.tag.outputs.rev != steps.latest.outputs.rev }} || !${{ github.event_name == 'push' }}
+          allowUpdates: true
+          # removeArtifacts: true
+          replacesArtifacts: true

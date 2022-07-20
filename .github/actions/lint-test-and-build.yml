@@ -3,6 +3,9 @@ name: Lint, Test & Build YAAM
 
 description: Lint, Test and Build process of Yet Another Addon Manager using Nuitka
 
+on:
+  workflow_call:
+
 inputs:
   git-tag:
     description: "Latest git branch tag"
@@ -26,9 +29,8 @@ jobs:
 
   lint-test-and-build:
 
-    runs-on: windows-2022
-
     steps:
+
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names

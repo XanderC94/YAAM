@@ -21,11 +21,11 @@ jobs:
         
       - name: Create Environment
         id: yaam-env
-        uses: actions/create-env
+        uses: ./github/actions/create-env@main
 
       - name: Lint-Build-and-Test
         id: yaam-build
-        uses: actions/test-and-build
+        uses: ./github/actions/test-and-build@main
         with:
           git-tag: ${{ steps.yaam-env.outputs.git-latest-tag }}
           git-rev: ${{ steps.yaam-env.outputs.git-latest-rev }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Release-artifacts
         id: release
-        uses: actions/release-artifact
+        uses: ./github/actions/release-artifact@main
         with:
           git-tag: ${{ steps.yaam-env.outputs.git-latest-tag }}
           git-rev: ${{ steps.yaam-env.outputs.git-latest-rev }}
