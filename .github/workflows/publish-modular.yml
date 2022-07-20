@@ -4,9 +4,9 @@
 name: Publish YAAM Modular
 
 on:
-  push:
-    tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+#   push:
+#     tags:
+#     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   
   workflow_dispatch:
 
@@ -21,11 +21,11 @@ jobs:
         
       - name: Create Environment
         id: yaam-env
-        uses: actions/create-yaam-env@main
+        uses: ./actions/create-yaam-env@master
 
       - name: Lint-Build-and-Test
         id: yaam-build
-        uses: actions/test-and-build-yaam@main
+        uses: ./actions/test-and-build-yaam@master
         with:
           git-tag: ${{ steps.yaam-env.outputs.git-latest-tag }}
           git-rev: ${{ steps.yaam-env.outputs.git-latest-rev }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Release-artifacts
         id: release
-        uses: actions/release-yaam-artifact@main
+        uses: ./actions/release-yaam-artifact@master
         with:
           git-tag: ${{ steps.yaam-env.outputs.git-latest-tag }}
           git-rev: ${{ steps.yaam-env.outputs.git-latest-rev }}
