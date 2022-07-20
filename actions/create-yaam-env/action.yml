@@ -2,8 +2,8 @@ name: Create YAAM environment
 
 description: Create environment to test and build YAAM
 
-on:
-  workflow_call:
+# on:
+#   workflow_call:
 
 outputs:
   git-latest-tag:

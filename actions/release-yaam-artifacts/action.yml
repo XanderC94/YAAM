@@ -2,8 +2,8 @@ name: Lint, Test & Build YAAM
 
 description: Release the built artifacts
 
-on:
-  workflow_call:
+# on:
+#   workflow_call:
 
 inputs:
   git-tag:

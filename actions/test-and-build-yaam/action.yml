@@ -3,8 +3,8 @@ name: Lint, Test & Build YAAM
 
 description: Lint, Test and Build process of Yet Another Addon Manager using Nuitka
 
-on:
-  workflow_call:
+# on:
+#   workflow_call:
 
 inputs:
   git-tag:

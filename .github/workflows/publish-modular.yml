@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Publish YAAM
+name: Publish YAAM Modular
 
 on:
   push:
@@ -21,11 +21,11 @@ jobs:
         
       - name: Create Environment
         id: yaam-env
-        uses: ./github/actions/create-env.yml@main
+        uses: actions/create-yaam-env@main
 
       - name: Lint-Build-and-Test
         id: yaam-build
-        uses: ./github/actions/test-and-build.yml@main
+        uses: actions/test-and-build-yaam@main
         with:
           git-tag: ${{ steps.yaam-env.outputs.git-latest-tag }}
           git-rev: ${{ steps.yaam-env.outputs.git-latest-rev }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Release-artifacts
         id: release
-        uses: ./github/actions/release-artifact.yml@main
+        uses: actions/release-yaam-artifact@main
         with:
           git-tag: ${{ steps.yaam-env.outputs.git-latest-tag }}
           git-rev: ${{ steps.yaam-env.outputs.git-latest-rev }}
