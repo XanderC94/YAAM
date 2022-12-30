@@ -167,4 +167,5 @@ if __name__ == "__main__":
 
     execution_result = run_yaam(_app_context, _logger)
 
-    sys.exit(execution_result)
+    # 0 == success, 1 == failure
+    sys.exit(0 if execution_result else 1)

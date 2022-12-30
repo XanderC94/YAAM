@@ -37,7 +37,7 @@ class GW2Config(AbstractGameConfiguration):
             init_data: dict = read_json(init_file_path)
             self._name = init_data.get('name', self._name)
             self._config_path = mkpath(init_data.get('config_path', self._config_path))
-            _bt = init_data.get('native_binding_type', self._native_binding_type.signature())
+            _bt = init_data.get('native_binding_type', self._native_binding_type.signature)
             self._native_binding_type = BindingType.from_string(_bt)
 
         logger().info(msg=f"Reading game path from {self.path}.")

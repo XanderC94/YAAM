@@ -110,6 +110,7 @@ $params = @(
     "--include-data-file=$root/LICENSE=LICENSE",
     "--include-data-file=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py=orderedmultidict/__version__.py"
     "--assume-yes-for-downloads",
+    "--force-dll-dependency-cache-update",
     "--remove-output",
     "--output-dir=$output_dir"
 )
