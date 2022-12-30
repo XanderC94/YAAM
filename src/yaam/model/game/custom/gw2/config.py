@@ -18,7 +18,7 @@ class GW2Config(AbstractGameConfiguration):
 
     def __init__(self, appdata_dir: Path):
 
-        super().__init__(BindingType.D3D9)
+        super().__init__(BindingType.D3D11)
 
         self._name = "Guild Wars 2"
         self._config_path = appdata_dir / self._name / "GFXSettings.Gw2-64.exe.xml"
@@ -37,6 +37,8 @@ class GW2Config(AbstractGameConfiguration):
             init_data: dict = read_json(init_file_path)
             self._name = init_data.get('name', self._name)
             self._config_path = mkpath(init_data.get('config_path', self._config_path))
+            _bt = init_data.get('native_binding_type', self._native_binding_type.signature())
+            self._native_binding_type = BindingType.from_string(_bt)
 
         logger().info(msg=f"Reading game path from {self.path}.")
 
