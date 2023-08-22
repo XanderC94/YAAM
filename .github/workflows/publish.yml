@@ -7,9 +7,9 @@ on:
   push:
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-  
-  workflow_dispatch:
 
+  workflow_dispatch:
+      
 jobs:
   build:
 
@@ -20,16 +20,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         
-      - name: Get last available repo info
+      - name: Get last tag name and last commit revision
         id: latest
+        shell: pwsh
         run: |
-          echo "::set-output name=tag::$(git describe --tags --abbrev=0 --always)"
-          echo "::set-output name=rev::$(git rev-parse --short=8 head)"
-        
-      - name: Get tag revision
+          echo "git_tag=$(git describe --tags --abbrev=0 --always)" >> $env:GITHUB_OUTPUT
+          echo "git_rev=${{ github.sha }}" >> $env:GITHUB_OUTPUT
+          echo "git_rev_short=$("${{ github.sha }}".substring(0, 8))" >> $env:GITHUB_OUTPUT
+#          echo "git_tag=${{ github.ref_name }}" >> $env:GITHUB_OUTPUT
+#          echo "git_rev=$(git rev-parse --short=8 head)" >> $GITHUB_OUTPUT
+
+      - name: Get original revision for current tag
         id: tag
+        shell: pwsh
         run: |
-          echo "::set-output name=rev::$(@(git rev-list -n 1 ${{ steps.latest.outputs.tag }}).substring(0, 8))"
+          $current_tag_revision=$(@(git rev-list -n 1 ${{ steps.latest.outputs.git_tag }}))
+          $current_tag_revision_short=$("$current_tag_revision".substring(0, 8))
+          echo "git_rev=$current_tag_revision" >> $env:GITHUB_OUTPUT
+          echo "git_rev_short=$current_tag_revision_short" >> $env:GITHUB_OUTPUT
 
       - name: Initialize MSVC developer tools
         uses: ilammy/msvc-dev-cmd@v1
@@ -48,9 +56,22 @@ jobs:
         id: python
         shell: pwsh
         run: |
-          echo "::set-output name=version::$(@(python -V).substring(7))"
-          echo "::set-output name=pythonpath::$(@(./scripts/find-pythonpath.ps1))"
+          echo "version=$(@(python -V).substring(7))" >> $env:GITHUB_OUTPUT
+          echo "pythonpath=$(@(./scripts/find-pythonpath.ps1))" >> $env:GITHUB_OUTPUT
 
+      - name: Echo last available build info
+        shell: pwsh
+        run: |
+          echo "github.sha=${{ github.sha }}"
+          echo "github.ref_name=${{ github.ref_name }}"
+          echo "latest.git_tag=${{ steps.latest.outputs.git_tag }}"
+          echo "latest.git_rev=${{ steps.latest.outputs.git_rev }}"
+          echo "latest.git_rev_short=${{ steps.latest.outputs.git_rev_short }}"
+          echo "tag.git_rev=${{ steps.tag.outputs.git_rev }}"
+          echo "tag.git_rev_short=${{ steps.tag.outputs.git_rev_short }}"
+          echo "python.version=${{ steps.python.outputs.version }}"
+          echo "python.pythonpath=${{ steps.python.outputs.pythonpath }}"
+              
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -79,8 +100,8 @@ jobs:
           -compiler msvc
           -lto
           -artifacts
-          -tag ${{ steps.latest.outputs.tag }}
-          -revision ${{ steps.latest.outputs.rev }}
+          -tag ${{ steps.latest.outputs.git_tag }}
+          -revision ${{ steps.latest.outputs.git_rev_short }}
           -pythonpath ${{ steps.python.outputs.pythonpath }}
 
       - name: Echo output files
@@ -90,44 +111,43 @@ jobs:
           echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
 
       - name: Create string version
-        id: version
+        id: build-version
         shell: pwsh
         run: |
-          echo "::set-output name=short::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }} -short))"
-          echo "::set-output name=complete::$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.tag }}  -revision ${{ steps.latest.outputs.rev }} -complete))"
+          echo "short=$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.git_tag }} -short))" >> $env:GITHUB_OUTPUT
+          echo "complete=$(@(./scripts/get-version.ps1 -tag ${{ steps.latest.outputs.git_tag }} -revision ${{ steps.latest.outputs.git_rev_short }} -complete))" >> $env:GITHUB_OUTPUT
 
       - name: Upload artifacts
         id: artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: yaam-standalone-msvc-${{ steps.latest.outputs.tag }}
-          path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
+          name: yaam-standalone-msvc-${{ steps.latest.outputs.git_tag }}
+          path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.git_tag }}.zip
           retention-days: 7
       
       - name: Test release changelog existence
         id: changelog-info
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
-          files: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+          files: ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
 
       - name: Create release changelog
         if: ${{ steps.changelog-info.outputs.file_exists == 'false' }}
         id: automated-changelog
         shell: pwsh
         run: |
-          echo "Automated build release" >> ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
+          echo "Automated build release" >> ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
 
       - name: Release built artifacts
         id: release
         uses: ncipollo/release-action@v1
         with:
-          name: YAAM release ${{ steps.latest.outputs.tag }}
-          tag: ${{ steps.latest.outputs.tag }}
-          bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.version.outputs.short }}.md
-          artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.tag }}.zip
+          name: YAAM release ${{ steps.latest.outputs.git_tag }}
+          tag: ${{ steps.latest.outputs.git_tag }}
+          bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
+          artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.git_tag }}.zip
           token: ${{ secrets.yaam_publish_token }}
-          prerelease: ${{ Contains(steps.latest.outputs.tag, 'alpha') }}
-          draft: ${{ Contains(steps.latest.outputs.tag, 'test') || steps.tag.outputs.rev != steps.latest.outputs.rev }} || !${{ github.event_name == 'push' }}
+          prerelease: ${{ Contains(steps.latest.outputs.git_tag, 'alpha') || Contains(steps.latest.outputs.git_tag, 'beta') }}
+          draft: ${{ Contains(steps.latest.outputs.git_tag, 'test') || steps.tag.outputs.git_rev != steps.latest.outputs.git_rev || github.event_name != 'push'}}
           allowUpdates: true
-          # removeArtifacts: true
           replacesArtifacts: true
