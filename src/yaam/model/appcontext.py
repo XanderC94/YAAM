@@ -22,8 +22,8 @@ class GameContext(object):
     addons_path: Path = field(init=True)
     settings_path: Path = field(init=True)
     naming_map_path: Path = field(init=True)
-    # local_cache_dir: Path = field(init=True)
-    # global_cache_dir: Path = field(init=True)
+    cache_dir: Path = field(init=True)
+    metadata_dir: Path = field(init=True)
 
 
 class AppContext(object):
@@ -38,8 +38,8 @@ class AppContext(object):
         self._work_dir = mkpath(os.getcwd())
         self._yaam_dir = self._local_appdata_dir / "yaam"
         self._games_dir = self._yaam_dir / "games"
-        self._global_cache_dir = self._games_dir / "cache"
-        self._global_metadata_dir = self._global_cache_dir / "metadata"
+        self._cache_dir = self._yaam_dir / "cache"
+        self._metadata_dir = self._yaam_dir / "metadata"
         self._version = ""
 
         self._execution_path = Path()
@@ -119,8 +119,8 @@ class AppContext(object):
         self._yaam_dir.mkdir(exist_ok=True)
         self._games_dir.mkdir(exist_ok=True)
 
-        # self._global_cache_dir.mkdir(exist_ok=True)
-        # self._global_metadata_dir.mkdir(exist_ok=True)
+        self._cache_dir.mkdir(exist_ok=True)
+        self._metadata_dir.mkdir(exist_ok=True)
 
         self._app_config.load(self._yaam_dir / "yaam.ini", vargs)
         self._execution_path = mkpath(exec_path)
@@ -163,11 +163,11 @@ class AppContext(object):
             yaam_game_dir = self._games_dir / game_name
             yaam_game_dir.mkdir(exist_ok=True)
 
-            # local_cache_dir = yaam_game_dir / "cache"
-            # local_cache_dir.mkdir(exist_ok=True)
+            game_cache_dir = self._cache_dir / game_name
+            game_cache_dir.mkdir(exist_ok=True)
 
-            # local_metadata_dir = local_cache_dir / "metadata"
-            # local_metadata_dir.mkdir(exist_ok=True)
+            game_metadata_dir = self._metadata_dir
+            game_metadata_dir.mkdir(exist_ok=True)
 
             arguments_path = yaam_game_dir / "arguments.json"
             addons_path = yaam_game_dir / "addons.json"
@@ -208,7 +208,9 @@ class AppContext(object):
                 arguments_path,
                 addons_path,
                 settings_path,
-                naming_map_path
+                naming_map_path,
+                game_cache_dir,
+                game_metadata_dir
             )
 
         return self._game_contexts[game_name]

@@ -2,7 +2,6 @@
 Hashing utility functions
 '''
 import hashlib
-
 from enum import Enum
 from pathlib import Path
 
@@ -19,6 +18,9 @@ class Hasher(Enum):
     SHA512 = 5
 
     def create(self):
+        '''
+        Create strategy for the current enum value
+        '''
         strategy = None
 
         if self == Hasher.MD5:
@@ -57,6 +59,15 @@ class Hasher(Enum):
         '''
         fshan = self.create()
         fshan.update(data)
+        return fshan.hexdigest()
+
+    def make_hash_from_string(self, data: str, encoding: str = "utf-8", errors: str = "strict") -> str:
+        '''
+        Return hashcode for the specified string
+        @data: str -- data string to hash
+        '''
+        fshan = self.create()
+        fshan.update(data.encode(encoding=encoding, errors=errors))
         return fshan.hexdigest()
 
     @staticmethod

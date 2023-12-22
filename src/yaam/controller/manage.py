@@ -27,17 +27,6 @@ class AddonManager(object):
         Detect and resolve renamed addons by aligning physical names to pointed ones
         '''
 
-        def check_and_rename(addon: Addon, prev_rule: str, new_rule: str) -> None:
-            ret: bool = False
-            if prev_rule is not None and new_rule is not None and prev_rule != new_rule:
-                logger().info(msg=f"Detected a name change in {addon.base.name}: {prev_rule} is now {new_rule}")
-                prev_target = addon.binding.workspace / prev_rule
-                new_target = addon.binding.workspace / new_rule
-                if prev_target.exists():
-                    prev_target.rename(new_target)
-                ret = True
-            return ret
-
         for addon in addons:
             metadata = self.__metadata.get_local_metadata(addon)
             binding_namings = metadata.namings.get(addon.binding.typing, dict())
@@ -47,7 +36,7 @@ class AddonManager(object):
                 if len(addon.naming) > 0:
                     for (key, new_rule) in addon.naming.items():
                         prev_rule = binding_namings.get(key, None)
-                        if check_and_rename(addon, prev_rule, new_rule):
+                        if self.__check_and_rename(addon, prev_rule, new_rule):
                             binding_namings[key] = new_rule
                             modified = True
 
@@ -55,13 +44,27 @@ class AddonManager(object):
                     new_rule = addon.binding.default_naming
                     for (key, prev_rule) in binding_namings.items():
                         if new_rule.endswith(Path(prev_rule).suffix):
-                            if check_and_rename(addon, prev_rule, new_rule):
+                            if self.__check_and_rename(addon, prev_rule, new_rule):
                                 binding_namings[key] = new_rule
                                 modified = True
                                 break
 
             if modified:
                 self.__metadata.save_metadata(metadata, metadata.uri)
+
+    def __check_and_rename(self, addon: Addon, prev_rule: str, new_rule: str) -> bool:
+        '''
+        ...
+        '''
+        ret: bool = False
+        if prev_rule is not None and new_rule is not None and prev_rule != new_rule:
+            logger().info(msg=f"Detected a name change in {addon.base.name}: {prev_rule} is now {new_rule}")
+            prev_target = addon.binding.workspace / prev_rule
+            new_target = addon.binding.workspace / new_rule
+            if prev_target.exists():
+                prev_target.rename(new_target)
+            ret = True
+        return ret
 
     def __get_naming_rules(self, addon: Addon) -> list:
 

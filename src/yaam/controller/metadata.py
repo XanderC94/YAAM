@@ -4,6 +4,8 @@ Addon metadata collector module
 
 from copy import deepcopy
 from os import makedirs
+from os import remove as remove_file
+from shutil import copy2 as copy_file
 from pathlib import Path
 from typing import Dict, List
 from yaam.controller.http import HttpRequestManager
@@ -34,11 +36,15 @@ class MetadataCollector(object):
         self.__local_metadata.clear()
         self.__local_metadata_backup.clear()
 
+        self.__manage_backward_compatibility(addons)
+
         for _ in addons:
             if _.base.name not in self.__local_metadata:
                 self.__local_metadata[_.base.name] = dict()
 
-            self.__local_metadata[_.base.name] = self.__get_local_metadata(_)
+            curr_metadata_path = Path(self.__get_metadata_path(_))
+
+            self.__local_metadata[_.base.name] = self.__get_local_metadata(curr_metadata_path, _)
 
         self.__local_metadata_backup = deepcopy(self.__local_metadata)
 
@@ -50,19 +56,17 @@ class MetadataCollector(object):
 
         metadata_stem = addon.base.name.replace(' ', '_').lower()
 
-        if not addon.binding.is_headless:
-            metadata_path = addon.binding.path.parent / f"metadata_{metadata_stem}.json"
-        else:
-            metadata_path = addon.binding.path / f"metadata_{metadata_stem}.json"
+        metadata_bucket = self.__context.metadata_dir / Hasher.SHA256.make_hash_from_string(str(addon.binding.path))
+
+        metadata_path = metadata_bucket / f"metadata_{metadata_stem}.json"
 
         return metadata_path
 
-    def __get_local_metadata(self, addon: Addon) -> AddonMetadata:
+    def __get_local_metadata(self, metadata_path: Path, addon: Addon) -> AddonMetadata:
         '''
         Retrieve local addon metadata
         '''
 
-        metadata_path: Path = self.__get_metadata_path(addon)
         metadata: AddonMetadata = AddonMetadata.from_json(read_json(metadata_path))
 
         if len(metadata.hash_signature) == 0 and not addon.binding.is_headless:
@@ -136,3 +140,45 @@ class MetadataCollector(object):
         logger().info(msg=f"Saving addon metadata to {path}")
         makedirs(path.parent, exist_ok=True)
         write_json(metadata.to_json(), path)
+
+    def __manage_backward_compatibility(self, addons: List[Addon]):
+        '''
+        ...
+        '''
+
+        # Move old metadata for backward compatibility
+        # To the new destination (YAAM appdata folder)
+        logged_once: bool = False
+
+        for _ in addons:
+
+            old_metadata_path = Path(self.__get_metadata_path_old(_))
+            curr_metadata_path = Path(self.__get_metadata_path(_))
+
+            if old_metadata_path.exists():
+
+                makedirs(curr_metadata_path.parent, exist_ok=True)
+
+                copy_file(str(old_metadata_path), str(curr_metadata_path))
+                remove_file(str(old_metadata_path))
+
+                if not logged_once:
+                    logger().info("Updating metadata storage locations...")
+                    logged_once = True
+
+                logger().debug(msg=f"Moved {str(old_metadata_path)} to {str(curr_metadata_path)}")
+
+    def __get_metadata_path_old(self, addon: Addon) -> str:
+        '''
+        Compute the addon metadata path from addon info
+        '''
+        metadata_path: Path = None
+
+        metadata_stem = addon.base.name.replace(' ', '_').lower()
+
+        if not addon.binding.is_headless:
+            metadata_path = addon.binding.path.parent / f"metadata_{metadata_stem}.json"
+        else:
+            metadata_path = addon.binding.path / f"metadata_{metadata_stem}.json"
+
+        return metadata_path
