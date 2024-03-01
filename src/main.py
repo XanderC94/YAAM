@@ -106,15 +106,16 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
             if curr_settings_digest != prev_settings_digest:
                 print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 
-            if not is_run_only:
-                with HttpRequestManager(app_context.config) as http:
-                    meta_collector = MetadataCollector(http, game.context)
-                    meta_collector.load_local_metadata(addons_synthesis)
+            with HttpRequestManager(app_context.config) as http:
+                meta_collector = MetadataCollector(http, game.context)
+                meta_collector.load_local_metadata(addons_synthesis)
 
-                    manager = AddonManager(meta_collector, curr_game_binding)
-                    manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
-                    manager.disable_addons(addons_synthesis, prev_addons_synthesis)
-                    manager.restore_addons(addons_synthesis, prev_addons_synthesis)
+                manager = AddonManager(meta_collector, curr_game_binding)
+                manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
+                manager.disable_addons(addons_synthesis, prev_addons_synthesis)
+                manager.restore_addons(addons_synthesis, prev_addons_synthesis)
+
+                if not is_run_only:
 
                     updater = AddonUpdater(app_context.config, meta_collector, http)
                     updater.update_addons(addons_synthesis)
