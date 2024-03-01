@@ -1,4 +1,5 @@
 {
     "name": "Guild Wars 2",
-    "config_path": "%APPDATA%\\Guild Wars 2\\GFXSettings.Gw2-64.exe.xml"
+    "config_path": "%APPDATA%\\Guild Wars 2\\GFXSettings.Gw2-64.exe.xml",
+    "native_binding": "d3d11"
 }

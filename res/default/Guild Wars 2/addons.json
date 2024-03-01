@@ -34,7 +34,7 @@
         },        
         {
             "name": "ArcDPS",
-            "uri": "https://www.deltaconnected.com/arcdps/x64/d3d9.dll",
+            "uri": "https://www.deltaconnected.com/arcdps/x64/d3d11.dll",
             "description": "GW2 dps meter and more",
             "contribs": [ "deltaconnected" ],
             "dependencies": [],
@@ -52,24 +52,48 @@
             "name": "ArcDPS BoonsTable",
             "uri": "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest",
             "description": "",
-            "contribs": [ "knoxfighter" ],
-            "dependencies": [ "ArcDPS" ],
+            "contribs": [
+                "knoxfighter"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
+            "is_shader": false
+        },
+        {
+            "name": "ArcDPS Combats Mechanics",
+            "uri": "https://api.github.com/repos/knoxfighter/GW2-ArcDPS-Mechanics-Log/releases/latest",
+            "description": "",
+            "contribs": [
+                "RaidcoreGG", "knoxfighter"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
             "is_shader": false
         },
         {
             "name": "ArcDPS BuildPad",
             "uri": "https://buildpad.gw2archive.eu/versions/latest",
             "description": "",
-            "contribs": [ "xvwyh" ],
-            "dependencies": [ "ArcDPS" ],
+            "contribs": [
+                "xvwyh"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
             "is_shader": false
         },
         {
             "name": "ArcDPS KillProof Me",
             "uri": "https://api.github.com/repos/knoxfighter/arcdps-killproof.me-plugin/releases/latest",
             "description": "",
-            "contribs": [ "knoxfighter" ],
-            "dependencies": [ "ArcDPS" ],
+            "contribs": [
+                "knoxfighter"
+            ],
+            "dependencies": [
+                "ArcDPS"
+            ],
             "is_shader": false
         },
         {
@@ -82,17 +106,9 @@
         },
         {
             "name": "GW2 Radial Mounts",
-            "uri": "https://api.github.com/Friendly0Fire/GW2Radial/releases/latest",
+            "uri": "https://api.github.com/repos/Friendly0Fire/GW2Radial/releases/latest",
             "description": "",
             "contribs": [ "Friendly0Fire" ],
-            "dependencies": [],
-            "is_shader": false
-        },
-        {
-            "name": "D912PXY",
-            "uri": "https://api.github.com/repos/megai2/d912pxy/releases/latest",
-            "description": "DirectX 9 to DirectX 12 proxy",
-            "contribs": [ "Megai2" ],
             "dependencies": [],
             "is_shader": false
         },

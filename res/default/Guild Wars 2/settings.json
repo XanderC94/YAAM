@@ -19,20 +19,6 @@
                 "update": true
             }
         ],
-        "dx9": [
-            {
-                "name": "D912PXY",
-                "path": "addons\\d912pxy",
-                "enabled": true,
-                "update": true
-            },
-            {
-                "name": "GW2 Radial Mounts",
-                "path": "addons\\gw2radial\\gw2addon_gw2radial.dll",
-                "enabled": true,
-                "update": true
-            }
-        ],
         "any": [
             {
                 "name": "GW2 Addon Loader Core",
@@ -97,6 +83,12 @@
             {
                 "name": "ArcDps BHUD bridge",
                 "path": "addons\\arcdps\\arcdps_bhud.dll",
+                "enabled": true,
+                "update": true
+            },
+            {
+                "name": "GW2 Radial Mounts",
+                "path": "addons\\gw2radial\\gw2addon_gw2radial.dll",
                 "enabled": true,
                 "update": true
             }
