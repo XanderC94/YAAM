@@ -33,6 +33,6 @@ class GenericGameConfig(AbstractGameConfiguration):
             self._config_path = mkpath(init_data.get('config_path', str()))
             self._root = mkpath(init_data.get('root', str()))
             self._exe = init_data.get('exe', str())
-            self._native_binding_type = BindingType.from_string(init_data.get('binding', 'dx9'))
+            self._native_binding_type = BindingType.from_string(init_data.get('native_binding', 'dx9'))
 
         return self._config_path.exists() and self._root.exists() and (self._root / self._exe).exists()
