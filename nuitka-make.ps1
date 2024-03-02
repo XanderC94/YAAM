@@ -118,6 +118,7 @@ $params = @(
 $nuitka_version=[System.String]([array]@(python -m nuitka --version)[0])
 
 Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
+Write-Output "Command: python -m nuitka $params $entrypoint"
 
 @(python -m nuitka $params $entrypoint)
 
