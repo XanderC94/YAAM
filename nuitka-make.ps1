@@ -92,12 +92,12 @@ $params = @(
     (&{ if ($lto -eq $true) { "--lto=yes" } else { "--lto=no" } }),
     "--plugin-enable=pylint-warnings",
     # "--follow-imports",
-    "--include-module=win32com.gen_py",
-    "--include-module=win32com.client",
-    "--include-module=win32com.server",
-    "--include-module=win32com.servers",
-    "--include-plugin-files=$env:SystemRoot\system32\pythoncom39.dll"
-    "--include-plugin-files=$env:SystemRoot\system32\pywintypes39.dll"
+    # "--include-module=win32com.gen_py",
+    # "--include-module=win32com.client",
+    # "--include-module=win32com.server",
+    # "--include-module=win32com.servers",
+    # "--include-plugin-files=$env:SystemRoot\system32\pythoncom39.dll"
+    # "--include-plugin-files=$env:SystemRoot\system32\pywintypes39.dll"
     "--windows-product-name=$product_name",
     "--windows-product-version=$version",
     "--windows-company-name=$company_name",
@@ -118,9 +118,9 @@ $params = @(
 $nuitka_version=[System.String]([array]@(python -m nuitka --version)[0])
 
 Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
-Write-Output "Command: python -m nuitka $params $entrypoint"
+Write-Output "Command: nuitka $params $entrypoint"
 
-@(python -m nuitka $params $entrypoint)
+@(nuitka $params $entrypoint)
 
 # Rename built objects
 if ($mode -eq "standalone")
