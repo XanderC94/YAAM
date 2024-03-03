@@ -20,7 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           fetch-tags: true
+          show-progress: true
         
       - name: Get last tag name and last commit revision
         id: latest
