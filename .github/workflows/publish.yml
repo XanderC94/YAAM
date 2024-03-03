@@ -93,6 +93,7 @@ jobs:
             echo "build_time=$((Get-Date).ToString("hh:mm:ss.fff"))" >> $env:GITHUB_OUTPUT
 
       - name: Build with nuitka
+        id: nuitka-build
         shell: pwsh
         run: >
           .\nuitka-make.ps1
@@ -133,7 +134,7 @@ jobs:
           name: YAAM release ${{ steps.build-version.outputs.datetime }} ${{ steps.latest.outputs.git_tag }}
           tag: ${{ steps.latest.outputs.git_tag }}
           bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
-          artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.latest.outputs.git_tag }}.zip
+          artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.build-version.outputs.complete }}.zip
           token: ${{ secrets.yaam_publish_token }}
           prerelease: ${{ Contains(steps.build-version.outputs.complete, 'alpha') || Contains(steps.build-version.outputs.complete, 'beta')  || Contains(steps.build-version.outputs.complete, 'preview')}}
           draft: ${{ Contains(steps.build-version.outputs.complete , 'test') || github.event_name != 'push'}}

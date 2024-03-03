@@ -126,17 +126,25 @@ Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
 
 @(nuitka $params $entrypoint)
 
+$build_location="$root/$output_dir/$target_name"
+
+if ($mode -eq "onefile")
+{
+    $build_location="$build_location.exe"
+}
+
 # Rename built objects
 if ($mode -eq "standalone")
 {
-    Move-Item -path "$root/$output_dir/$entrypoint_name.dist" -destination "$root/$output_dir/$target_name" -force
-    Move-Item -path "$root/$output_dir/$target_name/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name/$target_name.exe" -force
-    Write-Output "Renamed $root/$output_dir/$entrypoint_name.dist/$entrypoint_name.exe to $root/$output_dir/$target_name/$target_name.exe"
+    Move-Item -path "$root/$output_dir/$entrypoint_name.dist" -destination $build_location -force
+    Move-Item -path "$build_location/$entrypoint_name.exe" -destination "$build_location/$target_name.exe" -force
+
+    Write-Output "Renamed $root/$output_dir/$entrypoint_name.dist/$entrypoint_name.exe to $build_location/$target_name.exe"
 }
 else 
 {
-    Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination "$root/$output_dir/$target_name.exe" -force
-    Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $root/$output_dir/$target_name.exe"
+    Move-Item -path "$root/$output_dir/$entrypoint_name.exe" -destination $build_location -force
+    Write-Output "Renamed $root/$output_dir/$entrypoint_name.exe to $build_location"
 }
 
 # clear leftovers
@@ -152,21 +160,18 @@ if (Test-Path -path "$root/$output_dir/$entrypoint_name.build")
     Write-Output "Cleared $root/$output_dir/$entrypoint_name.build"
 }
 
+$artifacts_location=$build_location
+
 # create artifacts
 if ($artifacts)
 {
-    $target = "$root/$output_dir/$target_name"
+    $artifacts_destination="$root/artifacts/$target_name-$mode-$compiler-$version.zip"
 
-    if ($mode -eq "onefile")
-    {
-        $target = "$target.exe"
-    }
-    
-    $dest = "$root/artifacts/$target_name-$mode-$compiler-$version.zip"
+    Compress-Archive -path $artifacts_location -destinationpath $artifacts_destination
 
-    Compress-Archive -path $target -destinationpath $dest
+    $artifacts_location=$artifacts_destination
 
-    Write-Output "Created $dest"
+    Write-Output "Created $artifacts_destination"
 }
 
-exit 0
+return $artifacts_location
