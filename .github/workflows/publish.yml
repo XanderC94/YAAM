@@ -134,7 +134,7 @@ jobs:
         id: test-changelog-existence
         shell: pwsh
         run: |
-          echo "file_exists=$(=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md))" >> $env:GITHUB_OUTPUT
+          echo "file_exists=$(=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md)))" >> $env:GITHUB_OUTPUT
 
       - name: Release build artifacts
         if: steps.test-changelog-existence.outputs.file_exists == 'true' 
