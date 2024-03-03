@@ -24,9 +24,10 @@ jobs:
         id: latest
         shell: pwsh
         run: |
-          echo "git_tag=$(git describe --tags --abbrev=0 --always)" >> $env:GITHUB_OUTPUT
+          echo "git_tag=$((@(git tag -l) -split '\n') | select -last 1)" >> $env:GITHUB_OUTPUT
           echo "git_rev=${{ github.sha }}" >> $env:GITHUB_OUTPUT
           echo "git_rev_short=$("${{ github.sha }}".substring(0, 8))" >> $env:GITHUB_OUTPUT
+#          echo "git_tag=$(git describe --tags --abbrev=0 --always)" >> $env:GITHUB_OUTPUT
 #          echo "git_tag=${{ github.ref_name }}" >> $env:GITHUB_OUTPUT
 #          echo "git_rev=$(git rev-parse --short=8 head)" >> $GITHUB_OUTPUT
 
@@ -126,19 +127,14 @@ jobs:
           retention-days: 7
       
       - name: Test release changelog existence
-        id: changelog-info
+        id: test-changelog-existence
         uses: andstor/file-existence-action@v2
         with:
+          ignore_case: true  
           files: ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
 
-      - name: Create release changelog
-        if: ${{ steps.changelog-info.outputs.file_exists == 'false' }}
-        id: automated-changelog
-        shell: pwsh
-        run: |
-          echo "Automated build release" >> ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
-
-      - name: Release built artifacts
+      - name: Release build artifacts
+        if: steps.test-changelog-existence.outputs.file_exists == 'true'
         id: release
         uses: ncipollo/release-action@v1
         with:
