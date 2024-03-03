@@ -27,7 +27,8 @@ Write-Output "Python path is $pythonpath"
 
 if ($tag.Length -eq 0)
 {
-    $tag=[System.String](@(git describe --tags --abbrev=0 --always))
+    # $tag=[System.String](@(git describe --tags --abbrev=0 --always))
+    $tag=[System.String](@((@(git tag -l) -split '\n') | Select-Object -last 1))
 }
 
 if ($revision.Length -eq 0)
@@ -35,13 +36,15 @@ if ($revision.Length -eq 0)
     $revision=[System.String](@(git rev-parse --short=8  head))
 }
 
-$version=[System.String]@(./scripts/get-version.ps1 -tag $tag)
+$version=[System.String]@(./scripts/get-version-string.ps1 -tag $tag -rev $revision)
+# $version_short=[System.String]@(./scripts/get-version.ps1 -tag $tag)
+$version_for_metadata=[System.String]@(./scripts/get-version-string.ps1 -tag $tag -mode windows)
 
-Write-Output "YAAM $tag-$revision $version"
+Write-Output "YAAM $version"
 
 $product_name="Yet Another Addon Manager"
 $company_name="https://github.com/XanderC94"
-$description="YAAM-$tag-$revision"
+$description="YAAM-$version"
 $icon_path="res/icon/yaam.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
@@ -49,6 +52,7 @@ $output_dir="bin/$mode/$compiler"
 $target_name="yaam"
 $entrypoint_name="main"
 $entrypoint="src/$entrypoint_name.py"
+# $build_date=@(Get-Date -Format "yyyy-MM-dd")
 
 # create output dir if doesn't exist
 if (-not(Test-Path -path "$root/$output_dir"))
@@ -99,7 +103,7 @@ $params = @(
     # "--include-plugin-files=$env:SystemRoot\system32\pythoncom39.dll"
     # "--include-plugin-files=$env:SystemRoot\system32\pywintypes39.dll"
     "--windows-product-name=$product_name",
-    "--windows-product-version=$version",
+    "--windows-product-version=$version_for_metadata",
     "--windows-company-name=$company_name",
     "--windows-file-description=$description",
     "--windows-icon-from-ico=$icon_path",
@@ -115,7 +119,7 @@ $params = @(
     "--output-dir=$output_dir"
 )
 
-$nuitka_version=[System.String]([array]@(python -m nuitka --version)[0])
+$nuitka_version=[System.String]([array]@(nuitka --version)[0])
 
 Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
 # Write-Output "Command: nuitka $params $entrypoint"
@@ -158,8 +162,11 @@ if ($artifacts)
         $target = "$target.exe"
     }
     
-    Compress-Archive -path $target -destinationpath "$root/artifacts/$target_name-$mode-$compiler-$tag.zip"
-    Write-Output "Created $root/artifacts/$target_name-$mode-$compiler-$tag.zip"
+    $dest = "$root/artifacts/$target_name-$mode-$compiler-$version.zip"
+
+    Compress-Archive -path $target -destinationpath $dest
+
+    Write-Output "Created $dest"
 }
 
 exit 0
