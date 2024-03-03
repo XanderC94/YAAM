@@ -32,15 +32,6 @@ jobs:
           echo "git_rev=${{ github.sha }}" >> $env:GITHUB_OUTPUT
           echo "git_rev_short=$("${{ github.sha }}".substring(0, 8))" >> $env:GITHUB_OUTPUT
 
-    #   - name: Get original revision for current tag
-    #     id: tag
-    #     shell: pwsh
-    #     run: |
-    #       $current_tag_revision=$(@(git rev-list -n 1 ${{ steps.latest.outputs.git_tag }}))
-    #       $current_tag_revision_short=$("$current_tag_revision".substring(0, 8))
-    #       echo "git_rev=$current_tag_revision" >> $env:GITHUB_OUTPUT
-    #       echo "git_rev_short=$current_tag_revision_short" >> $env:GITHUB_OUTPUT
-
       - name: Initialize MSVC developer tools
         uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -71,8 +62,6 @@ jobs:
           echo "latest.git_rev_short=${{ steps.latest.outputs.git_rev_short }}"
           echo "python.version=${{ steps.python.outputs.version }}"
           echo "python.pythonpath=${{ steps.python.outputs.pythonpath }}"
-        # echo "tag.git_rev=${{ steps.tag.outputs.git_rev }}"
-        # echo "tag.git_rev_short=${{ steps.tag.outputs.git_rev_short }}"
               
       - name: Install Python dependencies
         run: |
@@ -134,7 +123,7 @@ jobs:
         id: test-changelog-existence
         shell: pwsh
         run: |
-          echo "file_exists=$(=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md)))" >> $env:GITHUB_OUTPUT
+          echo "file_exists=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md))" >> $env:GITHUB_OUTPUT
 
       - name: Release build artifacts
         if: steps.test-changelog-existence.outputs.file_exists == 'true' 
