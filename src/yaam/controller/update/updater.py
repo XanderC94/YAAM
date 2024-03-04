@@ -187,7 +187,7 @@ class AddonUpdater(object):
 
                     ret_code.log_update(addon)
 
-                    ret_code = self.__update_addon(addon, remote, update.http_response)
+                    ret_code = self.__update_addon(addon, remote, update.http_response, ret_code)
 
                     ret_code.log_update(addon)
 
@@ -203,22 +203,21 @@ class AddonUpdater(object):
 
         return ret_code
 
-    def __update_addon(self, addon: Addon, metadata: AddonMetadata, update_data: UpdatePacket) -> UpdateResult:
+    def __update_addon(self, addon: Addon, metadata: AddonMetadata, update_data: UpdatePacket, update_code: UpdateResult) -> UpdateResult:
         '''
         Update the provided addon if possible
         '''
-        ret_code = UpdateResult.NO_UPDATE
 
         if responses.is_zip_content(update_data):
-            zip_updater = ZipUpdater(ret_code)
-            ret_code = zip_updater.update_from_zip(update_data, addon)
+            zip_updater = ZipUpdater(update_code)
+            update_code = zip_updater.update_from_zip(update_data, addon)
             metadata.namings[addon.binding.typing] = zip_updater.naming
         else:
-            data_stream_updater = DatastreamUpdater(ret_code)
+            data_stream_updater = DatastreamUpdater(update_code)
             if addon.base.is_installer:
-                ret_code = data_stream_updater.update_from_installer(update_data, addon)
+                update_code = data_stream_updater.update_from_installer(update_data, addon)
             else:
-                ret_code = data_stream_updater.update_from_datastream(update_data, addon)
+                update_code = data_stream_updater.update_from_datastream(update_data, addon)
             metadata.namings[addon.binding.typing] = data_stream_updater.naming
 
-        return ret_code
+        return update_code
