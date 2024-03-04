@@ -35,7 +35,7 @@ class ZipUpdater(object):
         # renaming enabled only for dlls
         rename_enabled = addon.binding.is_dll()
 
-        logger().info(msg=f"Unpacking zipped {addon.base.name}...")
+        logger().debug(msg=f"Unpacking zipped {addon.base.name}...")
 
         for item in content.filelist:
 
@@ -92,7 +92,7 @@ class ZipUpdater(object):
                     makedirs(target_path.parent, exist_ok=True)
                     target_path = extraction_path.replace(target_path)
 
-                logger().info(msg=f"Unpacked {target_path.relative_to(unpack_dir)} to {unpack_dir}")
+                logger().debug(msg=f"Unpacked {target_path.relative_to(unpack_dir)} to {unpack_dir}")
 
                 # Add to or update the naming map (given or generated)
                 if can_add_alias and rename_enabled:
@@ -103,7 +103,7 @@ class ZipUpdater(object):
             if n_files == 0:
                 shutil.rmtree(unpack_dir / root_dirs[0])
 
-        ret_code = UpdateResult.UNPACKING_OK
+        ret_code = UpdateResult.UNPACKED
 
         return ret_code
 
@@ -131,13 +131,13 @@ class ZipUpdater(object):
         root_items = zip_helper.get_root_items(content)
         is_single_root_folder = len(root_dirs) == 1 and len(root_items) == 1
 
-        logger().info(msg=f"Unpacking zipped {addon.base.name} installer...")
+        logger().debug(msg=f"Unpacking zipped {addon.base.name} installer...")
 
         makedirs(unpack_dir, exist_ok=True)
 
         content.extractall(unpack_dir)
 
-        logger().info(msg=f"Unpacked {addon.base.name} installer to {unpack_dir}.")
+        logger().debug(msg=f"Unpacked {addon.base.name} installer to {unpack_dir}.")
 
         content_lookup_dir = unpack_dir
         if is_single_root_folder:
@@ -152,7 +152,7 @@ class ZipUpdater(object):
 
         shutil.rmtree(unpack_dir)
 
-        ret_code = UpdateResult.UNPACKING_OK
+        ret_code = UpdateResult.UNPACKED
 
         return ret_code
 

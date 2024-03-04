@@ -27,6 +27,31 @@ class MetadataCollector(object):
         self.__context = context
         self.__local_metadata: Dict[str, AddonMetadata] = dict()
         self.__local_metadata_backup: Dict[str, AddonMetadata] = dict()
+        self.__remote_metadata: Dict[str, AddonMetadata] = dict()
+
+    def get_local_metadata(self, addon: Addon) -> AddonMetadata:
+        '''
+        Get the local addon metadata if exists
+        '''
+        return self.__local_metadata.get(addon.base.name, None)
+
+    def get_remote_metadata(self, addon: Addon) -> AddonMetadata:
+        '''
+        Retrieve remote addon metadata
+        '''
+        return self.__remote_metadata.get(addon.base.name, None)
+
+    def set_local_metadata(self, addon: Addon, metadata: AddonMetadata):
+        '''
+        Set local metadata for the given addon
+        '''
+        self.__local_metadata[addon.base.name] = metadata
+
+    def set_remote_metadata(self, addon: Addon, metadata: AddonMetadata):
+        '''
+        Set remote metadata for the given addon
+        '''
+        self.__remote_metadata[addon.base.name] = metadata
 
     def load_local_metadata(self, addons: List[Addon]):
         '''
@@ -39,14 +64,32 @@ class MetadataCollector(object):
         self.__manage_backward_compatibility(addons)
 
         for _ in addons:
-            if _.base.name not in self.__local_metadata:
-                self.__local_metadata[_.base.name] = dict()
 
-            curr_metadata_path = Path(self.__get_metadata_path(_))
+            curr_metadata = self.fetch_local_metadata(_)
 
-            self.__local_metadata[_.base.name] = self.__get_local_metadata(curr_metadata_path, _)
+            if curr_metadata is not None:
+                self.set_local_metadata(_, curr_metadata)
 
         self.__local_metadata_backup = deepcopy(self.__local_metadata)
+
+    def fetch_local_metadata(self, addon: Addon) -> AddonMetadata:
+        '''
+        Compute all the local addon metadata
+        '''
+
+        curr_metadata_path = Path(self.__get_metadata_path(addon))
+
+        logger().info(msg=f"Fetching {addon.base.name} local metadata...")
+        logger().debug(msg=f"{addon.base.name} metadata storage URI is {curr_metadata_path}")
+
+        curr_metadata = self.__read_metadata_from_local_path(curr_metadata_path, addon)
+
+        if curr_metadata is not None:
+            logger().debug(msg=f"Fetching {addon.base.name} local metadata completed.")
+        else:
+            logger().error(msg=f"Fetched empty metadata for {addon.base.name}...")
+
+        return curr_metadata
 
     def __get_metadata_path(self, addon: Addon) -> str:
         '''
@@ -62,13 +105,14 @@ class MetadataCollector(object):
 
         return metadata_path
 
-    def __get_local_metadata(self, metadata_path: Path, addon: Addon) -> AddonMetadata:
+    def __read_metadata_from_local_path(self, metadata_path: Path, addon: Addon) -> AddonMetadata:
         '''
         Retrieve local addon metadata
         '''
 
         metadata: AddonMetadata = AddonMetadata.from_json(read_json(metadata_path))
 
+        # if its a single physical file and not a collection, we recompute the hash signature...
         if len(metadata.hash_signature) == 0 and not addon.binding.is_headless:
             metadata.hash_signature = Hasher.SHA256.make_hash_from_file(addon.binding.path)
 
@@ -77,23 +121,30 @@ class MetadataCollector(object):
 
         return metadata
 
-    def get_local_metadata(self, addon: Addon) -> AddonMetadata:
+    def load_remote_metadata(self, addons: List[Addon], follow: bool = False, **kwargs) -> None:
         '''
-        Get the local addon metadata if exists
+        Retrieve remote metadata for the provided addons collection and store them
         '''
-        return self.__local_metadata.get(addon.base.name, None)
+        for _ in addons:
+            metadata = self.fetch_remote_metadata(_, follow, **kwargs)
+            if metadata is not None:
+                self.set_remote_metadata(_, metadata)
 
-    def get_remote_metadata(self, addon: Addon, follow: bool = False, **kwargs) -> AddonMetadata:
+    def fetch_remote_metadata(self, addon: Addon, follow: bool = False, **kwargs) -> AddonMetadata:
         '''
-        Retrieve remote addon metadata
+        Fetch metadata for the given Addon from remote
         '''
         metadata = None
+
+        logger().debug(msg=f"Fetching {addon.base.name} remote metadata from {addon.base.uri}")
+        logger().debug(msg=f"{addon.base.name} metadata storage URI is {addon.base.uri}")
 
         response = self.__http.head(addon.base.uri, **kwargs)
 
         if response is not None:
             # detect redirect
             if 'location' in response.headers and follow:
+                logger().debug(msg=f"Redirecting to {response.headers['location']}")
                 response = self.__http.head(response.headers['location'], **kwargs)
 
             metadata = AddonMetadata(
@@ -103,8 +154,10 @@ class MetadataCollector(object):
                 last_modified=response.headers.get('last-modified', '')
             )
 
-        if metadata is None:
-            metadata = AddonMetadata()
+            logger().debug(msg=f"Fetching {addon.base.name} remote metadata completed.")
+
+        # if metadata is None:
+        #     metadata = AddonMetadata()
 
         return metadata
 
@@ -137,7 +190,8 @@ class MetadataCollector(object):
         if isinstance(path, str):
             path = Path(path)
 
-        logger().info(msg=f"Saving addon metadata to {path}")
+        logger().info(msg=f"Saving {metadata.addon} metadata ...")
+        logger().debug(msg=f"{metadata.addon} metadata storage storage URI is {path}")
         makedirs(path.parent, exist_ok=True)
         write_json(metadata.to_json(), path)
 

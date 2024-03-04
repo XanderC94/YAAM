@@ -5,7 +5,7 @@ import logging
 from sys import stdout
 from logging import handlers
 from pathlib import Path
-from typing import IO, Literal
+from typing import IO
 
 
 def static_logger(name: str = None):
@@ -17,7 +17,7 @@ def static_logger(name: str = None):
 
 def init_static_logger(
             logger_name: str = None,
-            log_level: Literal = logging.INFO,
+            log_level: int = logging.INFO,
             msg_format: str = '%(asctime)s %(levelname)s %(message)s',
             date_format: str = '%Y-%m-%d %H:%M:%S',
             log_file: Path = Path(),

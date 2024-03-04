@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 from yaam.controller.metadata import MetadataCollector
+from yaam.controller.update.updater import AddonUpdater
 from yaam.model.type.binding import BindingType
 import yaam.utils.metadata as meta
 from yaam.model.mutable.addon import Addon
@@ -18,9 +19,32 @@ class AddonManager(object):
     Addon management class
     '''
 
-    def __init__(self, metadata: MetadataCollector, binding_type: BindingType) -> None:
+    def __init__(self, metadata: MetadataCollector, updater: AddonUpdater, binding_type: BindingType) -> None:
         self.__metadata = metadata
+        self.__updater = updater
         self.__binding_type = binding_type
+
+        self.__default_request_args = {
+            'timeout': 120,
+            'allow_redirects': True,
+            'headers': {
+                'cache-control': 'no-cache',
+                'pragma': 'no-cache'
+            }
+        }
+
+    def initialize_metadata(self, addons: Iterable[Addon], prefetch_updates: bool, force_updates: bool, ignore_disabled: bool):
+        '''
+        Initialize local and remote metadata
+        '''
+
+        logger().info(msg="Fetching all addon metadata...")
+
+        self.__metadata.load_local_metadata(addons)
+
+        if prefetch_updates:
+            self.__metadata.load_remote_metadata(addons, False, **self.__default_request_args)
+            self.__updater.preload_addons_updates(addons, self.__metadata, ignore_disabled, force_updates)
 
     def resolve_renames(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''
@@ -200,63 +224,9 @@ class AddonManager(object):
 
         return any_match
 
-    def __restore_bin_dir(self, bin_dir: Path) -> bool:
+    def update_addons(self, addons: Iterable[Addon], force_updates: bool = False) -> None:
         '''
-        Restore backup folder with active addons.
-
-        @bin_dir : Path -- The current directory where the .dll addons are stored.
+        Updated the provided addons with the update metadata results provided by the metadata collector
         '''
 
-        ret: bool = False
-
-        addons_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.addons.bak"
-        arc_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.arc.bak"
-        def_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.bak"
-
-        if addons_bak_dir.exists():
-            logger().info(msg="Addons will be restored...")
-
-            if not def_bak_dir.exists():
-                os.rename(str(bin_dir), str(def_bak_dir))
-
-            os.rename(str(arc_bak_dir), str(bin_dir))
-
-            ret = True
-
-        # backward compatibility
-        elif addons_bak_dir.exists():
-
-            logger().info(msg="Addons will be restored...")
-
-            if not def_bak_dir.exists():
-                os.rename(str(bin_dir), str(def_bak_dir))
-
-            os.rename(str(arc_bak_dir), str(bin_dir))
-
-            ret = True
-
-        return ret
-
-    def __disable_bin_dir(self, bin_dir: Path) -> bool:
-        '''
-        Overrides the typing of installed addons (.dll -> .dll.disabled)
-        @bin_dir : Path -- The vanilla bin directory.
-        @addons : List[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
-        '''
-
-        ret = False
-
-        addons_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.addons.bak"
-        def_bak_dir: Path = bin_dir.parent / f"{bin_dir.name}.bak"
-
-        if not addons_bak_dir.exists():
-            logger().info(msg="Addons will be suppressed...")
-
-            os.rename(str(bin_dir), str(addons_bak_dir))
-
-            if def_bak_dir.exists():
-                os.rename(str(def_bak_dir), str(bin_dir))
-
-            ret = True
-
-        return ret
+        self.__updater.update_addons(addons, self.__metadata, force_updates, **self.__default_request_args)

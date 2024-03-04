@@ -70,6 +70,12 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
             is_addon_update_only = app_context.config.get_property(Option.UPDATE_ADDONS)
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
             # is_export_only = app_context.config.get_property(Option.EXPORT)
+            prefetch_updates: bool = not is_run_only
+            ignore_disabled: bool = False
+            force_updates: bool = (
+                app_context.config.get_property(Option.UPDATE_ADDONS)
+                and app_context.config.get_property(Option.FORCE_ACTION)
+            )
 
             # prev_game_binding = game_stasis.settings.binding_type
             prev_addons_synthesis = game_stasis.synthetize()
@@ -107,18 +113,18 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
                 print_addon_tableau(addons_synthesis, lambda x: logger.info(msg=x))
 
             with HttpRequestManager(app_context.config) as http:
-                meta_collector = MetadataCollector(http, game.context)
-                meta_collector.load_local_metadata(addons_synthesis)
 
-                manager = AddonManager(meta_collector, curr_game_binding)
+                addon_updater = AddonUpdater(http)
+                meta_collector = MetadataCollector(http, game.context)
+
+                manager = AddonManager(meta_collector, addon_updater, curr_game_binding)
+                manager.initialize_metadata(addons_synthesis, prefetch_updates, force_updates, ignore_disabled)
                 manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
                 manager.disable_addons(addons_synthesis, prev_addons_synthesis)
                 manager.restore_addons(addons_synthesis, prev_addons_synthesis)
 
                 if not is_run_only:
-
-                    updater = AddonUpdater(app_context.config, meta_collector, http)
-                    updater.update_addons(addons_synthesis)
+                    manager.update_addons(addons_synthesis, force_updates)
 
             if not is_addon_update_only:
                 # for some reasons compiling this 4 line of code as
