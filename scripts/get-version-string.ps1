@@ -31,8 +31,6 @@ function Get-Version-String {
         $revision_count="0"
     }
 
-    # old tag pattern
-    # $tag_pattern="v?(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)(?>-(?<type>alpha|beta))?(?>-(?<test>test))?(?>-(?<revision>.*))?"
     $tag_pattern="v?(?<major>[0-9]+)\.(?<minor>[0-9]+)\.(?<bugfix>[0-9]+)?(?>-(?<release>alpha|beta|prerelease|preview|release))?(?>-(?<production>test))?"
 
     $match_result=[regex]::Matches($tag, $tag_pattern)[0]
