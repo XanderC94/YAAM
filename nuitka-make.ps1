@@ -33,7 +33,7 @@ if ($tag.Length -eq 0)
 
 if ($revision.Length -eq 0)
 {
-    $revision=[System.String](@(git rev-parse --short=8  head))
+    $revision=[System.String](@(git rev-parse --short=8 HEAD))
 }
 
 $version=[System.String]@(./scripts/get-version-string.ps1 -tag $tag -rev $revision)

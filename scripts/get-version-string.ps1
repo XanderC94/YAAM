@@ -3,7 +3,7 @@ param (
     [Parameter(Mandatory=$true)]
     [System.String]$tag,
     # [Parameter(Mandatory=$true)]
-    [System.String]$revision='head',
+    [System.String]$revision='HEAD',
     [Parameter(Mandatory=$false)][ValidateSet('short', 'windows', 'complete')]
     [string]$mode='complete'
 )
@@ -14,7 +14,7 @@ function Get-Version-String {
         [Parameter(Mandatory=$true)]
         [System.String]$tag,
         # [Parameter(Mandatory=$true)]
-        [System.String]$revision='head',
+        [System.String]$revision='HEAD',
         [Parameter(Mandatory=$false)][ValidateSet('short', 'windows', 'complete')]
         [string]$mode='complete'
     )
