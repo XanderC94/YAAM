@@ -184,7 +184,7 @@ This configuration file stores the current state of both chosen arguments and ad
         "any": [
             {
                 "name": "alice",
-                "path": "path/to/addon/deploament/space/alice0.dll",
+                "path": "path/to/addon/deployment/space/alice0.dll",
                 "enabled": true | false,
                 "update": true | false
             }
@@ -246,9 +246,58 @@ On the first deployment YAAM will create its own execution environment under the
 
 At the start of the YAAM executable it will list the available games and ask the user which game it desire to run.
 
-That's it. That all.
+That's it. That's all.
 
-### How do I user YAAM with my own game?
+### How do I disable an addon?
+
+Open the "settings.json" file with your preferred text editor (ex.: VS Code or VS Codium), find the desired addon object with CTRL+F and set the "enabled" flag to 'false'.
+
+```[JSON]
+"any": [
+    {
+        "name": "alice",
+        "path": "path/to/addon/deployment/space/alice0.dll",
+        "enabled": false,
+        "update": true
+    }
+]
+```
+
+Note that the software will still check for updates even if the addon is disabled but won't install them. While this might slow the start-up process, it will let the user know there is a new version for a disabled addon (I'm looking at you ArcDps :eyes:)
+
+### How can I add a new managed Addons?
+
+Open the addons.json file and add the production info to the addon list.
+
+```[JSON]
+{
+    "name": "new addon name",
+    "uri": "https://link/to/addon/latest/release",
+    "description": "A short description of what this addon does",
+    # It's a matter of being thankful towards the work of others...
+    "contribs": [ "The", "People", "Who", "Developed", "The", "Addon" ],
+    # Note that, currently, the dependency vector is not used BUT might be used in future releases to automate stuff.
+    "dependencies": [ "A", "list", "of", "addons",  "depending", "on this addon" ],
+    "is_shader": false,
+    # Zipped installers are not currently supported...
+    "is_installer": false 
+}
+```
+
+Lastly, open the "settings.json" file and add the desired bindings for the new addon to the bindings list.
+
+```[JSON]
+"any": [
+    {
+        "name": "alice",
+        "path": "path/to/addon/deployment/space/alice0.dll",
+        "enabled": true,
+        "update": true # If don't you want to automatically update the addon then set this to 'false'
+    }
+]
+```
+
+### How do I use YAAM with my own game?
 
 Create one each of the configuration file specified above inside the YAAM game folder.
 
