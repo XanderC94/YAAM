@@ -9,7 +9,7 @@ from typing import Iterable
 from yaam.controller.metadata import MetadataCollector
 from yaam.controller.update.updater import AddonUpdater
 from yaam.model.type.binding import BindingType
-import yaam.utils.metadata as meta
+# import yaam.utils.metadata as meta
 from yaam.model.mutable.addon import Addon
 from yaam.utils.logger import static_logger as logger
 
@@ -206,21 +206,24 @@ class AddonManager(object):
         Returns whether there are matching info between the addon
         and the linked .dll file
         '''
-        metadata = meta.get_wfile_metadata(alt_path if alt_path is not None else addon.binding.path)
 
-        any_match = (
-            addon.base.name.lower() in metadata.get('Name', '').lower()
-        ) or (
-            metadata.get('Company', '').lower() in [_.lower() for _ in addon.base.contributors]
-        ) or (
-            addon.base.name.lower() in metadata.get('Company', '').lower()
-        ) or (
-            metadata.get('Company', '').lower() in addon.base.name.lower()
-        ) or (
-            addon.base.name.lower() in metadata.get('File description', '').lower()
-        ) or (
-            any(_.lower() in metadata.get('File description', '').lower() for _ in addon.base.contributors)
-        )
+        any_match = False
+
+        # metadata = meta.get_wfile_metadata(alt_path if alt_path is not None else addon.binding.path)
+
+        # any_match = (
+        #     addon.base.name.lower() in metadata.get('Name', '').lower()
+        # ) or (
+        #     metadata.get('Company', '').lower() in [_.lower() for _ in addon.base.contributors]
+        # ) or (
+        #     addon.base.name.lower() in metadata.get('Company', '').lower()
+        # ) or (
+        #     metadata.get('Company', '').lower() in addon.base.name.lower()
+        # ) or (
+        #     addon.base.name.lower() in metadata.get('File description', '').lower()
+        # ) or (
+        #     any(_.lower() in metadata.get('File description', '').lower() for _ in addon.base.contributors)
+        # )
 
         return any_match
 
