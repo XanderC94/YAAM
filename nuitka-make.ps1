@@ -42,13 +42,15 @@ $version_for_metadata=[System.String]@(./scripts/get-version-string.ps1 -tag $ta
 
 Write-Output "YAAM $version"
 
+$builder="nuitka"
 $product_name="Yet Another Addon Manager"
 $company_name="https://github.com/XanderC94"
 $description="YAAM-$version"
 $icon_path="res/icon/yaam.ico"
 $template_dir="res/template"
 $defaults_dir="res/default"
-$output_dir="bin/$mode/$compiler"
+$artifacts_dir="artifacts/$builder"
+$output_dir="bin/$builder/$mode/$compiler"
 $target_name="yaam"
 $entrypoint_name="main"
 $entrypoint="src/$entrypoint_name.py"
@@ -83,12 +85,12 @@ elseif ($backup -eq $false)
     Write-Output "Cleared $root/artifacts content"
 }
 
-# Load manifest template and write in bin folder
-# Then embed the manifest into the application executable
-$manifest = Get-Content -raw -path "$root/$template_dir/MANIFEST" | ConvertFrom-Json
-$manifest.version = $tag
-$manifest.revision = $revision
-$manifest | ConvertTo-Json -depth 32 | Set-Content -path "$root/$output_dir/MANIFEST" -force
+# # Load manifest template and write in bin folder
+# # Then embed the manifest into the application executable
+# $manifest = Get-Content -raw -path "$root/$template_dir/MANIFEST" | ConvertFrom-Json
+# $manifest.version = $tag
+# $manifest.revision = $revision
+# $manifest | ConvertTo-Json -depth 32 | Set-Content -path "$root/$output_dir/MANIFEST" -force
 
 $params = @(
     "--$mode",
@@ -107,9 +109,9 @@ $params = @(
     "--windows-company-name=$company_name",
     "--windows-file-description=$description",
     "--windows-icon-from-ico=$icon_path",
-    (&{ if ($mode -eq "onefile") { "--windows-onefile-tempdir-spec=%TEMP%/yaam-release" } else { "" } }),
+    (&{ if ($mode -eq "onefile") { "--windows-onefile-tempdir-spec=%TEMP%/yaam/$version/$mode/$compiler" } else { "" } }),
     "--include-data-dir=$root/$defaults_dir=$defaults_dir",
-    "--include-data-file=$root/$output_dir/MANIFEST=MANIFEST",
+    # "--include-data-file=$root/$output_dir/MANIFEST=MANIFEST",
     "--include-data-file=$root/README.md=README.md",
     "--include-data-file=$root/LICENSE=LICENSE",
     "--include-data-file=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py=orderedmultidict/__version__.py"
@@ -121,8 +123,7 @@ $params = @(
 
 $nuitka_version=[System.String]([array]@(nuitka --version)[0])
 
-Write-Output "Building with Nuitka $nuitka_version $mode $compiler lto=$lto"
-# Write-Output "Command: nuitka $params $entrypoint"
+Write-Output "Building with $builder $nuitka_version $mode $compiler lto=$lto"
 
 @(nuitka $params $entrypoint)
 
@@ -165,7 +166,7 @@ $artifacts_location=$build_location
 # create artifacts
 if ($artifacts)
 {
-    $artifacts_destination="$root/artifacts/$target_name-$mode-$compiler-$version.zip"
+    $artifacts_destination="$root/$artifacts_dir/$target_name-$builder-$mode-$compiler-$version.zip"
 
     Compress-Archive -path $artifacts_location -destinationpath $artifacts_destination
 

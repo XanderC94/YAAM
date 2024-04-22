@@ -133,7 +133,9 @@ dmypy.json
 bin/
 artifacts/
 local/
+tmp/
 .vscode
 .out
 .tmp
 .tokens
+*.code-workspace
