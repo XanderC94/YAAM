@@ -6,7 +6,7 @@ from os import path as pathutils
 from pathlib import Path
 
 
-def mkpath(s: str = str()) -> Path:
+def mkpath(s: str) -> Path:
     '''
     Return an expanded and resolved pathlib.Path object
     '''

@@ -36,6 +36,15 @@ class GitHubException(Exception):
         super().__init__(*args)
 
 
+class AssetException(Exception):
+    '''
+    Asset related exceptions
+    '''
+
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+
+
 class UpdateException(Exception):
     '''
     Update related exceptions

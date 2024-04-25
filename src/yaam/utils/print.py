@@ -3,12 +3,14 @@ Print stuff to somewhere module
 '''
 
 from collections import defaultdict
-from typing import List
+from typing import Sequence
 from tabulate import tabulate
-from yaam.model.mutable.addon import Addon
+from yaam.model.mutable.addon import IAddon
+from yaam.model.mutable.addon_base import AddonBase
+from yaam.model.mutable.binding import Binding
 
 
-def print_addon_tableau(addons: List[Addon], printer=print):
+def print_addon_tableau(addons: Sequence[IAddon[AddonBase, Binding]], printer=print):
     '''
     Print addon list as table to the specified printer stream
     '''

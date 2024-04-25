@@ -1,16 +1,22 @@
 '''
+
 HTTP Requests manager class module
+
 '''
 
-from typing import Callable, List
+# from pathlib import Path
+from typing import Callable, List, Union
+# from typing import Optional, Tuple
+
 import requests
-from yaam.utils import github
-from yaam.utils.counter import ForwardCounter
-from yaam.utils.exceptions import GitHubException
-from yaam.utils.logger import static_logger as logger
+
 from yaam.model.appconfig import AppConfig
 from yaam.model.options import Option
+from yaam.utils.github import Github as GithubAPI
+from yaam.utils.exceptions import GitHubException
+from yaam.utils.logger import static_logger as logger
 from yaam.utils.uri import URI
+from yaam.utils.webasset import Release
 
 
 class HttpRequestManager(object):
@@ -37,7 +43,7 @@ class HttpRequestManager(object):
         Start HTTP sessions
         '''
         if self.__gh_session is None:
-            self.__gh_session = github.API.open_session(self.__gh_user, self.__gh_api_token)
+            self.__gh_session = GithubAPI.open_session(self.__gh_user, self.__gh_api_token)
 
         if self.__web_session is None:
             self.__web_session = requests.Session()
@@ -74,7 +80,7 @@ class HttpRequestManager(object):
         '''
         def __get_internal() -> requests.Response:
             response = None
-            if github.API.assert_latest_release_url(url):
+            if GithubAPI.assert_latest_release_url(url) or GithubAPI.assert_release_list_url(url):
                 response = self.__gh_session.get(url, **kwargs)
             else:
                 response = self.__web_session.get(url, **kwargs)
@@ -88,7 +94,7 @@ class HttpRequestManager(object):
         '''
         def __head_internal() -> requests.Response:
             response = None
-            if github.API.assert_latest_release_url(url):
+            if GithubAPI.assert_latest_release_url(url) or GithubAPI.assert_release_list_url(url):
                 response = self.__gh_session.head(url, **kwargs)
             else:
                 response = self.__web_session.head(url, **kwargs)
@@ -96,34 +102,7 @@ class HttpRequestManager(object):
 
         return self.__request_wrapper(__head_internal)
 
-    def __assets_followup(self, assets: List[github.Asset]) -> URI:
-        download_uri = None
-
-        if len(assets) == 1:
-            download_uri = assets[0].browser_download_url
-        elif len(assets) > 1:
-            # Since download are too much etherogeneous
-            # I can only let the user choose the desired resource
-            # to be downloaded
-            print(f"Found {len(assets)} resources:\n")
-
-            i = ForwardCounter()
-            for _ in assets:
-                print(f"{i.next()}. {_.name}")
-
-            print()
-
-            choice = input(f"Which one should be downloaded? Choose between [1, ..., {i}, n = skip]: ")
-            if choice.isnumeric() and int(choice) > 0 and int(choice) < (i + 1):
-                download_uri = assets[int(choice) - 1].browser_download_url
-            else:
-                raise GitHubException("Skipped resource download by user...")
-        else:
-            raise GitHubException("Github API pointing to invalid or empty latest release!")
-
-        return download_uri
-
-    def get_download(self, url: URI, **kwargs) -> requests.Response:
+    def get_downloadable_assets(self, url: URI, **kwargs) -> List[Union[Release, URI]]:
         '''
         HTTP GET <URL> <ARG>
 
@@ -131,11 +110,17 @@ class HttpRequestManager(object):
         and recover the latest release download link
         '''
 
-        download_uri = None
-        if github.API.assert_latest_release_url(url):
-            assets = github.API.fetch_latest_release_assets(url, self.__gh_session, **kwargs)
-            download_uri = self.__assets_followup(assets)
-        else:
-            download_uri = url
+        releases = []
 
-        return self.get(download_uri, **kwargs) if download_uri is not None else None
+        if GithubAPI.assert_release_list_url(url):
+
+            if GithubAPI.assert_latest_release_url(url):
+                # releases.append(GithubAPI.fetch_latest_release_assets(url, self.__gh_session, **kwargs))
+                url = url.parent()
+
+            releases = GithubAPI.fetch_release_list_assets(url, self.__gh_session, **kwargs)
+
+        else:
+            releases.append(url)
+
+        return releases

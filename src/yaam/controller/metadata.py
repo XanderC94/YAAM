@@ -7,7 +7,7 @@ from os import makedirs
 from os import remove as remove_file
 from shutil import copy2 as copy_file
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Union
 from yaam.controller.http import HttpRequestManager
 from yaam.model.appcontext import GameContext
 from yaam.model.mutable.addon import Addon
@@ -156,9 +156,6 @@ class MetadataCollector(object):
 
             logger().debug(msg=f"Fetching {addon.base.name} remote metadata completed.")
 
-        # if metadata is None:
-        #     metadata = AddonMetadata()
-
         return metadata
 
     def update_local_metadata(self, remote_metadata: AddonMetadata) -> bool:
@@ -182,7 +179,7 @@ class MetadataCollector(object):
         for (_, metadata) in self.__local_metadata.items():
             self.save_metadata(metadata, metadata.uri)
 
-    def save_metadata(self, metadata: AddonMetadata, path: Path or str):
+    def save_metadata(self, metadata: AddonMetadata, path: Union[Path, str]):
         '''
         Save metadata locally
         '''

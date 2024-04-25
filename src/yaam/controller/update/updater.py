@@ -2,7 +2,7 @@
 GW2SL update utility module
 '''
 
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Union
 from requests import Response as UpdatePacket
 from yaam.controller.http import HttpRequestManager
 from yaam.controller.metadata import MetadataCollector
@@ -11,10 +11,13 @@ from yaam.controller.update.results import UpdateResult
 from yaam.controller.update.zip_updater import ZipUpdater
 from yaam.model.mutable.addon import Addon
 from yaam.model.mutable.metadata import AddonMetadata
+from yaam.utils.detetimeutils import compare_timestamp_str
 from yaam.utils.exceptions import GitHubException
 from yaam.utils.hashing import Hasher
 from yaam.utils.logger import static_logger as logger
 import yaam.utils.response as responses
+from yaam.utils.uri import URI
+from yaam.utils.webasset import Release, assets_followup
 
 
 class AddonUpdateData(object):
@@ -85,6 +88,35 @@ class AddonUpdater(object):
             udpate_data.status = UpdateResult.NO_METADATA
         else:
 
+            release: Union[Release, URI] = None
+            # latest_pre_release: Union[Release, URI] = None
+
+            logger().info(msg=f"Fetching assets data of {addon.base.name}...")
+            logger().debug(msg=f"Assets data uri is {addon.base.uri}.")
+
+            try:
+                releases = self.__http.get_downloadable_assets(addon.base.uri, **kwargs)
+
+                releases = list(filter(lambda x: isinstance(x, URI) or not x.is_draft, releases))
+
+                if len(releases) > 0:
+                    release = releases[0]
+                    # latest_release = next(filter(lambda x: not x.is_prerelease, releases), None)
+                    # latest_pre_release = next(filter(lambda x: x.is_prerelease, releases), None)
+
+                    if len(remote_metadata.last_modified) == 0:
+                        remote_metadata.last_modified = release.timestamp
+
+                    if isinstance(release, Release):
+                        logger().debug(msg=f"Latest release for {addon.base.name} is {release.name} of {release.timestamp}.")
+                        logger().debug(msg=f"Latest release has {len(release.assets)} assets.")
+
+                        for [i, _] in enumerate(release.assets):
+                            logger().debug(msg=f"Asset #{i} is {_.name}.")
+
+            except GitHubException as ghex:
+                logger().error(msg=str(ghex))
+
             # If path doesn't exists and is not disabled
             # then the addon need to be installed from scratch
             # NOTE: In order to propery support updates of disabled addons
@@ -100,7 +132,8 @@ class AddonUpdater(object):
 
                 # ETAG is apparently inconsistent for latest release in github api
                 # so the check is currently only done by means of the <last-modified> HTTP header tag
-                if remote_metadata.last_modified != local_metadata.last_modified:
+                if len(local_metadata.last_modified) == 0 or compare_timestamp_str(remote_metadata.last_modified, local_metadata.last_modified) > 0:
+
                     udpate_data.status = UpdateResult.TO_UPDATE
 
                     logger().debug(msg=f"Timestamp mismatch \'{local_metadata.last_modified}\' =\\= \'{remote_metadata.last_modified}\'.")
@@ -113,7 +146,17 @@ class AddonUpdater(object):
 
                 # NOTE: Is it possible to check the HASH SIGNATURE before downloading the resource?
                 try:
-                    udpate_data.http_response = self.__http.get_download(addon.base.uri, **kwargs)
+
+                    assets_download_uri: URI = None
+
+                    if isinstance(release, Release):
+                        assets_download_uri = assets_followup(release.assets)
+                    elif isinstance(release, URI):
+                        assets_download_uri = release
+
+                    if assets_download_uri is not None:
+                        udpate_data.http_response = self.__http.get(assets_download_uri, **kwargs)
+
                 except GitHubException as ghex:
                     logger().error(msg=str(ghex))
 

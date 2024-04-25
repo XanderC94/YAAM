@@ -97,7 +97,7 @@ class Addon(IAddon[AddonBase, Binding]):
 
     @property
     def is_valid(self) -> bool:
-        return len(self._base.name) and self._binding.path.exists()
+        return len(self._base.name) > 0 and self._binding.path.exists()
 
     def to_table(self) -> dict:
         table: dict = {}

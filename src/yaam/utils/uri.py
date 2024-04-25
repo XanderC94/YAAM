@@ -1,7 +1,10 @@
 '''
 URI class module
 '''
+import os
+from pathlib import Path as OSPath, PureWindowsPath
 from furl import furl
+# from furl import Path as URIPath
 import yaam.utils.validators.url as validators
 
 
@@ -15,6 +18,18 @@ class URI(furl):
 
     def __str__(self) -> str:
         return self.tostr()
+
+    def parent(self):
+        '''
+        Returns the parent URI
+        '''
+
+        new_uri = self.copy()
+        path = os.path.normpath(str(OSPath(self.pathstr).parent))
+        path = PureWindowsPath(path).as_posix()
+        new_uri.path = path
+
+        return new_uri
 
     def is_valid(self) -> bool:
         '''
