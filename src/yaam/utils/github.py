@@ -4,6 +4,7 @@ Github API helper module
 
 import re
 from typing import List, Union
+from datetime import datetime
 import requests
 # from requests.sessions import Session
 from yaam.utils.json.jsonkin import Jsonkin
@@ -148,7 +149,10 @@ class Github(object):
 
         logger().info(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
         logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
-        logger().debug(msg=f"x-ratelimit-reset: {response.headers.get('x-ratelimit-reset', -1)} (ns)")
+
+        reset_epoch = response.headers.get('x-ratelimit-reset', 0)
+        reset_date = datetime.fromtimestamp(int(reset_epoch)).astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
+        logger().debug(msg=f"x-ratelimit-reset: {reset_date} ({reset_epoch})")
 
         if response.status_code in [200, 206]:
 
