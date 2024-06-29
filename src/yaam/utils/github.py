@@ -148,9 +148,9 @@ class Github(object):
 
         logger().info(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
         logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
-        logger().debug(msg=f"x-ratelimit-reset: {response.headers.get('x-ratelimit-reset', -1)}")
+        logger().debug(msg=f"x-ratelimit-reset: {response.headers.get('x-ratelimit-reset', -1)} (ns)")
 
-        if response.status_code is [200, 206]:
+        if response.status_code in [200, 206]:
 
             if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
 
