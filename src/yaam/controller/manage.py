@@ -28,6 +28,7 @@ class AddonManager(object):
             'timeout': 120,
             'allow_redirects': True,
             'headers': {
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
                 'cache-control': 'no-cache',
                 'pragma': 'no-cache'
             }
@@ -44,7 +45,7 @@ class AddonManager(object):
 
         if prefetch_updates:
             self.__metadata.load_remote_metadata(addons, False, **self.__default_request_args)
-            self.__updater.preload_addons_updates(addons, self.__metadata, ignore_disabled, force_updates)
+            self.__updater.preload_addons_updates(addons, self.__metadata, ignore_disabled, force_updates, **self.__default_request_args)
 
     def resolve_renames(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''

@@ -3,9 +3,9 @@ Github API helper module
 '''
 
 import re
-from typing import List
+from typing import List, Union
 import requests
-from requests.sessions import Session
+# from requests.sessions import Session
 from yaam.utils.json.jsonkin import Jsonkin
 from yaam.utils.logger import static_logger as logger
 
@@ -55,16 +55,42 @@ class Github(object):
     github api static class
     '''
 
+    def __init__(self, user: str = str(), token: str = str(), header: dict = None) -> None:
+        self.__user = user
+        self.__api_access_token = token
+        # self.__root = URI("https://api.github.com")
+
+        self.__header = header if header is not None else dict()
+
+        self.__init_header(self.__user, self.__api_access_token)
+
+    def __init_header(self, user: str = str(), token: str = str()):
+
+        if len(user) > 0 and len(token) > 0:
+            self.__header.update({
+                'Accept': 'application/vnd.github+json',
+                'Authorization': f'Bearer {token}',
+                'X-GitHub-Api-Version': '2022-11-28'
+            })
+
+    def __prepare_args(self, **kwargs) -> dict:
+
+        args = dict(**kwargs)
+
+        if 'headers' in args:
+            args['headers'].update(self.__header)
+        else:
+            args['headers'] = self.__header
+
+        return args
+
     @staticmethod
     def open_session(user: str = str(), token: str = str()):
         '''
         Create github api session
         '''
-        github = requests.Session()
-        if len(user) > 0 and len(token) > 0:
-            github.auth = (user, token)
 
-        return github
+        return Github(user, token)
 
     @staticmethod
     def assert_api_url(url: URI):
@@ -93,8 +119,51 @@ class Github(object):
         api_github_release_list_regex = r"https:\/\/api\.github\.com\/repos\/(.+)\/releases"
         return re.match(api_github_release_list_regex, str(url)) is not None
 
-    @staticmethod
-    def fetch_latest_release_assets(url: URI, github: Session, **kwargs) -> Release:
+    def get(self, url: URI, **kwargs) -> requests.Response:
+        '''
+        HTTP GET <URL> <ARGS>
+        '''
+
+        args = self.__prepare_args(**kwargs)
+
+        return requests.get(url, **args)  # pylint: disable=W3101
+
+    def head(self, url: URI, **kwargs) -> requests.Response:
+        '''
+        HTTP GET <URL> <ARGS>
+        '''
+
+        args = self.__prepare_args(**kwargs)
+
+        return requests.head(url, **args)  # pylint: disable=W3101
+
+    def __fetch_release_raw_assets(self, url: URI, **kwargs) -> Union[dict, list]:
+        '''
+        ...
+        '''
+
+        raw_assets = dict()
+
+        response = self.get(url, **kwargs)  # pylint: disable=W3101
+
+        logger().warning(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
+        logger().warning(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
+        logger().warning(msg=f"x-ratelimit-reset: {response.headers.get('x-ratelimit-reset', -1)}")
+
+        if response.status_code is [200, 206]:
+
+            if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
+
+                raw_assets: dict = response.json()
+
+            else:
+                raise GitHubException("Github API response not in JSON format")
+        else:
+            raise GitHubException(f"Github API response returned with status code {response.status_code}")
+
+        return raw_assets
+
+    def fetch_latest_release_assets(self, url: URI, **kwargs) -> Release:
         '''
         Assert if url is a github api request for a latest release metadata
         and return the 'browser_download_url' link
@@ -105,28 +174,21 @@ class Github(object):
         '''
         release = None
 
-        if Github.assert_latest_release_url(url):
+        if self.assert_latest_release_url(url):
 
-            response = github.get(url, **kwargs)
+            raw_assets = self.__fetch_release_raw_assets(url, **kwargs)
 
-            logger().debug(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
-            logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
-
-            if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
-
-                json_data: dict = response.json()
-
-                tmp: Release = GithubRelease.from_json(json_data)
+            if isinstance(raw_assets, dict):
+                tmp: Release = GithubRelease.from_json(raw_assets)
 
                 if len(tmp.assets) > 0:
                     release = tmp
-            else:
-                raise GitHubException("Github API response not in JSON format")
+        else:
+            raise GitHubException("Provided url is not a valid github api request for a latest release metadata")
 
         return release
 
-    @staticmethod
-    def fetch_release_list_assets(url: URI, github: Session, **kwargs) -> List[Release]:
+    def fetch_release_list_assets(self, url: URI, **kwargs) -> List[Release]:
         '''
         Assert if url is a github api request for a latest release metadata
         and return the 'browser_download_url' link
@@ -137,28 +199,21 @@ class Github(object):
         '''
         target_releases = list()
 
-        if Github.assert_release_list_url(url):
+        if self.assert_release_list_url(url):
 
-            response = github.get(url, **kwargs)
+            raw_assets = self.__fetch_release_raw_assets(url, **kwargs)
 
-            logger().debug(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
-            logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
+            if isinstance(raw_assets, list):
 
-            if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
+                raw_assets = sorted(raw_assets, key=lambda x: x['published_at'], reverse=True)
 
-                json_data: dict = response.json()
+                for raw_release_asset in raw_assets:
 
-                if isinstance(json_data, list):
+                    release_asset: Release = GithubRelease.from_json(raw_release_asset)
 
-                    json_data = sorted(json_data, key=lambda x: x['published_at'], reverse=True)
-
-                    for release_json in json_data:
-
-                        release_obj: Release = GithubRelease.from_json(release_json)
-
-                        if len(release_obj.assets) > 0:
-                            target_releases.append(release_obj)
-            else:
-                raise GitHubException("Github API response not in JSON format")
+                    if len(release_asset.assets) > 0:
+                        target_releases.append(release_asset)
+        else:
+            raise GitHubException("Provided url is not a valid github api request for a release list metadata")
 
         return target_releases

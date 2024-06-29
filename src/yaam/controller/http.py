@@ -27,7 +27,7 @@ class HttpRequestManager(object):
     def __init__(self, config: AppConfig) -> None:
         self.__config: AppConfig = config
         self.__web_session: requests.Session = None
-        self.__gh_session: requests.Session = None
+        self.__gh_session: GithubAPI = None
         self.__gh_user = self.__config.get_property(Option.GITHUB_USER)
         self.__gh_api_token = self.__config.get_property(Option.GITHUB_API_TOKEN)
 
@@ -42,6 +42,10 @@ class HttpRequestManager(object):
         '''
         Start HTTP sessions
         '''
+        
+        # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authenticating-to-the-rest-api-with-an-oauth-app
+        # https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28#using-basic-authentication
+
         if self.__gh_session is None:
             self.__gh_session = GithubAPI.open_session(self.__gh_user, self.__gh_api_token)
 
@@ -52,8 +56,6 @@ class HttpRequestManager(object):
         '''
         End HTTP sessions
         '''
-        if self.__gh_session is not None:
-            self.__gh_session.close()
 
         if self.__web_session is not None:
             self.__web_session.close()
@@ -118,7 +120,7 @@ class HttpRequestManager(object):
                 # releases.append(GithubAPI.fetch_latest_release_assets(url, self.__gh_session, **kwargs))
                 url = url.parent()
 
-            releases = GithubAPI.fetch_release_list_assets(url, self.__gh_session, **kwargs)
+            releases = self.__gh_session.fetch_release_list_assets(url, **kwargs)
 
         else:
             releases.append(url)
