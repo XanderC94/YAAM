@@ -68,7 +68,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           pip install -r requirements.txt
-          python ${{ steps.python.outputs.pythonpath }}/Scripts/pywin32_postinstall.py -install
+        #   python ${{ steps.python.outputs.pythonpath }}/Scripts/pywin32_postinstall.py -install
           
       - name: Lint with flake8
         run: |
