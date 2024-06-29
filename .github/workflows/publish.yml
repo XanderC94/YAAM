@@ -92,14 +92,12 @@ jobs:
             echo "build_date=$((Get-Date).ToString("yyyy-MM-dd"))" >> $env:GITHUB_OUTPUT
             echo "build_time=$((Get-Date).ToString("hh:mm:ss.fff"))" >> $env:GITHUB_OUTPUT
 
-      - name: Build with nuitka
-        id: nuitka-build
+      - name: Build with pyinstaller
+        id: pyinstaller-build
         shell: pwsh
         run: >
-          .\nuitka-make.ps1
+          .\pyinstall.ps1
           -mode standalone
-          -compiler msvc
-          -lto
           -artifacts
           -tag ${{ steps.latest.outputs.git_tag }}
           -revision ${{ steps.latest.outputs.git_rev_short }}
@@ -108,33 +106,35 @@ jobs:
       - name: Echo output files
         shell: pwsh
         run: |
-          echo $(dir ${{ github.workspace }}/bin/standalone/msvc)
-          echo $(dir ${{ github.workspace }}/bin/standalone/msvc/yaam)
+          echo $(dir ${{ github.workspace }}/bin/pyinstaller)
+          echo $(dir ${{ github.workspace }}/bin/pyinstaller/yaam)
 
       - name: Upload artifacts
         id: artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: yaam-standalone-msvc-${{ steps.build-version.outputs.complete }}
-          path: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.build-version.outputs.complete }}.zip
+          name: yaam-artifacts-${{ steps.build-version.outputs.complete }}
+          path: |
+            ${{ github.workspace }}/artifacts/pyinstaller/yaam-pyinstaller-standalone-${{ steps.build-version.outputs.complete }}.zip
           retention-days: 7
           overwrite: true
-      
+
       - name: Test release changelog existence
         id: test-changelog-existence
         shell: pwsh
         run: |
-          echo "file_exists=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md))" >> $env:GITHUB_OUTPUT
+          echo "changelog_exists=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md))" >> $env:GITHUB_OUTPUT
 
-      - name: Release build artifacts
-        if: steps.test-changelog-existence.outputs.file_exists == 'true' 
+      - name: Release Nuitka artifacts
+        if: steps.test-changelog-existence.outputs.changelog_exists == 'true' 
         id: release
         uses: ncipollo/release-action@v1
         with:
           name: YAAM release ${{ steps.build-version.outputs.datetime }} ${{ steps.latest.outputs.git_tag }}
           tag: ${{ steps.latest.outputs.git_tag }}
           bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
-          artifacts: ${{ github.workspace }}/artifacts/yaam-standalone-msvc-${{ steps.build-version.outputs.complete }}.zip
+          artifacts: >
+            ${{ github.workspace }}/artifacts/pyinstaller/yaam-pyinstaller-standalone-pyinstaller-${{ steps.build-version.outputs.complete }}.zip
           token: ${{ secrets.yaam_publish_token }}
           prerelease: ${{ Contains(steps.build-version.outputs.complete, 'alpha') || Contains(steps.build-version.outputs.complete, 'beta')  || Contains(steps.build-version.outputs.complete, 'preview')}}
           draft: ${{ Contains(steps.build-version.outputs.complete , 'test') || github.event_name != 'push'}}

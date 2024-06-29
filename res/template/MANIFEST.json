@@ -1,0 +1,8 @@
+{
+    "name":"Yet Another Addon Manager",
+    "short_name":"YAAM",
+    "license":"GPL-3.0",
+    "authors":["Alessandro Cevoli"],
+    "authors_email":["xanderc94.dev@gmail.com"],
+    "url":"https://github.com/XanderC94/YAAM"
+}
