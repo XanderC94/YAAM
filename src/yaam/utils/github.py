@@ -147,12 +147,13 @@ class Github(object):
 
         response = self.get(url, **kwargs)  # pylint: disable=W3101
 
-        logger().info(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
-        logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
-
         reset_epoch = response.headers.get('x-ratelimit-reset', 0)
-        reset_date = datetime.fromtimestamp(int(reset_epoch)).astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
-        logger().debug(msg=f"x-ratelimit-reset: {reset_date} ({reset_epoch})")
+
+        if reset_epoch > 0:
+            logger().info(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
+            logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
+            reset_date = datetime.fromtimestamp(int(reset_epoch)).astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
+            logger().debug(msg=f"x-ratelimit-reset: {reset_date} ({reset_epoch})")
 
         if response.status_code in [200, 206]:
 
