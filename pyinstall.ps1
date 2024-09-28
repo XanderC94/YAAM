@@ -84,7 +84,7 @@ if (-not(Test-Path -path "$root/$temp_dir"))
 if (-not(Test-Path -path "$root/$artifacts_dir"))
 {
     New-Item -path "$root/$artifacts_dir" -force -itemtype "directory" | Out-Null
-    Write-Output "Created artifacts dir $root/artifacts"
+    Write-Output "Created artifacts dir $root/$artifacts_dir"
 }
 elseif ($backup -eq $false)
 {
@@ -133,7 +133,7 @@ $params = @(
     "--add-data=$root/${defaults_dir};./$defaults_dir",
     "--add-data=$root/README.md;.",
     "--add-data=$root/LICENSE;.",
-    # "--add-data=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py;./orderedmultidict",
+    "--add-data=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py;./orderedmultidict",
     "--distpath=$root/$output_dir",
     "--workpath=$root/$temp_dir",
     # "--log-level=DEBUG",
@@ -144,6 +144,8 @@ $params = @(
 $builder_version=[System.String]([array]@(pyinstaller --version)[0])
 
 Write-Output "Building with $builder $builder_version $mode"
+
+Write-Output "pyinstaller $params $root/$entrypoint"
 
 @(pyinstaller $params $root/$entrypoint)
 
