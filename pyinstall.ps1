@@ -3,7 +3,7 @@ param (
     # [System.String]$compiler="msvc", # choose between msvc, mingw64 or llvm
     # [System.String]$msvc="latest", # msvc compiler version, e.g.: 14.3, 14.2, ... latest
     # [switch]$lto,
-    [switch]$artifacts,
+    # [switch]$artifacts,
     [switch]$backup,
     [System.String]$tag,
     [System.String]$revision,
@@ -11,8 +11,6 @@ param (
 )
 
 $root=$PSScriptRoot
-
-$mode="standalone"
 
 $scripts_dir="$root/res/scripts"
 
@@ -49,12 +47,11 @@ Write-Output "YAAM $version"
 
 Write-Output "Workspace is $root"
 
-$builder="pyinstaller"
 $template_dir="res/template"
 $defaults_dir="res/default"
-$output_dir="bin/$builder/$mode"
-$temp_dir="tmp/$builder"
-$artifacts_dir="artifacts/$builder"
+$output_dir="bin"
+$temp_dir="tmp/bundle"
+# $artifacts_dir="artifacts/$builder"
 $target_name="yaam"
 $entrypoint_name="main"
 $entrypoint="src/$entrypoint_name.py"
@@ -165,11 +162,11 @@ $params = @(
     "--noconfirm"
 )
 
-$builder_version=[System.String]([array]@(pyinstaller --version)[0])
+# $builder_version=[System.String]([array]@(pyinstaller --version)[0])
 
-Write-Output "Building with $builder $builder_version $mode"
+# Write-Output "Bundling application with with Pyinstaller $builder_version"
 
-Write-Output "pyinstaller $params $root/$entrypoint"
+# Write-Output "pyinstaller $params $root/$entrypoint"
 
 @(pyinstaller $params $root/$entrypoint)
 
@@ -199,21 +196,11 @@ if (Test-Path -path "$root/$temp_dir")
     Write-Output "Cleared $root/$temp_dir"
 }
 
-$artifacts_location=$build_location
-
-# create artifacts
-if ($artifacts)
+# clear leftovers
+if (Test-Path -path "$root/$temp_dir")
 {
-    $artifacts_destination="$root/$artifacts_dir/$target_name-$builder-$mode-$version.zip"
-
-    # Wait a bit to avoid conflicts with held objects by PyInstaller process before it terminates...
-    Start-Sleep -Milliseconds 5000
-
-    Compress-Archive -path $artifacts_location -destinationpath $artifacts_destination -Force
-
-    $artifacts_location=$artifacts_destination
-
-    Write-Output "Created $artifacts_destination"
+    Remove-Item -path "$root/$temp_dir" -force -recurse
+    Write-Output "Cleared $root/$temp_dir"
 }
 
-return $artifacts_location
+return $build_location

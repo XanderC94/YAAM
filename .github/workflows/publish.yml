@@ -4,9 +4,9 @@
 name: Publish YAAM
 
 on:
-#   push:
-#     tags:
-#     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  push:
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
   workflow_dispatch:
       
@@ -96,7 +96,6 @@ jobs:
         shell: pwsh
         run: >
           .\pyinstall.ps1
-          -artifacts
           -tag ${{ steps.latest.outputs.git_tag }}
           -revision ${{ steps.latest.outputs.git_rev_short }}
           -pythonpath ${{ steps.python.outputs.pythonpath }}
@@ -104,16 +103,25 @@ jobs:
       - name: Echo output files
         shell: pwsh
         run: |
-          echo $(dir ${{ github.workspace }}/bin/pyinstaller)
-          echo $(dir ${{ github.workspace }}/bin/pyinstaller/yaam)
+          echo $(dir ${{ github.workspace }}/bin)
+          echo $(dir ${{ github.workspace }}/bin/yaam)
 
-      - name: Upload artifacts
-        id: artifacts
+      - name: Generate zipped artifacts
+        id: generate-artifacts
+        shell: pwsh
+        run: >
+          Compress-Archive
+          -path ${{ github.workspace }}/bin/yaam
+          -destinationpath ${{ github.workspace }}/artifacts/yaam-${{ steps.build-version.outputs.complete }}.zip
+          -Force
+
+      - name: Upload zipped artifacts
+        id: upload-artifacts
         uses: actions/upload-artifact@v4
         with:
           name: yaam-artifacts-${{ steps.build-version.outputs.complete }}
           path: |
-            ${{ github.workspace }}/artifacts/pyinstaller/yaam-pyinstaller-standalone-${{ steps.build-version.outputs.complete }}.zip
+            ${{ github.workspace }}/artifacts/yaam-${{ steps.build-version.outputs.complete }}.zip
           retention-days: 7
           overwrite: true
 
@@ -132,7 +140,7 @@ jobs:
           tag: ${{ steps.latest.outputs.git_tag }}
           bodyFile: ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md
           artifacts: >
-            ${{ github.workspace }}/artifacts/pyinstaller/yaam-pyinstaller-standalone-pyinstaller-${{ steps.build-version.outputs.complete }}.zip
+            ${{ github.workspace }}/artifacts/yaam-${{ steps.build-version.outputs.complete }}.zip
           token: ${{ secrets.yaam_publish_token }}
           prerelease: ${{ Contains(steps.build-version.outputs.complete, 'alpha') || Contains(steps.build-version.outputs.complete, 'beta')  || Contains(steps.build-version.outputs.complete, 'preview')}}
           draft: ${{ Contains(steps.build-version.outputs.complete , 'test') || github.event_name != 'push'}}
