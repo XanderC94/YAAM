@@ -145,26 +145,34 @@ class Github(object):
 
         raw_assets = dict()
 
-        response = self.get(url, **kwargs)  # pylint: disable=W3101
+        ratelimit_info = self.get("https://api.github.com/rate_limit", **kwargs)
 
-        reset_epoch = response.headers.get('x-ratelimit-reset', 0)
+        remaining_api_calls = ratelimit_info.headers.get('x-ratelimit-remaining', -1)
+        used_api_calls = ratelimit_info.headers.get('x-ratelimit-used', -1)
 
-        if reset_epoch > 0:
-            logger().info(msg=f"x-ratelimit-remaining: {response.headers.get('x-ratelimit-remaining', -1)}")
-            logger().debug(msg=f"x-ratelimit-used: {response.headers.get('x-ratelimit-used', -1)}")
-            reset_date = datetime.fromtimestamp(int(reset_epoch)).astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
-            logger().debug(msg=f"x-ratelimit-reset: {reset_date} ({reset_epoch})")
+        logger().info(msg=f"Remaining Github API call tokens: {remaining_api_calls}")
+        logger().debug(msg=f"Used Github API call tokens: {used_api_calls}")
 
-        if response.status_code in [200, 206]:
+        epoch_until_reset = ratelimit_info.headers.get('x-ratelimit-reset', 0)
+        if epoch_until_reset > 0:
+            reset_date = datetime.fromtimestamp(int(epoch_until_reset)).astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
+            logger().debug(msg=f"API call tokens will reset on {reset_date} ({epoch_until_reset})")
 
-            if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
+        if remaining_api_calls > 0:
+            response = self.get(url, **kwargs)  # pylint: disable=W3101
 
-                raw_assets: dict = response.json()
+            if response.status_code in [200, 206]:
 
+                if 'Content-Type' in response.headers and 'application/json' in response.headers['Content-Type']:
+
+                    raw_assets: dict = response.json()
+
+                else:
+                    raise GitHubException("Github API response not in JSON format")
             else:
-                raise GitHubException("Github API response not in JSON format")
+                raise GitHubException(f"Github API response returned with status code {response.status_code}")
         else:
-            raise GitHubException(f"Github API response returned with status code {response.status_code}")
+            raise GitHubException("Github API call limit reached")
 
         return raw_assets
 
