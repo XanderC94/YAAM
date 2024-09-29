@@ -1,5 +1,5 @@
 param (
-    [System.String]$mode="standalone", # choose between standalone and onefile
+    # [System.String]$mode="standalone", # choose between standalone and onefile
     # [System.String]$compiler="msvc", # choose between msvc, mingw64 or llvm
     # [System.String]$msvc="latest", # msvc compiler version, e.g.: 14.3, 14.2, ... latest
     # [switch]$lto,
@@ -10,10 +10,16 @@ param (
     [System.String]$pythonpath
 )
 
+$root=$PSScriptRoot
+
+$mode="standalone"
+
+$scripts_dir="$root/res/scripts"
+
 if ($pythonpath.Length -eq 0)
 {
-    $pythonpath=[System.String]@(./scripts/find-pythonpath.ps1)
-
+    $pythonpath=[System.String]@(."$scripts_dir/find-pythonpath.ps1")
+    
     if ($pythonpath.Length -eq 0)
     {
         Write-Error "Python-path not found... Closing."
@@ -33,15 +39,13 @@ if ($revision.Length -eq 0)
     $revision=[System.String](@(git rev-parse --short=8 HEAD))
 }
 
-$version=[System.String]@(./scripts/get-version-string.ps1 -tag $tag -rev $revision)
+$version=[System.String]@(."$scripts_dir/get-version-string.ps1" -tag $tag -rev $revision)
 
-$version_for_metadata=[System.String]@(./scripts/get-version-string.ps1 -tag $tag -mode windows)
+$version_for_metadata=[System.String]@(."$scripts_dir/get-version-string.ps1" -tag $tag -mode windows)
 
 $version_array=$version_for_metadata.Split(".")
 
 Write-Output "YAAM $version"
-
-$root=$PSScriptRoot
 
 Write-Output "Workspace is $root"
 
@@ -55,7 +59,7 @@ $target_name="yaam"
 $entrypoint_name="main"
 $entrypoint="src/$entrypoint_name.py"
 $build_date=@(Get-Date -Format "yyyy-MM-dd")
-$build_time_utc_ms=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+# $build_time_utc_ms=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 
 # create output dir if doesn't exist
 if (-not(Test-Path -path "$root/$output_dir"))
@@ -65,7 +69,7 @@ if (-not(Test-Path -path "$root/$output_dir"))
 }
 elseif ($backup -eq $true)
 {
-    @(./scripts/backup-target.ps1 -target "$root/$output_dir/$target_name")
+    @(."$scripts_dir/backup-target.ps1" -target "$root/$output_dir/$target_name")
 }
 else
 {
@@ -124,16 +128,36 @@ $versionfile = $versionfile.Replace("{{legal_copyright}}", "Copyright (c) $build
 
 $versionfile | Set-Content -path "$root/$temp_dir/YAAM_WINDOWS_VERSION_FILE.py" -Encoding "UTF8" -force
 
+$build_location="$root/$output_dir/$target_name"
+
+$add_data = @(
+    [pscustomobject]@{ 
+        Target="$root/$defaults_dir"; 
+        Destination="$build_location/$defaults_dir" 
+    },
+    [pscustomobject]@{ 
+        Target="$root/README.md"; 
+        Destination="$build_location/README.md" 
+    },
+    [pscustomobject]@{ 
+        Target="$root/LICENSE"; 
+        Destination="$build_location/LICENSE" 
+    },
+    [pscustomobject]@{ 
+        Target="$pythonpath/Lib/site-packages/orderedmultidict/__version__.py"; 
+        Destination="$build_location/_internal/orderedmultidict/__version__.py" 
+    }
+)
+
 $params = @(
     "--name=$target_name",
     "--version-file=$root/$temp_dir/YAAM_WINDOWS_VERSION_FILE.py",
-    (&{ if ($mode -eq "onefile") { "--onefile" } else { "--onedir" } }),
-    (&{ if ($mode -eq "onefile") { "--runtime-tmpdir=%TEMP%/yaam/$version/pyinstaller" } else { "" } }),
+    "--onedir"
     "--icon=$root/$icon_path",
-    "--add-data=$root/${defaults_dir};./$defaults_dir",
-    "--add-data=$root/README.md;.",
-    "--add-data=$root/LICENSE;.",
-    "--add-data=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py;./orderedmultidict",
+    # "--add-data=$root/$defaults_dir/*;./$defaults_dir",
+    # "--add-data=$root/README.md;.",
+    # "--add-data=$root/LICENSE;.",
+    # "--add-data=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py;./orderedmultidict",
     "--distpath=$root/$output_dir",
     "--workpath=$root/$temp_dir",
     # "--log-level=DEBUG",
@@ -149,11 +173,23 @@ Write-Output "pyinstaller $params $root/$entrypoint"
 
 @(pyinstaller $params $root/$entrypoint)
 
-$build_location="$root/$output_dir/$target_name"
-
-if ($mode -eq "onefile")
+foreach ($data_pair in $add_data)
 {
-    $build_location="$build_location.exe"
+    $target = $data_pair.Target
+    $destination = $data_pair.Destination
+
+    Write-Output "Copying $target to $destination"
+
+    if (Test-Path -path $target -PathType Container)
+    {
+        New-Item -path $destination -force -itemtype Directory | Out-Null
+    }
+    else
+    {
+        New-Item -path $destination -force -itemtype File | Out-Null
+    }
+
+    Copy-Item -path $target -destination $destination -Force | Out-Null
 }
 
 # clear leftovers
@@ -169,6 +205,9 @@ $artifacts_location=$build_location
 if ($artifacts)
 {
     $artifacts_destination="$root/$artifacts_dir/$target_name-$builder-$mode-$version.zip"
+
+    # Wait a bit to avoid conflicts with held objects by PyInstaller process before it terminates...
+    Start-Sleep -Milliseconds 5000
 
     Compress-Archive -path $artifacts_location -destinationpath $artifacts_destination -Force
 

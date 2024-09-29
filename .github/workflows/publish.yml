@@ -50,7 +50,7 @@ jobs:
         shell: pwsh
         run: |
           echo "version=$(@(python -V).substring(7))" >> $env:GITHUB_OUTPUT
-          echo "pythonpath=$(@(./scripts/find-pythonpath.ps1))" >> $env:GITHUB_OUTPUT
+          echo "pythonpath=$(@(./res/scripts/find-pythonpath.ps1))" >> $env:GITHUB_OUTPUT
 
       - name: Echo last available build info
         shell: pwsh
@@ -68,7 +68,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8 pytest
           pip install -r requirements.txt
-        #   python ${{ steps.python.outputs.pythonpath }}/Scripts/pywin32_postinstall.py -install
           
       - name: Lint with flake8
         run: |
@@ -87,8 +86,8 @@ jobs:
         id: build-version
         shell: pwsh
         run: |
-            echo "short=$(@(./scripts/get-version-string.ps1 -tag ${{ steps.latest.outputs.git_tag }} -mode short))" >> $env:GITHUB_OUTPUT
-            echo "complete=$(@(./scripts/get-version-string.ps1 -tag ${{ steps.latest.outputs.git_tag }} -revision ${{ steps.latest.outputs.git_rev_short }}))" >> $env:GITHUB_OUTPUT
+            echo "short=$(@(./res/scripts/get-version-string.ps1 -tag ${{ steps.latest.outputs.git_tag }} -mode short))" >> $env:GITHUB_OUTPUT
+            echo "complete=$(@(./res/scripts/get-version-string.ps1 -tag ${{ steps.latest.outputs.git_tag }} -revision ${{ steps.latest.outputs.git_rev_short }}))" >> $env:GITHUB_OUTPUT
             echo "build_date=$((Get-Date).ToString("yyyy-MM-dd"))" >> $env:GITHUB_OUTPUT
             echo "build_time=$((Get-Date).ToString("hh:mm:ss.fff"))" >> $env:GITHUB_OUTPUT
 
@@ -97,7 +96,6 @@ jobs:
         shell: pwsh
         run: >
           .\pyinstall.ps1
-          -mode standalone
           -artifacts
           -tag ${{ steps.latest.outputs.git_tag }}
           -revision ${{ steps.latest.outputs.git_rev_short }}
@@ -125,7 +123,7 @@ jobs:
         run: |
           echo "changelog_exists=$(@(Test-Path ${{ github.workspace }}/changelogs/v${{ steps.build-version.outputs.short }}.md))" >> $env:GITHUB_OUTPUT
 
-      - name: Release Nuitka artifacts
+      - name: Release artifacts
         if: steps.test-changelog-existence.outputs.changelog_exists == 'true' 
         id: release
         uses: ncipollo/release-action@v1
