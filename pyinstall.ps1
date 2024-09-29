@@ -50,7 +50,7 @@ Write-Output "Workspace is $root"
 $template_dir="res/template"
 $defaults_dir="res/default"
 $output_dir="bin"
-$temp_dir="tmp/bundle"
+$temp_dir="tmp"
 # $artifacts_dir="artifacts/$builder"
 $target_name="yaam"
 $entrypoint_name="main"
@@ -79,18 +79,6 @@ if (-not(Test-Path -path "$root/$temp_dir"))
 {
     New-Item -path "$root/$temp_dir" -force -itemtype "directory" | Out-Null
     Write-Output "Created temp dir $root/$temp_dir"
-}
-
-# create artifacts dir if doesn't exist
-if (-not(Test-Path -path "$root/$artifacts_dir"))
-{
-    New-Item -path "$root/$artifacts_dir" -force -itemtype "directory" | Out-Null
-    Write-Output "Created artifacts dir $root/$artifacts_dir"
-}
-elseif ($backup -eq $false)
-{
-    Remove-Item -path "$root/$artifacts_dir/*" -force -recurse
-    Write-Output "Cleared $root/$artifacts_dir content"
 }
 
 $product_name="Yet Another Addon Manager"

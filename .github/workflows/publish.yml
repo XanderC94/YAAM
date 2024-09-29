@@ -109,11 +109,12 @@ jobs:
       - name: Generate zipped artifacts
         id: generate-artifacts
         shell: pwsh
-        run: >
-          Compress-Archive
-          -path ${{ github.workspace }}/bin/yaam
-          -destinationpath ${{ github.workspace }}/artifacts/yaam-${{ steps.build-version.outputs.complete }}.zip
-          -Force
+        run: |
+          $targetdir="${{ github.workspace }}/bin/yaam"
+          $destdir="${{ github.workspace }}/artifacts"
+          $destination="$destdir/yaam-${{ steps.build-version.outputs.complete }}.zip"
+          New-Item -path $destdir -force -itemtype Directory | Out-Null
+          Compress-Archive -path $targetdir -destinationpath $destdir -Force
 
       - name: Upload zipped artifacts
         id: upload-artifacts
