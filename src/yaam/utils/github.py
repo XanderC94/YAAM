@@ -3,7 +3,7 @@ Github API helper module
 '''
 
 import re
-from typing import List, Union
+from typing import List, Tuple, Union
 from datetime import datetime
 import requests
 # from requests.sessions import Session
@@ -47,7 +47,8 @@ class GithubRelease(Jsonkin):
             timestamp=json_obj.get('published_at', str()),
             is_draft=json_obj.get('draft', False),
             is_prerelease=json_obj.get('prerelease', False),
-            assets=[GithubAsset.from_json(_) for _ in json_obj.get('assets', list()) if "browser_download_url" in _]
+            assets=[GithubAsset.from_json(_) for _ in json_obj.get(
+                'assets', list()) if "browser_download_url" in _]
         )
 
 
@@ -138,6 +139,19 @@ class Github(object):
 
         return requests.head(url, **args)  # pylint: disable=W3101
 
+    def get_api_rate_limits(self, **kwargs) -> Tuple[int, int, int]:
+        '''
+        ...
+        '''
+
+        ratelimit_info = self.get("https://api.github.com/rate_limit", **kwargs)
+
+        remaining_api_calls = int(ratelimit_info.headers.get('x-ratelimit-remaining', -1))
+        used_api_calls = int(ratelimit_info.headers.get('x-ratelimit-used', -1))
+        epoch_until_reset = int(ratelimit_info.headers.get('x-ratelimit-reset', -1))
+
+        return (remaining_api_calls, used_api_calls, epoch_until_reset)
+    
     def __fetch_release_raw_assets(self, url: URI, **kwargs) -> Union[dict, list]:
         '''
         ...
@@ -145,18 +159,16 @@ class Github(object):
 
         raw_assets = dict()
 
-        ratelimit_info = self.get("https://api.github.com/rate_limit", **kwargs)
-
-        remaining_api_calls = ratelimit_info.headers.get('x-ratelimit-remaining', -1)
-        used_api_calls = ratelimit_info.headers.get('x-ratelimit-used', -1)
+        (remaining_api_calls, used_api_calls, epoch_until_reset) = self.get_api_rate_limits(**kwargs)
 
         logger().info(msg=f"Remaining Github API call tokens: {remaining_api_calls}")
         logger().debug(msg=f"Used Github API call tokens: {used_api_calls}")
 
-        epoch_until_reset = ratelimit_info.headers.get('x-ratelimit-reset', 0)
+        reset_date = "N/A"
         if epoch_until_reset > 0:
             reset_date = datetime.fromtimestamp(int(epoch_until_reset)).astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
-            logger().debug(msg=f"API call tokens will reset on {reset_date} ({epoch_until_reset})")
+
+        logger().debug(msg=f"API call tokens will reset on {reset_date} ({epoch_until_reset})")
 
         if remaining_api_calls > 0:
             response = self.get(url, **kwargs)  # pylint: disable=W3101
@@ -168,9 +180,11 @@ class Github(object):
                     raw_assets: dict = response.json()
 
                 else:
-                    raise GitHubException("Github API response not in JSON format")
+                    raise GitHubException(
+                        "Github API response not in JSON format")
             else:
-                raise GitHubException(f"Github API response returned with status code {response.status_code}")
+                raise GitHubException(f"Github API response returned with status code {
+                                      response.status_code}")
         else:
             raise GitHubException("Github API call limit reached")
 
@@ -197,7 +211,8 @@ class Github(object):
                 if len(tmp.assets) > 0:
                     release = tmp
         else:
-            raise GitHubException("Provided url is not a valid github api request for a latest release metadata")
+            raise GitHubException(
+                "Provided url is not a valid github api request for a latest release metadata")
 
         return release
 
@@ -218,15 +233,18 @@ class Github(object):
 
             if isinstance(raw_assets, list):
 
-                raw_assets = sorted(raw_assets, key=lambda x: x['published_at'], reverse=True)
+                raw_assets = sorted(
+                    raw_assets, key=lambda x: x['published_at'], reverse=True)
 
                 for raw_release_asset in raw_assets:
 
-                    release_asset: Release = GithubRelease.from_json(raw_release_asset)
+                    release_asset: Release = GithubRelease.from_json(
+                        raw_release_asset)
 
                     if len(release_asset.assets) > 0:
                         target_releases.append(release_asset)
         else:
-            raise GitHubException("Provided url is not a valid github api request for a release list metadata")
+            raise GitHubException(
+                "Provided url is not a valid github api request for a release list metadata")
 
         return target_releases
