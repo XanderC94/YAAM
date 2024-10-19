@@ -32,16 +32,10 @@ jobs:
           echo "git_rev=${{ github.sha }}" >> $env:GITHUB_OUTPUT
           echo "git_rev_short=$("${{ github.sha }}".substring(0, 8))" >> $env:GITHUB_OUTPUT
 
-      - name: Initialize MSVC developer tools
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: "x64"
-          toolset: "14.*"
-          
       - name: Set up Python distribution
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9.9"
+          python-version: "3.12.4"
           architecture: "x64"
           cache: pip
           
