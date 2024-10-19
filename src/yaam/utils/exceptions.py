@@ -3,7 +3,6 @@ Custom exception module
 '''
 from pathlib import Path
 import sys
-from typing import Any
 from yaam.utils.logger import static_logger as logger
 
 
