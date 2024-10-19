@@ -34,7 +34,7 @@ class AddonManager(object):
             }
         }
 
-    def initialize_metadata(self, addons: Iterable[Addon], prefetch_updates: bool, force_updates: bool, ignore_disabled: bool):
+    def initialize_metadata(self, addons: Iterable[Addon], prefetch_updates: bool, force_updates: bool):
         '''
         Initialize local and remote metadata
         '''
@@ -45,7 +45,7 @@ class AddonManager(object):
 
         if prefetch_updates:
             self.__metadata.load_remote_metadata(addons, False, **self.__default_request_args)
-            self.__updater.preload_addons_updates(addons, self.__metadata, ignore_disabled, force_updates, **self.__default_request_args)
+            self.__updater.preload_addons_updates(addons, self.__metadata, force_updates, **self.__default_request_args)
 
     def resolve_renames(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
         '''

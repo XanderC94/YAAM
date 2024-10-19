@@ -71,7 +71,7 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
             is_run_only = app_context.config.get_property(Option.RUN_STACK)
             # is_export_only = app_context.config.get_property(Option.EXPORT)
             prefetch_updates: bool = not is_run_only
-            ignore_disabled: bool = False
+            # ignore_disabled: bool = False
             force_updates: bool = (
                 app_context.config.get_property(Option.UPDATE_ADDONS)
                 and app_context.config.get_property(Option.FORCE_ACTION)
@@ -118,7 +118,7 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
                 meta_collector = MetadataCollector(http, game.context)
 
                 manager = AddonManager(meta_collector, addon_updater, curr_game_binding)
-                manager.initialize_metadata(addons_synthesis, prefetch_updates, force_updates, ignore_disabled)
+                manager.initialize_metadata(addons_synthesis, prefetch_updates, force_updates)
                 manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
                 manager.disable_addons(addons_synthesis, prev_addons_synthesis)
                 manager.restore_addons(addons_synthesis, prev_addons_synthesis)

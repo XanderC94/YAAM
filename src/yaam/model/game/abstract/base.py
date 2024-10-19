@@ -13,7 +13,6 @@ from yaam.model.mutable.addon import IAddon
 from yaam.model.mutable.addon_base import AddonBase
 from yaam.model.mutable.argument import Argument
 from yaam.model.mutable.binding import Binding
-from yaam.utils.exceptions import Found
 from yaam.utils.logger import static_logger as logger
 
 IYGS = IYaamGameSettings[AddonBase, Binding, Argument]
@@ -70,21 +69,23 @@ class AbstractGame(IGame[AddonBase, Binding]):
 
         # automated shader selection
         index = None
-        try:
-            shader_priority = [self.settings.binding_type, BindingType.AGNOSTIC]
-            for shader in shader_priority:
-                for (i, addon) in enumerate(addons_copy):
-                    if addon.base.is_shader and addon.binding.typing == shader and addon.binding.is_enabled:
-                        # first matching is chosen as shader
-                        raise Found(i)
-        except Found as found:
-            index = found.content
-        finally:
-            if index is None:
-                logger().info(msg="No compatible shader composition could be created. Disabling any enabled shader.")
 
+        shader_priority = [self.settings.binding_type, BindingType.AGNOSTIC]
+        for shader in shader_priority:
             for (i, addon) in enumerate(addons_copy):
-                if i != index and addon.base.is_shader and addon.binding.is_enabled:
-                    addon.binding.is_enabled = False
+                if addon.base.is_shader and addon.binding.typing == shader and addon.binding.is_enabled:
+                    # first matching is chosen as shader
+                    index = i
+                    break
+
+            if index is not None:
+                break
+
+        if index is None:
+            logger().info(msg="No compatible shader composition could be created. Disabling any enabled shader.")
+
+        for (i, addon) in enumerate(addons_copy):
+            if i != index and addon.base.is_shader and addon.binding.is_enabled:
+                addon.binding.is_enabled = False
 
         return addons_copy

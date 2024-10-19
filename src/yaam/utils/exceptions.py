@@ -52,13 +52,3 @@ class UpdateException(Exception):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
-
-
-class Found(Exception):
-    '''
-    Element found exception
-    '''
-
-    def __init__(self, obj: Any, *args) -> None:
-        super().__init__(*args)
-        self.content = obj

@@ -45,7 +45,7 @@ class AddonUpdater(object):
         super().__init__()
 
     def preload_addons_updates(self, addons: Iterable[Addon], metadata_collector: MetadataCollector,
-                               ignore_disabled: bool = False, force_update: bool = False, **kwargs) -> None:
+                               force_update: bool = False, **kwargs) -> None:
         '''
         Preload update data for the given addon collection
         '''
@@ -61,7 +61,7 @@ class AddonUpdater(object):
                 update_data.status = UpdateResult.INVALID_URL
             elif not _.binding.path.exists() or _.binding.is_updateable:
 
-                if not ignore_disabled or _.binding.is_enabled:
+                if force_update or (_.binding.is_enabled and _.binding.is_updateable):
                     update_data = self.__fetch_addon_updates(_, metadata_collector, force_update, **kwargs)
 
             else:
