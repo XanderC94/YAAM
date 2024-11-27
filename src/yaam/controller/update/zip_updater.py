@@ -37,9 +37,12 @@ class ZipUpdater(object):
 
         logger().debug(msg=f"Unpacking zipped {addon.base.name}...")
 
+        tmp_unpack_dir = unpack_dir / "tmp"
+        makedirs(tmp_unpack_dir, exist_ok=True)
+
         for item in content.filelist:
 
-            extraction_path = Path(content.extract(item, unpack_dir))
+            extraction_path = Path(content.extract(item, tmp_unpack_dir))
 
             is_single_root_folder_item = is_single_root_folder and root_dirs[0].rfind(extraction_path.parent.name) > -1
             is_root_item = item.filename in root_items or is_single_root_folder_item
@@ -78,30 +81,33 @@ class ZipUpdater(object):
                 # if is_single_root_folder:
                 #     is_single_root_folder_item = root_dirs[0].rfind(extraction_target.parent.name) > -1
                 #     # get relative path from single root dir
-                #     relative_target = extraction_target.relative_to(unpack_dir / root_dirs[0])
+                #     relative_target = extraction_target.relative_to(tmp_unpack_dir / root_dirs[0])
                 #     # apply to supposed unpack dir
-                #     extraction_target = extraction_target.replace(unpack_dir / relative_target)
+                #     extraction_target = extraction_target.replace(tmp_unpack_dir / relative_target)
 
                 # if the current non-dir item is in the root
                 # or is in the root of a single root zip
                 # that file can be renamed to the specified alias
                 target_path = extraction_path
                 # if item.filename in root_items or is_single_root_folder_item:
-                if rename_enabled and can_add_alias and extraction_path != (unpack_dir / curr_unpack_alias).resolve():
-                    target_path = (unpack_dir / curr_unpack_alias).resolve()
+                if rename_enabled and can_add_alias and extraction_path != (tmp_unpack_dir / curr_unpack_alias).resolve():
+                    target_path = (tmp_unpack_dir / curr_unpack_alias).resolve()
                     makedirs(target_path.parent, exist_ok=True)
                     target_path = extraction_path.replace(target_path)
 
-                logger().debug(msg=f"Unpacked {target_path.relative_to(unpack_dir)} to {unpack_dir}")
+                logger().debug(msg=f"Unpacked {target_path.relative_to(tmp_unpack_dir)} to {tmp_unpack_dir}")
 
                 # Add to or update the naming map (given or generated)
                 if can_add_alias and rename_enabled:
-                    self.naming[extraction_path.relative_to(unpack_dir)] = target_path.relative_to(unpack_dir)
+                    self.naming[extraction_path.relative_to(tmp_unpack_dir)] = target_path.relative_to(tmp_unpack_dir)
 
         if is_single_root_folder:
-            n_files = sum([len(fl) for rt, dr, fl in walk(unpack_dir / root_dirs[0])])
+            n_files = sum([len(fl) for rt, dr, fl in walk(tmp_unpack_dir / root_dirs[0])])
             if n_files == 0:
-                shutil.rmtree(unpack_dir / root_dirs[0])
+                shutil.rmtree(tmp_unpack_dir / root_dirs[0])
+
+        shutil.copytree(tmp_unpack_dir, unpack_dir, dirs_exist_ok=True)
+        shutil.rmtree(tmp_unpack_dir)
 
         ret_code = UpdateResult.UNPACKED
 
