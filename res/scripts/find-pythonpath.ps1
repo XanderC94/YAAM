@@ -1,3 +1,6 @@
+param (
+    [System.String]$projectdir
+)
 
 function Find-PythonPath {
     $pythonpath = ""
@@ -21,6 +24,12 @@ function Find-PythonPath {
         {
             foreach ($path in $foundlings) 
             {
+                if ((Test-Path -path $projectdir -PathType Container) -and ($path.StartsWith($projectdir)))
+                {
+                    # VENV...
+                    $path=@(Split-Path -Path $path -Parent)
+                }
+                
                 $parent=@(Split-Path -Path $path -Parent)
 
                 if (Test-Path -Path "$parent/Lib")

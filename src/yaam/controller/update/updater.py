@@ -104,10 +104,11 @@ class AddonUpdater(object):
                     # latest_release = next(filter(lambda x: not x.is_prerelease, releases), None)
                     # latest_pre_release = next(filter(lambda x: x.is_prerelease, releases), None)
 
-                    if len(remote_metadata.last_modified) == 0:
-                        remote_metadata.last_modified = release.timestamp
-
                     if isinstance(release, Release):
+
+                        if len(remote_metadata.last_modified) == 0:
+                            remote_metadata.last_modified = release.timestamp
+
                         logger().debug(msg=f"Latest release for {addon.base.name} is {release.name} of {release.timestamp}.")
                         logger().debug(msg=f"Latest release has {len(release.assets)} assets.")
 
@@ -132,7 +133,7 @@ class AddonUpdater(object):
 
                 # ETAG is apparently inconsistent for latest release in github api
                 # so the check is currently only done by means of the <last-modified> HTTP header tag
-                if len(local_metadata.last_modified) == 0 or compare_timestamp_str(remote_metadata.last_modified, local_metadata.last_modified) > 0:
+                if compare_timestamp_str(remote_metadata.last_modified, local_metadata.last_modified) > 0:
 
                     udpate_data.status = UpdateResult.TO_UPDATE
 
@@ -171,10 +172,15 @@ class AddonUpdater(object):
                     # since remote timestamp might be absent sometimes
                     remote_metadata.hash_signature = Hasher.SHA256.make_hash_from_bytes(udpate_data.http_response.content)
 
+                    logger().debug(msg=f"Local signature {local_metadata.hash_signature}.")
+                    logger().debug(msg=f"Remote signature {remote_metadata.hash_signature}.")
+
                     if remote_metadata.hash_signature != local_metadata.hash_signature:
                         udpate_data.status = UpdateResult.TO_UPDATE
+                        logger().debug(msg="Local and remote signatures are different. An update is required.")
                     else:
                         udpate_data.status = UpdateResult.UP_TO_DATE
+                        logger().debug(msg="Local and remote signatures match.")
 
                 elif udpate_data.http_response is None:
                     udpate_data.status = UpdateResult.HTTP_REQUEST_FAILED

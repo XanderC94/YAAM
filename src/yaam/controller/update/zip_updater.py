@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 from typing import Dict
 from zipfile import BadZipfile, ZipFile
-from requests.models import Response
+from requests import Response
 from yaam.controller.update.results import UpdateResult
 from yaam.utils.logger import static_logger as logger
 from yaam.model.mutable.addon import Addon

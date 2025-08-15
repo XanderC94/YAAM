@@ -16,7 +16,7 @@ $scripts_dir="$root/res/scripts"
 
 if ($pythonpath.Length -eq 0)
 {
-    $pythonpath=[System.String]@(."$scripts_dir/find-pythonpath.ps1")
+    $pythonpath=[System.String]@(."$scripts_dir/find-pythonpath.ps1" -projectdir $root)
     
     if ($pythonpath.Length -eq 0)
     {
@@ -24,6 +24,8 @@ if ($pythonpath.Length -eq 0)
         exit 1
     }
 }
+
+$ispythonvenv=".venv" -in $pythonpath
 
 Write-Output "Python path is $pythonpath"
 
@@ -127,7 +129,7 @@ $add_data = @(
     [pscustomobject]@{ 
         Target="$root/LICENSE"; 
         Destination="$build_location/LICENSE" 
-    },
+    }#,
     [pscustomobject]@{ 
         Target="$pythonpath/Lib/site-packages/orderedmultidict/__version__.py"; 
         Destination="$build_location/_internal/orderedmultidict/__version__.py" 
@@ -139,10 +141,6 @@ $params = @(
     "--version-file=$root/$temp_dir/YAAM_WINDOWS_VERSION_FILE.py",
     "--onedir"
     "--icon=$root/$icon_path",
-    # "--add-data=$root/$defaults_dir/*;./$defaults_dir",
-    # "--add-data=$root/README.md;.",
-    # "--add-data=$root/LICENSE;.",
-    # "--add-data=$pythonpath/Lib/site-packages/orderedmultidict/__version__.py;./orderedmultidict",
     "--distpath=$root/$output_dir",
     "--workpath=$root/$temp_dir",
     # "--log-level=DEBUG",
