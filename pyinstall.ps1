@@ -3,7 +3,7 @@ param (
     # [System.String]$compiler="msvc", # choose between msvc, mingw64 or llvm
     # [System.String]$msvc="latest", # msvc compiler version, e.g.: 14.3, 14.2, ... latest
     # [switch]$lto,
-    # [switch]$artifacts,
+    [switch]$artifacts,
     [switch]$backup,
     [System.String]$tag,
     [System.String]$revision,
@@ -25,7 +25,7 @@ if ($pythonpath.Length -eq 0)
     }
 }
 
-$ispythonvenv=".venv" -in $pythonpath
+# $ispythonvenv=".venv" -in $pythonpath
 
 Write-Output "Python path is $pythonpath"
 
@@ -49,11 +49,12 @@ Write-Output "YAAM $version"
 
 Write-Output "Workspace is $root"
 
+$builder="pyinstaller"
 $template_dir="res/template"
 $defaults_dir="res/default"
 $output_dir="bin"
 $temp_dir="tmp"
-# $artifacts_dir="artifacts/$builder"
+$artifacts_dir="artifacts/$builder"
 $target_name="yaam"
 $entrypoint_name="main"
 $entrypoint="src/$entrypoint_name.py"
@@ -189,4 +190,25 @@ if (Test-Path -path "$root/$temp_dir")
     Write-Output "Cleared $root/$temp_dir"
 }
 
-return $build_location
+$artifacts_location=$build_location
+
+# create artifacts
+if ($artifacts)
+{
+    $artifacts_dir="$root/$artifacts_dir"
+
+    if (-not (Test-Path -Path $artifacts_dir -PathType Container))
+    {
+        New-Item -Path $artifacts_dir -Force -ItemType Directory | Out-Null
+    }
+
+    $artifacts_destination="$artifacts_dir/$target_name-$builder-$version.zip"
+
+    Compress-Archive -Path $build_location -DestinationPath $artifacts_destination
+
+    $artifacts_location=$artifacts_destination
+
+    Write-Output "Created $artifacts_destination"
+}
+
+return $artifacts_location
