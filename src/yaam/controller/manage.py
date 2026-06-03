@@ -22,7 +22,7 @@ class AddonManager(object):
     def __init__(self, metadata: MetadataCollector, updater: AddonUpdater, binding_type: BindingType) -> None:
         self.__metadata = metadata
         self.__updater = updater
-        self.__binding_type = binding_type
+        # self.__binding_type = binding_type
 
         self.__default_request_args = {
             'timeout': 120,
@@ -111,9 +111,37 @@ class AddonManager(object):
 
         return naming_rules
 
-    def disable_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+    def update_disabled_addons_suffixes(self, addons: Iterable[Addon], old_disabled_suffix: str, new_disabled_suffix: str) -> int:
         '''
-        Overrides the typing of installed addons (.dll -> .dll.disabled)
+        Update the suffix of disabled addons to match the new one
+        @addons : Iterable[Addon] -- The list of addons to be updated (.dll only, .exe are filtered out)
+        @old_disabled_suffix : str -- The old suffix used to mark disabled addons
+        @new_disabled_suffix : str -- The new suffix used to mark disabled addons
+        '''
+
+        ret = 0
+        for addon in addons:
+            if not addon.binding.is_enabled:
+                if addon.binding.is_dll() or addon.binding.is_file():
+
+                    workspace = addon.binding.workspace
+
+                    naming_rules = self.__get_naming_rules(addon)
+
+                    for _ in naming_rules:
+                        path_disabled_old = workspace / f"{_}{old_disabled_suffix}"
+                        path_disabled_new = workspace / f"{_}{new_disabled_suffix}"
+
+                        if path_disabled_old.exists() and path_disabled_old.is_file():
+                            logger().info(msg=f"Addon {addon.base.name}({path_disabled_old.name}) will be renamed to match the new disabled suffix...")
+                            os.rename(str(path_disabled_old), str(path_disabled_new))
+                            ret += 1
+
+        return ret
+
+    def disable_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None, disabled_suffix: str = "_0") -> int:
+        '''
+        Overrides the typing of installed addons (.dll -> .dll_0)
         @addons : Iterable[Addon] -- The list of addons to be disabled (.dll only, .exe are filtered out)
         '''
 
@@ -139,7 +167,7 @@ class AddonManager(object):
                         path = workspace / _
 
                         can_disable = True
-                        path_disabled = Path(f"{path}.disabled")
+                        path_disabled = Path(f"{path}{disabled_suffix}")
                         if addon.base.is_shader:
                             # I need to match pointed shader path
                             # but most shaders share the same name
@@ -165,7 +193,7 @@ class AddonManager(object):
 
         return ret
 
-    def restore_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None) -> int:
+    def restore_addons(self, addons: Iterable[Addon], prev: Iterable[Addon] = None, disabled_suffix: str = "_0") -> int:
         '''
         Restore disabled addons.
         @addons : Iterable[Addon] -- The list of addons to be enabled (.dll only, .exe are filtered out)
@@ -183,7 +211,7 @@ class AddonManager(object):
                         path = workspace / _
 
                         can_enable = True
-                        path_disabled = Path(f"{path}.disabled")
+                        path_disabled = Path(f"{path}{disabled_suffix}")
                         if addon.base.is_shader:
                             # Disabled shaders doesn't need meta-information look-up
                             # since their extension is overridden and made unique

@@ -120,8 +120,9 @@ def run_yaam(app_context: AppContext, logger: logging.Logger):
                 manager = AddonManager(meta_collector, addon_updater, curr_game_binding)
                 manager.initialize_metadata(addons_synthesis, prefetch_updates, force_updates)
                 manager.resolve_renames(addons_synthesis, prev_addons_synthesis)
-                manager.disable_addons(addons_synthesis, prev_addons_synthesis)
-                manager.restore_addons(addons_synthesis, prev_addons_synthesis)
+                manager.update_disabled_addons_suffixes(addons_synthesis, ".disabled", "_0")
+                manager.disable_addons(addons_synthesis, prev_addons_synthesis, "_0")
+                manager.restore_addons(addons_synthesis, prev_addons_synthesis, "_0")
 
                 if not is_run_only:
                     manager.update_addons(addons_synthesis, force_updates)
